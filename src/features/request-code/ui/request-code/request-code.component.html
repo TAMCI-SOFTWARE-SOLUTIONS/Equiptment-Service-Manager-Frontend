@@ -1,0 +1,17 @@
+<form [formGroup]="requestCodeForm" (ngSubmit)="onSubmit()">
+  <input
+    pInputText
+    id="email"
+    formControlName="email"
+    placeholder="tu@email.com"
+    autocomplete="email"
+    type="email"
+  >
+
+  <p-button
+    label="Solicitar código"
+    type="submit"
+    [disabled]="requestCodeForm.invalid"
+    [loading]="requestCodeStore.isLoading()"
+  ></p-button>
+</form>
