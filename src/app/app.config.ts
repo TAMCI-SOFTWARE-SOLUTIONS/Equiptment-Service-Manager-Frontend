@@ -4,8 +4,21 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {providePrimeNG} from 'primeng/config';
-import Lara from '@primeuix/themes/lara';
+import Aura from '@primeuix/themes/aura';
 import {provideHttpClient} from '@angular/common/http';
+import {definePreset} from '@primeuix/themes';
+
+const BlueModern = definePreset(Aura, {
+  semantic: {
+    primary: {
+      50: '#eff6ff',
+      100: '#dbeafe',
+      500: '#3b82f6',
+      600: '#2563eb',
+      700: '#1d4ed8'
+    }
+  }
+});
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,7 +30,7 @@ export const appConfig: ApplicationConfig = {
     providePrimeNG({
       ripple: true,
       theme: {
-        preset: Lara,
+        preset: BlueModern,
         options: {
           prefix: 'p',
           darkModeSelector: 'light',
