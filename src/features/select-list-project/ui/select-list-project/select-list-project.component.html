@@ -1,20 +1,23 @@
-<main>
-  <section>
-    @for (project of selectListProjectStore.projects(); track project.id) {
-      <div
-        [ngClass]="{'selected': selectListProjectStore.projectSelectedId() == project.id}"
-      >
-        <app-project-with-banner-item
-          [project]="project"
-          (selectProject)="selectProject($event)"
-        />
-      </div>
-    }
-    @if (selectListProjectStore.projects().length === 0) {
-      <p>No hay proyectos disponibles</p>
-    }
+<main class ="project-page">
+  <section class ="group-label-cards">
+    <label class="label-simple">Selecciona la orden de servicio</label>
+    <section class="cards">
+      @for (project of selectListProjectStore.projects(); track project.id) {
+        <div
+          [ngClass]="{'selected': selectListProjectStore.projectSelectedId() == project.id}"
+        >
+          <app-project-with-banner-item
+            [project]="project"
+            (selectProject)="selectProject($event)"
+          />
+        </div>
+      }
+      @if (selectListProjectStore.projects().length === 0) {
+        <p>No hay proyectos disponibles</p>
+      }
+    </section>
   </section>
-  <section>
+  <section class ="group-btn">
     <p-button (onClick)="goBack()">Anterior</p-button>
     <p-button [disabled]="!selectListProjectStore.isAvailableButtonToContinue()">Siguiente</p-button>
   </section>
