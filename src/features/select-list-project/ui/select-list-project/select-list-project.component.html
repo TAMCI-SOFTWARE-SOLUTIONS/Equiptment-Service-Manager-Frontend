@@ -1,0 +1,21 @@
+<main>
+  <section>
+    @for (project of selectListProjectStore.projects(); track project.id) {
+      <div
+        [ngClass]="{'selected': selectListProjectStore.projectSelectedId() == project.id}"
+      >
+        <app-project-with-banner-item
+          [project]="project"
+          (selectProject)="selectProject($event)"
+        />
+      </div>
+    }
+    @if (selectListProjectStore.projects().length === 0) {
+      <p>No hay proyectos disponibles</p>
+    }
+  </section>
+  <section>
+    <p-button>Anterior</p-button>
+    <p-button [disabled]="!selectListProjectStore.isAvailableButtonToContinue()">Siguiente</p-button>
+  </section>
+</main>
