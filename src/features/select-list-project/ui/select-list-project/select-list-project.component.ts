@@ -5,7 +5,7 @@ import {ActivatedRoute} from '@angular/router';
 import {ProjectWithBannerItemComponent} from '../project-with-banner-item/project-with-banner-item.component';
 import {Button} from 'primeng/button';
 import {ProjectEntity} from '../../../../entities/project/model/project.entity';
-import {NgClass} from '@angular/common';
+import {Location, NgClass} from '@angular/common';
 
 @Component({
   selector: 'app-select-list-project',
@@ -23,6 +23,7 @@ export class SelectListProjectComponent implements OnInit{
   readonly selectListProjectStore = inject(SelectListProjectStore);
   readonly projectService = inject(ProjectService);
   readonly route = inject(ActivatedRoute);
+  private location = inject(Location);
 
   clientId: string | null = null;
 
@@ -64,5 +65,9 @@ export class SelectListProjectComponent implements OnInit{
   protected selectProject($event: ProjectEntity) {
     console.log('SelectListProjectComponent: selected project', $event);
     this.selectListProjectStore.setProjectSelected($event);
+  }
+
+  protected goBack() {
+    this.location.back();
   }
 }

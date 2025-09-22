@@ -15,7 +15,7 @@
     }
   </section>
   <section>
-    <p-button>Anterior</p-button>
+    <p-button (onClick)="goBack()">Anterior</p-button>
     <p-button [disabled]="!selectListProjectStore.isAvailableButtonToContinue()">Siguiente</p-button>
   </section>
 </main>
