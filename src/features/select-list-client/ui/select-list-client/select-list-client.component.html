@@ -1,0 +1,7 @@
+<main>
+  @for (client of selectListClientStore.clients(); track client.id) {
+    <app-client-with-banner-item
+      [client]="client"
+    />
+  }
+</main>
