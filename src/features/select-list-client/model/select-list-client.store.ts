@@ -12,6 +12,7 @@ const initialState: SelectListClientState = {
   isLoading: false,
   error: null,
   clients: [],
+  clientSelected: null,
 };
 
 export const SelectListClientStore = signalStore(

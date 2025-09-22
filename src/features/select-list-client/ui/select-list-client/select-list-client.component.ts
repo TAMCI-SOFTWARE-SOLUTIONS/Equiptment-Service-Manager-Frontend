@@ -1,5 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {SelectListClientStore} from '../../model/select-list-client.store';
+import {SelectListClientStore} from '../../model';
 import {ClientService} from '../../../../entities/client/api/client.service';
 import {ClientWithBannerItemComponent} from '../client-with-banner-item/client-with-banner-item.component';
 import {Button} from 'primeng/button';
