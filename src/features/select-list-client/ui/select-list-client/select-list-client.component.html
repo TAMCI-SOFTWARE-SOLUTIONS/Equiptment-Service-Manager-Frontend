@@ -1,12 +1,15 @@
-<main>
-  <section>
-    @for (client of selectListClientStore.clients(); track client.id) {
-      <app-client-with-banner-item
-        [client]="client"
-      />
-    }
+<main class ="main-page">
+  <section class ="group-label-cards">
+    <label class="label-simple">Selecciona el cliente</label>
+    <section class="cards">
+      @for (client of selectListClientStore.clients(); track client.id) {
+        <app-client-with-banner-item
+          [client]="client"
+        />
+      }
+    </section>
   </section>
-  <section>
+  <section class="group-btn">
     <p-button>Anterior</p-button>
     <p-button>Siguiente</p-button>
   </section>
