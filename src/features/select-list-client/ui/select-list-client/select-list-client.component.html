@@ -1,7 +1,13 @@
 <main>
-  @for (client of selectListClientStore.clients(); track client.id) {
-    <app-client-with-banner-item
-      [client]="client"
-    />
-  }
+  <section>
+    @for (client of selectListClientStore.clients(); track client.id) {
+      <app-client-with-banner-item
+        [client]="client"
+      />
+    }
+  </section>
+  <section>
+    <p-button>Anterior</p-button>
+    <p-button>Siguiente</p-button>
+  </section>
 </main>

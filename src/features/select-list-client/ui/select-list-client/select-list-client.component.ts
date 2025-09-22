@@ -2,11 +2,13 @@ import {Component, inject, OnInit} from '@angular/core';
 import {SelectListClientStore} from '../../model/select-list-client.store';
 import {ClientService} from '../../../../entities/client/api/client.service';
 import {ClientWithBannerItemComponent} from '../client-with-banner-item/client-with-banner-item.component';
+import {Button} from 'primeng/button';
 
 @Component({
   selector: 'app-select-list-client',
   imports: [
-    ClientWithBannerItemComponent
+    ClientWithBannerItemComponent,
+    Button
   ],
   providers: [SelectListClientStore],
   templateUrl: './select-list-client.component.html',
