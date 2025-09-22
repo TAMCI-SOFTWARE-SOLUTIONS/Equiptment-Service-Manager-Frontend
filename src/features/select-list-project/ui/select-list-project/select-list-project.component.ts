@@ -1,7 +1,7 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {SelectListProjectStore} from '../../model';
 import {ProjectService} from '../../../../entities/project/api/project.service';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {ProjectWithBannerItemComponent} from '../project-with-banner-item/project-with-banner-item.component';
 import {Button} from 'primeng/button';
 import {ProjectEntity} from '../../../../entities/project/model/project.entity';
@@ -23,6 +23,7 @@ export class SelectListProjectComponent implements OnInit{
   readonly selectListProjectStore = inject(SelectListProjectStore);
   readonly projectService = inject(ProjectService);
   readonly route = inject(ActivatedRoute);
+  readonly router = inject(Router);
   private location = inject(Location);
 
   clientId: string | null = null;
@@ -65,6 +66,13 @@ export class SelectListProjectComponent implements OnInit{
   protected selectProject($event: ProjectEntity) {
     console.log('SelectListProjectComponent: selected project', $event);
     this.selectListProjectStore.setProjectSelected($event);
+  }
+
+  protected navigateToServiceList() {
+    const projectId = this.selectListProjectStore.projectSelectedId();
+    if (projectId) {
+      this.router.navigate(['/projects', projectId, 'services']).then(() => {});
+    }
   }
 
   protected goBack() {
