@@ -3,14 +3,27 @@
     <label class="label-simple">Selecciona el cliente</label>
     <section class="cards">
       @for (client of selectListClientStore.clients(); track client.id) {
-        <app-client-with-banner-item
-          [client]="client"
-        />
+        <div
+          [ngClass]="{'selected': selectListClientStore.clientSelectedId() == client.id}"
+          >
+          <app-client-with-banner-item
+            [client]="client"
+            (selectClient)="onSelectClient($event)"
+          />
+        </div>
+      }
+      @if (selectListClientStore.clients().length === 0) {
+        <p>No hay clientes disponibles</p>
       }
     </section>
   </section>
   <section class="group-btn">
-    <p-button>Anterior</p-button>
-    <p-button>Siguiente</p-button>
+    <p-button
+      (onClick)="goBack()"
+    >Anterior</p-button>
+    <p-button
+      [disabled]="!selectListClientStore.isAvailableButtonToContinue()"
+      (onClick)="navigateToProjectList()"
+    >Siguiente</p-button>
   </section>
 </main>

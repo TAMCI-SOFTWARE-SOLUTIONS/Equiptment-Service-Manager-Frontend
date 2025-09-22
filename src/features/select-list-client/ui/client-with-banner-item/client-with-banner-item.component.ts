@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
 import {ClientEntity} from '../../../../entities/client/model';
 import {FileService} from '../../../../entities/file/api/file.service';
 import {Card} from 'primeng/card';
@@ -17,6 +17,8 @@ export class ClientWithBannerItemComponent implements OnInit{
 
   @Input() client!: ClientEntity;
   imageUrl: string | null = null;
+
+  @Output() selectClient: EventEmitter<ClientEntity> = new EventEmitter();
 
   ngOnInit(): void {
     this.loadImage();
@@ -37,5 +39,9 @@ export class ClientWithBannerItemComponent implements OnInit{
         this.imageUrl = null;
       }
     });
+  }
+
+  protected onSelectClient() {
+    this.selectClient.emit(this.client);
   }
 }
