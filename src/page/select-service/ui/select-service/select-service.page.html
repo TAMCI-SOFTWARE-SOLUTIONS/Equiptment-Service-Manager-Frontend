@@ -1,0 +1,20 @@
+<main>
+  <section>
+    @for (service of services; track service.id) {
+      <div
+        class="service-option"
+        [ngClass]="{'selected': serviceSelected() === service.id}"
+        (click)="selectService(service.id)"
+      >
+        {{ service.name }}
+      </div>
+    }
+  </section>
+  <section>
+    <p-button (onClick)="goBack()">Anterior</p-button>
+    <p-button
+      [disabled]="!isServiceSelected()"
+      (onClick)="navigateToEquipments()"
+    >Siguiente</p-button>
+  </section>
+</main>
