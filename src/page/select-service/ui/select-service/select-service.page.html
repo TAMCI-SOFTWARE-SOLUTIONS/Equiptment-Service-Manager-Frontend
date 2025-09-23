@@ -1,16 +1,24 @@
-<main>
-  <section>
-    @for (service of services; track service.id) {
-      <div
-        class="service-option"
-        [ngClass]="{'selected': serviceSelected() === service.id}"
-        (click)="selectService(service.id)"
-      >
-        {{ service.name }}
-      </div>
-    }
+<main class="service-page">
+  <section class="group-label-cards">
+    <label class="label-simple" >
+      Seleccionar servicio
+    </label>
+    <section class="cards">
+      @for (service of services; track service.id) {
+        <div
+          [style.background-image]="'url(' + service.imageSrc + ')'"
+          [style.background-size]="'cover'"
+          [style.background-position]="'center'"
+          class="service-option"
+          [ngClass]="{'selected': serviceSelected() === service.id}"
+          (click)="selectService(service.id)"
+        >
+          {{ service.name }}
+        </div>
+      }
+    </section>
   </section>
-  <section>
+  <section class="group-btn">
     <p-button (onClick)="goBack()">Anterior</p-button>
     <p-button
       [disabled]="!isServiceSelected()"

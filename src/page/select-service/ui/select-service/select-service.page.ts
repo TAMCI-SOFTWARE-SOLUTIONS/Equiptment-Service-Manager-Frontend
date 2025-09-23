@@ -8,6 +8,7 @@ interface Service {
   id: ServiceTypeEnum;
   name: string;
   description: string;
+  imageSrc: string;
 }
 
 @Component({
@@ -29,9 +30,9 @@ export class SelectServicePage implements OnInit{
   serviceSelected = signal<ServiceTypeEnum | null> ( null);
   isServiceSelected = computed<boolean>(() => this.serviceSelected() !== null);
   readonly services: Service[] = [
-    { id: ServiceTypeEnum.MAINTENANCE, name: 'Mantenimiento', description: 'Servicios de mantenimiento para asegurar el correcto funcionamiento de sus sistemas.' },
-    { id: ServiceTypeEnum.INSPECTION, name: 'Inspección', description: 'Servicios de inspección para evaluar el estado y desempeño de sus equipos.' },
-    { id: ServiceTypeEnum.RAISE_OBSERVATION, name: 'Levantamiento de Observaciones', description: 'Servicios para reportar y gestionar observaciones técnicas.' },
+    { id: ServiceTypeEnum.MAINTENANCE, name: 'Mantenimiento', description: 'Servicios de mantenimiento para asegurar el correcto funcionamiento de sus sistemas.', imageSrc: '/assets/images/mantenimiento.jpg' },
+    { id: ServiceTypeEnum.INSPECTION, name: 'Inspección', description: 'Servicios de inspección para evaluar el estado y desempeño de sus equipos.', imageSrc: '/assets/images/inspeccion.jpg' },
+    { id: ServiceTypeEnum.RAISE_OBSERVATION, name: 'Levantamiento de Observaciones', description: 'Servicios para reportar y gestionar observaciones técnicas.', imageSrc:'/assets/images/levantamiento-observacion.jpg' },
   ]
 
   ngOnInit(): void {
