@@ -3,7 +3,7 @@ import {InputIcon, InputIconModule} from 'primeng/inputicon';
 import {IconField, IconFieldModule} from 'primeng/iconfield';
 import {InputText} from 'primeng/inputtext';
 import {FormsModule} from '@angular/forms';
-import {EquipmentSearchStore} from '../../model/equipment-search.store';
+import {EquipmentSearchStore} from '../../model';
 
 @Component({
   selector: 'app-search-input',

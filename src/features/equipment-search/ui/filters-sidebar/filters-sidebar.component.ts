@@ -1,7 +1,7 @@
 import {Component, inject} from '@angular/core';
 import {DrawerModule} from 'primeng/drawer';
 import {Button} from 'primeng/button';
-import {EquipmentSearchStore} from '../../model/equipment-search.store';
+import {EquipmentSearchStore} from '../../model';
 import {MultiSelect} from 'primeng/multiselect';
 import {CabinetTypeEntity} from '../../../../entities/cabinet-type/model';
 import {FormsModule} from '@angular/forms';

@@ -2,7 +2,7 @@ import {Component, inject, OnInit} from '@angular/core';
 import {SearchInputComponent} from '../search-input/search-input.component';
 import {FiltersSidebarComponent} from '../filters-sidebar/filters-sidebar.component';
 import {SearchResultsComponent} from '../search-results/search-results.component';
-import {EquipmentSearchStore} from '../../model/equipment-search.store';
+import {EquipmentSearchStore} from '../../model';
 import {ProjectService} from '../../../../entities/project/api/project.service';
 import {CabinetService} from '../../../../entities/cabinet/api';
 import {ActivatedRoute} from '@angular/router';

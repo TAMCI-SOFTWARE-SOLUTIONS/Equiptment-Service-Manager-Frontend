@@ -2,7 +2,7 @@ import {Component, inject} from '@angular/core';
 import {CabinetEntity} from '../../../../entities/cabinet/model';
 import {Divider} from 'primeng/divider';
 import {NgClass} from '@angular/common';
-import {EquipmentSearchStore} from '../../model/equipment-search.store';
+import {EquipmentSearchStore} from '../../model';
 
 @Component({
   selector: 'app-search-results',
