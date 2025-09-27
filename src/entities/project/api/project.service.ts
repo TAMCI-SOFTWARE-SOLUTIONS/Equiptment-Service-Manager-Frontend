@@ -21,4 +21,12 @@ export class ProjectService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  public getById(projectId: string): Observable<ProjectEntity> {
+    return this.http.get<ProjectResponseDto>(`${this.resourcePath()}/${projectId}`, this.httpOptions).pipe(
+      map((project: ProjectResponseDto) => ProjectEntityFromResponseMapper.fromDtoToEntity(project)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
 }

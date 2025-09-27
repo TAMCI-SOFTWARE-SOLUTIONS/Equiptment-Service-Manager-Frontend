@@ -51,6 +51,8 @@ export class SelectServicePage implements OnInit{
     if (!this.projectId || !this.serviceSelected()) {
       return;
     }
-    // TODO: Navigate to equipment selection page
+    this.router.navigate(['/projects', this.projectId, 'equipments'], {
+      queryParams: { service: this.serviceSelected()?.toLocaleLowerCase() }
+    }).then(() => {});
   }
 }
