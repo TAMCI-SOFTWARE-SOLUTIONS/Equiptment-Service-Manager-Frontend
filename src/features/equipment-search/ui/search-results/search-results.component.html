@@ -1,0 +1,10 @@
+<section>
+  @for (cabinet of equipmentSearchStore.filteredCabinets(); track cabinet.id) {
+    <div
+      [ngClass]="{'selected': equipmentSearchStore.selectedCabinet()?.id == cabinet.id}"
+      (click)="onSelectCabinet(cabinet)">
+      <p>{{ cabinet.tag }}</p>
+    </div>
+    <p-divider/>
+  }
+</section>

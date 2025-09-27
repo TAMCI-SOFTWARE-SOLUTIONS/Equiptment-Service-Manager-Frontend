@@ -1,0 +1,19 @@
+<div class="card flex justify-center">
+  <p-drawer [(visible)]="visible" header="Filtros avanzados" position="right">
+    <p>Tipos de cabinetes:</p>
+    <p-multi-select
+      [options]="equipmentSearchStore.cabinetsTypes()"
+      [(ngModel)]="selectedCabinetTypes"
+      optionLabel="code"
+      placeholder="Seleccione tipos de cabinetes"
+      [maxSelectedLabels]="5"
+      display="chip"
+      class="select-filter"
+    />
+    <section>
+      <p-button label="Limpiar filtros" (click)="clearFilters()" icon="pi pi-times"/>
+      <p-button label="Aplicar filtros" (click)="applyFilters()" icon="pi pi-check" />
+    </section>
+  </p-drawer>
+  <p-button (click)="visible = true" icon="pi pi-filter" />
+</div>

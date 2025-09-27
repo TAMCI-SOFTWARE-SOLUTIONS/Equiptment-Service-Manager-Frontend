@@ -1,0 +1,9 @@
+<p-iconfield>
+  <p-inputicon class="pi pi-search" />
+  <input
+    type="text"
+    pInputText
+    [(ngModel)]="value"
+    (ngModelChange)="onInputChange($event)"
+    placeholder="Search" />
+</p-iconfield>
