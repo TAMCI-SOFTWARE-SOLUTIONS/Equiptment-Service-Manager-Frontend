@@ -1,0 +1,29 @@
+<section>
+  @if(equipmentSearchStore.hasCabinetTypeInProject()) {
+    @for (cabinet of equipmentSearchStore.filteredCabinets(); track cabinet.id; let i = $index) {
+      <div class ="cabinet-card"
+           [ngClass]="{
+        'selected': equipmentSearchStore.selectedCabinet()?.id == cabinet.id,
+        'bg-white': i % 2 === 0,
+        'bg-gray': i % 2 !== 0
+      }"
+           (click)="onSelectCabinet(cabinet)">
+        <p>{{ cabinet.tag }}</p>
+      </div>
+    }
+  }
+
+  @if(equipmentSearchStore.hasPanelTypeInProject()) {
+    @for (panel of equipmentSearchStore.filteredPanels(); track panel.id; let i = $index) {
+      <div class ="panel-card"
+           [ngClass]="{
+        'selected': equipmentSearchStore.selectedPanel()?.id == panel.id,
+        'bg-white': i % 2 === 0,
+        'bg-gray': i % 2 !== 0
+      }"
+           (click)="onSelectPanel(panel)">
+        <p>{{ panel.tag }}</p>
+      </div>
+    }
+  }
+</section>
