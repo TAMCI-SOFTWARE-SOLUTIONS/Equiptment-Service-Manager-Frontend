@@ -11,6 +11,16 @@
         display="chip"
         class="select-filter"
       />
+      <p>Areas:</p>
+      <p-multi-select
+        [options]="equipmentSearchStore.areas()"
+        [(ngModel)]="selectedAreas"
+        optionLabel="code"
+        placeholder="Seleccione areas"
+        [maxSelectedLabels]="5"
+        display="chip"
+        class="select-filter"
+      />
       <section class="group-btn">
         <p-button class="btnLimpiarFiltros" label="Limpiar filtros" (click)="clearFilters()" icon="pi pi-times"/>
         <p-button class="btnAplicarFiltros" label="Aplicar filtros" (click)="applyFilters()" icon="pi pi-check" />

@@ -3,13 +3,15 @@ import {ProjectEntity} from '../../../entities/project/model/project.entity';
 import {CabinetEntity} from '../../../entities/cabinet/model';
 import {computed} from '@angular/core';
 import {CabinetTypeEntity} from '../../../entities/cabinet-type/model';
+import {AreaEntity} from '../../../entities/area/model';
 
 interface EquipmentSearchState {
   searchTerm: string;
-  filterByArea: string | null;
   isLoading: boolean;
   error: string | null;
   project: ProjectEntity | null;
+  areas: AreaEntity[];
+  filterByAreas: AreaEntity[];
   cabinets: CabinetEntity[];
   selectedCabinet: CabinetEntity | null;
   cabinetsTypes: CabinetTypeEntity[];
@@ -18,10 +20,11 @@ interface EquipmentSearchState {
 
 const initialState: EquipmentSearchState = {
   searchTerm: '',
-  filterByArea: null,
   isLoading: false,
   error: null,
   project: null,
+  areas: [],
+  filterByAreas: [],
   cabinets: [],
   selectedCabinet: null,
   cabinetsTypes: [],
@@ -37,15 +40,16 @@ export const EquipmentSearchStore = signalStore(
     filteredCabinets: computed(() => {
       let cabinets = state.cabinets();
       const term = state.searchTerm().toLowerCase();
-      const area = state.filterByArea();
+      const areas = state.filterByAreas();
       const types = state.filterByCabinetTypes();
 
       if (term) {
         cabinets = cabinets.filter(cabinet => cabinet.tag.toLowerCase().includes(term));
       }
 
-      if (area) {
-        cabinets = cabinets.filter(cabinet => cabinet.areaId === area);
+      if (areas && areas.length > 0) {
+        const areaIds = areas.map(a => a.id);
+        cabinets = cabinets.filter(cabinet => areaIds.includes(cabinet.areaId));
       }
 
       if (types && types.length > 0) {
@@ -62,10 +66,12 @@ export const EquipmentSearchStore = signalStore(
     setError: (error: string | null) => patchState(store, { error, isLoading: false }),
     setSearchTerm: (term: string) => patchState(store, {searchTerm: term}),
     setProject: (project: ProjectEntity) => patchState(store, { project, isLoading: false, error: null}),
+    setAreas: (areas: AreaEntity[]) => patchState(store, { areas, isLoading: false, error: null}),
+    setFilterByAreas: (areas: AreaEntity[]) => patchState(store, { filterByAreas: areas }),
     setCabinets: (cabinets: CabinetEntity[]) => patchState(store, { cabinets, isLoading: false, error: null}),
     setSelectedCabinet: (cabinet: CabinetEntity | null) => patchState(store, { selectedCabinet: cabinet }),
     setCabinetsTypes: (types: CabinetTypeEntity[]) => patchState(store, { cabinetsTypes: types, isLoading: false, error: null}),
     setFilterByCabinetTypes: (types: CabinetTypeEntity[]) => patchState(store, { filterByCabinetTypes: types }),
-    cleanFilters: () => patchState(store, { filterByArea: null, filterByCabinetTypes: []})
+    cleanFilters: () => patchState(store, { filterByAreas: [], filterByCabinetTypes: [] })
   }))
 );

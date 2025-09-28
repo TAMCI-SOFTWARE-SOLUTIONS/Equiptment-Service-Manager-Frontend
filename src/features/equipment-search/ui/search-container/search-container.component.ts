@@ -9,6 +9,7 @@ import {ActivatedRoute} from '@angular/router';
 import {EquipmentTypeEnum} from '../../../../shared/model';
 import {FlowButtonsComponent} from '../flow-buttons/flow-buttons.component';
 import {CabinetTypeService} from '../../../../entities/cabinet-type/api';
+import {AreaService} from '../../../../entities/area/api';
 
 @Component({
   selector: 'app-search-container',
@@ -28,6 +29,7 @@ export class SearchContainerComponent  implements OnInit {
   readonly projectService = inject(ProjectService);
   readonly cabinetService = inject(CabinetService);
   readonly cabinetTypesService = inject(CabinetTypeService);
+  readonly areasService = inject(AreaService);
   readonly route = inject(ActivatedRoute);
 
   projectId: string | null = null;
@@ -56,11 +58,31 @@ export class SearchContainerComponent  implements OnInit {
       next: (project) => {
         console.log('SearchContainerComponent: fetched project', project);
         this.equipmentSearchStore.setProject(project);
+        this.getAllAreasByClientId();
         this.checkEquipmentType();
       },
       error: (error) => {
         this.equipmentSearchStore.setError('Error loading project');
         console.error('SearchContainerComponent: error fetching project', error);
+      }
+    });
+  }
+
+  private getAllAreasByClientId() {
+    const clientId = this.equipmentSearchStore.project()?.clientId;
+    if (!clientId) {
+      this.equipmentSearchStore.setError('Client ID is missing');
+      return;
+    }
+
+    this.areasService.getAllByClientId(clientId).subscribe({
+      next: (areas) => {
+        console.log('SearchContainerComponent: fetched areas', areas);
+        this.equipmentSearchStore.setAreas(areas);
+      },
+      error: (error) => {
+        this.equipmentSearchStore.setError('Error loading areas');
+        console.error('SearchContainerComponent: error fetching areas', error);
       }
     });
   }
