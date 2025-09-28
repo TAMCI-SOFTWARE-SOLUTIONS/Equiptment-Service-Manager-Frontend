@@ -1,0 +1,43 @@
+<form class="form" [formGroup]="sendCodeForm" (ngSubmit)="onSubmit()">
+  <button type="button" class="back-arrow" (click)="onBack()">
+    <i class="pi pi-arrow-left"></i>
+  </button>
+
+  <section class="group-code">
+    <h4 class="title-form">Se ha enviado un código al correo</h4>
+    @if (email) {
+      <p class="email-text">{{ email }}</p>
+    }
+
+    <label class="label-code">
+      Código de Verificación
+    </label>
+
+    <p-inputotp
+      id="code"
+      formControlName="code"
+      [length]="6"
+      [integerOnly]="true"
+      class="input-otp">
+    </p-inputotp>
+
+    @if (showErrors) {
+      <div class="error-message">
+        @if (codeControl.errors?.['required']) {
+          <small>El código es obligatorio.</small>
+        }
+        @if (codeControl.errors?.['minlength']) {
+          <small>El código debe tener 6 caracteres.</small>
+        }
+      </div>
+    }
+  </section>
+
+  <p-button
+    class="btn-send"
+    label="Verificar Código"
+    type="submit"
+    [disabled]="sendCodeForm.invalid"
+    [loading]="sendCodeStore.isLoading()">
+  </p-button>
+</form>
