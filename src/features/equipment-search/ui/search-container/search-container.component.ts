@@ -154,4 +154,12 @@ export class SearchContainerComponent  implements OnInit {
       }
     });
   }
+
+  onBack() {
+    window.history.back();
+  }
+
+  onNext() {
+    // TODO: Implement navigation to the next step
+  }
 }

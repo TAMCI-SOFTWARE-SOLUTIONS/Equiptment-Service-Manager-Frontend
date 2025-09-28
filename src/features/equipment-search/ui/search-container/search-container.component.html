@@ -6,7 +6,10 @@
   <main class="results">
     <app-search-results/>
     <section class="flow-buttons-container">
-      <app-flow-buttons/>
+      <app-flow-buttons
+        (back)="onBack()"
+        (next)="onNext()"
+      />
     </section>
   </main>
 </section>
