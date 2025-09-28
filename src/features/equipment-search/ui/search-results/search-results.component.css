@@ -1,0 +1,20 @@
+
+.cabinet-card, .panel-card {
+    padding: 16px;
+    border-top: 1px solid darkgrey;
+    border-bottom: 1px solid darkgrey;
+    p {
+      margin: 0;
+    }
+  }
+
+  .bg-white {
+    background-color: white;
+  }
+
+  .bg-gray {
+    background-color: lightgrey;
+  }
+.selected {
+  border: 3px solid dodgerblue;
+}

@@ -1,0 +1,6 @@
+export enum CabinetStatusEnum {
+  OPERATIVE = 'OPERATIVE',
+  STAND_BY = 'STAND_BY',
+  INOPERATIVE = 'INOPERATIVE',
+  RETIRED = 'RETIRED',
+}
