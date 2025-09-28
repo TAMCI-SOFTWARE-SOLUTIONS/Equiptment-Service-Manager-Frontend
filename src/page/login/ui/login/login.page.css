@@ -1,0 +1,22 @@
+.login-page{
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100vh;
+  background-image: url('../../../../../public/background-login.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  .login-form{
+    display: flex;
+    flex-direction: column;
+    height: 25%;
+    padding: 24px;
+    background: white;
+    border-radius: 10px 10px 0 0;
+    .form{
+      height: 100%;
+    }
+  }
+}
