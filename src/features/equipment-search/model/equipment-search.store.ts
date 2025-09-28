@@ -4,6 +4,8 @@ import {CabinetEntity} from '../../../entities/cabinet/model';
 import {computed} from '@angular/core';
 import {CabinetTypeEntity} from '../../../entities/cabinet-type/model';
 import {AreaEntity} from '../../../entities/area/model';
+import {PanelEntity} from '../../../entities/panel/model';
+import {PanelTypeEntity} from '../../../entities/panel-type/model';
 
 interface EquipmentSearchState {
   searchTerm: string;
@@ -12,10 +14,16 @@ interface EquipmentSearchState {
   project: ProjectEntity | null;
   areas: AreaEntity[];
   filterByAreas: AreaEntity[];
+
   cabinets: CabinetEntity[];
   selectedCabinet: CabinetEntity | null;
   cabinetsTypes: CabinetTypeEntity[];
   filterByCabinetTypes: CabinetTypeEntity[];
+
+  panels: PanelEntity[];
+  selectedPanel: PanelEntity | null;
+  panelsTypes: PanelTypeEntity[];
+  filterByPanelTypes: PanelTypeEntity[];
 }
 
 const initialState: EquipmentSearchState = {
@@ -28,7 +36,11 @@ const initialState: EquipmentSearchState = {
   cabinets: [],
   selectedCabinet: null,
   cabinetsTypes: [],
-  filterByCabinetTypes: []
+  filterByCabinetTypes: [],
+  panels: [],
+  selectedPanel: null,
+  panelsTypes: [],
+  filterByPanelTypes: []
 }
 
 export const EquipmentSearchStore = signalStore(
@@ -72,6 +84,10 @@ export const EquipmentSearchStore = signalStore(
     setSelectedCabinet: (cabinet: CabinetEntity | null) => patchState(store, { selectedCabinet: cabinet }),
     setCabinetsTypes: (types: CabinetTypeEntity[]) => patchState(store, { cabinetsTypes: types, isLoading: false, error: null}),
     setFilterByCabinetTypes: (types: CabinetTypeEntity[]) => patchState(store, { filterByCabinetTypes: types }),
+    setPanels: (panels: PanelEntity[]) => patchState(store, { panels, isLoading: false, error: null}),
+    setSelectedPanel: (panel: PanelEntity | null) => patchState(store, { selectedPanel: panel }),
+    setPanelsTypes: (types: PanelTypeEntity[]) => patchState(store, { panelsTypes: types, isLoading: false, error: null}),
+    setFilterByPanelTypes: (types: PanelTypeEntity[]) => patchState(store, { filterByPanelTypes: types }),
     cleanFilters: () => patchState(store, { filterByAreas: [], filterByCabinetTypes: [] })
   }))
 );

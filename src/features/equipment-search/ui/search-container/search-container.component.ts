@@ -10,6 +10,8 @@ import {EquipmentTypeEnum} from '../../../../shared/model';
 import {FlowButtonsComponent} from '../flow-buttons/flow-buttons.component';
 import {CabinetTypeService} from '../../../../entities/cabinet-type/api';
 import {AreaService} from '../../../../entities/area/api';
+import {PanelService} from '../../../../entities/panel/api/panel.service';
+import {PanelTypeService} from '../../../../entities/panel-type/api';
 
 @Component({
   selector: 'app-search-container',
@@ -29,6 +31,8 @@ export class SearchContainerComponent  implements OnInit {
   readonly projectService = inject(ProjectService);
   readonly cabinetService = inject(CabinetService);
   readonly cabinetTypesService = inject(CabinetTypeService);
+  readonly panelService = inject(PanelService);
+  readonly panelTypesService = inject(PanelTypeService);
   readonly areasService = inject(AreaService);
   readonly route = inject(ActivatedRoute);
 
@@ -92,6 +96,11 @@ export class SearchContainerComponent  implements OnInit {
       this.getCabinetTypes();
       this.getCabinets();
     }
+
+    if (this.equipmentSearchStore.project()?.allowedEquipmentTypes?.includes(EquipmentTypeEnum.PANEL)) {
+      this.getPanelTypes();
+      this.getPanels();
+    }
   }
 
   private getCabinets() {
@@ -116,6 +125,32 @@ export class SearchContainerComponent  implements OnInit {
       error: (error) => {
         this.equipmentSearchStore.setError('Error loading cabinet types');
         console.error('SearchContainerComponent: error fetching cabinet types', error);
+      }
+    });
+  }
+
+  private getPanels() {
+    this.panelService.getAll().subscribe({
+      next: (panels) => {
+        console.log('SearchContainerComponent: fetched panels', panels);
+        this.equipmentSearchStore.setPanels(panels);
+      },
+      error: (error) => {
+        this.equipmentSearchStore.setError('Error loading panels');
+        console.error('SearchContainerComponent: error fetching panels', error);
+      }
+    });
+  }
+
+  private getPanelTypes() {
+    this.panelTypesService.getAll().subscribe({
+      next: (types) => {
+        console.log('SearchContainerComponent: fetched panel types', types);
+        this.equipmentSearchStore.setPanelsTypes(types);
+      },
+      error: (error) => {
+        this.equipmentSearchStore.setError('Error loading panel types');
+        console.error('SearchContainerComponent: error fetching panel types', error);
       }
     });
   }
