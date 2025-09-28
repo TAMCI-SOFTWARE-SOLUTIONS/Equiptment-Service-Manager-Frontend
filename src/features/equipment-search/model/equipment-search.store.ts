@@ -6,6 +6,7 @@ import {CabinetTypeEntity} from '../../../entities/cabinet-type/model';
 import {AreaEntity} from '../../../entities/area/model';
 import {PanelEntity} from '../../../entities/panel/model';
 import {PanelTypeEntity} from '../../../entities/panel-type/model';
+import {EquipmentTypeEnum} from '../../../shared/model';
 
 interface EquipmentSearchState {
   searchTerm: string;
@@ -47,7 +48,24 @@ export const EquipmentSearchStore = signalStore(
   withState(initialState),
   withComputed((state) => ({
     hasProject: computed(() => state.project() != null),
+    areasByProjectEquipmentTypes: computed(() => {
+      const project = state.project();
+      const areas = state.areas();
+      if (!project) {
+        return [];
+      }
+      return areas.filter(area => area.allowedEquipmentTypes.some(type => project.allowedEquipmentTypes.includes(type)));
+    }),
+    hasPanelTypeInProject: computed(() => {
+      const project = state.project();
+      return project?.allowedEquipmentTypes.includes(EquipmentTypeEnum.PANEL) ?? false;
+    }),
+    hasCabinetTypeInProject: computed(() => {
+      const project = state.project();
+      return project?.allowedEquipmentTypes.includes(EquipmentTypeEnum.CABINET) ?? false;
+    }),
     cabinetsCount: computed(() => state.cabinets().length),
+    panelsCount: computed(() => state.panels().length),
     isSearchActive: computed(() => state.searchTerm().length > 0),
     filteredCabinets: computed(() => {
       let cabinets = state.cabinets();
@@ -70,7 +88,29 @@ export const EquipmentSearchStore = signalStore(
       }
 
       return cabinets;
-    })
+    }),
+    filteredPanels: computed(() => {
+      let panels = state.panels();
+      const term = state.searchTerm().toLowerCase();
+      const areas = state.filterByAreas();
+      const types = state.filterByPanelTypes();
+
+      if (term) {
+        panels = panels.filter(panel => panel.tag.toLowerCase().includes(term));
+      }
+
+      if (areas && areas.length > 0) {
+        const areaIds = areas.map(a => a.id);
+        panels = panels.filter(panel => areaIds.includes(panel.areaId));
+      }
+
+      if (types && types.length > 0) {
+        const typeCodes = types.map(t => t.code);
+        panels = panels.filter(panel => typeCodes.includes(panel.panelType));
+      }
+
+      return panels;
+    }),
   })),
   withMethods((store) => ({
     activateLoading: () => patchState(store, { isLoading: true }),
