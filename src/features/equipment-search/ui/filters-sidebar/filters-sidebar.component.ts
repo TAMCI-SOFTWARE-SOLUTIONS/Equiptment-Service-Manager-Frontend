@@ -6,6 +6,7 @@ import {MultiSelect} from 'primeng/multiselect';
 import {CabinetTypeEntity} from '../../../../entities/cabinet-type/model';
 import {FormsModule} from '@angular/forms';
 import {AreaEntity} from '../../../../entities/area/model';
+import {PanelTypeEntity} from '../../../../entities/panel-type/model';
 
 @Component({
   selector: 'app-filters-sidebar',
@@ -23,6 +24,7 @@ export class FiltersSidebarComponent {
   visible: boolean = false;
   readonly equipmentSearchStore = inject(EquipmentSearchStore);
 
+  selectedPanelTypes: PanelTypeEntity[] = [];
   selectedCabinetTypes: CabinetTypeEntity[] = [];
   selectedAreas: AreaEntity[] = [];
 
