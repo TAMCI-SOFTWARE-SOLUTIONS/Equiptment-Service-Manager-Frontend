@@ -1,3 +1,26 @@
 .select-filter {
   width: 100%;
 }
+.main-drawer{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 16px;
+  p {
+    margin: 0;
+  }
+  .group-btn{
+    display: flex;
+    flex-direction: column;
+    gap:16px;
+    margin-top:auto;
+    .btnAplicarFiltros{
+      display: flex;
+      justify-content: right;
+    }
+    .btnLimpiarFiltros{
+      display: flex;
+      justify-content: right;
+    }
+  }
+}
