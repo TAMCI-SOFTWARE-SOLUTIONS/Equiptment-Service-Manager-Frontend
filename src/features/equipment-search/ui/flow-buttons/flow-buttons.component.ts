@@ -1,5 +1,6 @@
-import {Component, EventEmitter, Output} from '@angular/core';
+import {Component, EventEmitter, inject, Output} from '@angular/core';
 import {Button} from 'primeng/button';
+import {EquipmentSearchStore} from '../../model';
 
 @Component({
   selector: 'app-flow-buttons',
@@ -13,6 +14,8 @@ import {Button} from 'primeng/button';
 export class FlowButtonsComponent {
    @Output() back = new EventEmitter<void>();
    @Output() next = new EventEmitter<void>();
+
+  readonly equipmentSearchStore = inject(EquipmentSearchStore);
 
    onGoBack() {
       this.back.emit();

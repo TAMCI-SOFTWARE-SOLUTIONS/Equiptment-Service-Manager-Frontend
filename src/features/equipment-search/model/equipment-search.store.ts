@@ -111,6 +111,21 @@ export const EquipmentSearchStore = signalStore(
 
       return panels;
     }),
+    isNextButtonDisabled: computed(() => {
+      const project = state.project();
+      if (!project) {
+        return true;
+      }
+      if (project.allowedEquipmentTypes.includes(EquipmentTypeEnum.CABINET) &&
+        state.selectedCabinet() == null) {
+        return true;
+      }
+      if (project.allowedEquipmentTypes.includes(EquipmentTypeEnum.PANEL) &&
+        state.selectedPanel() == null) {
+        return true;
+      }
+      return false;
+    })
   })),
   withMethods((store) => ({
     activateLoading: () => patchState(store, { isLoading: true }),
