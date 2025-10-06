@@ -3,6 +3,7 @@ import {LoginPage} from '../page/login/ui';
 
 export const routes: Routes = [
   { path: '', title: 'login', component: LoginPage },
+  { path: 'verify-otp', title: 'Verify OTP', loadComponent: () => import('../page/verify-opt/ui').then(m => m.VerifyOptPage) },
   { path: 'clients', title: 'Select Client', loadComponent: () => import('../page/select-client/ui').then(m => m.SelectClientPage) },
   { path: 'clients/:clientId/projects', title: 'Select Project', loadComponent: () => import('../page/select-project/ui').then(m => m.SelectProjectPage)},
   { path: 'projects/:projectId/services', title: 'Project Dashboard', loadComponent: () => import('../page/select-service/ui').then(m => m.SelectServicePage) },

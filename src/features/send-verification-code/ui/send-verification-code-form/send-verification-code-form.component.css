@@ -1,0 +1,76 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.back-arrow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 8px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #1a1a1a;
+  }
+
+  i {
+    display: block;
+  }
+}
+
+.group-code {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+
+  .title-form {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .email-text {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .label-code {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-top: 8px;
+  }
+
+  .input-otp {
+    width: 100%;
+  }
+
+  .error-message {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    small {
+      color: #dc2626;
+      font-size: 0.75rem;
+    }
+  }
+}
+
+.btn-send {
+  display: flex;
+  margin-top: auto;
+  justify-content: center;
+}

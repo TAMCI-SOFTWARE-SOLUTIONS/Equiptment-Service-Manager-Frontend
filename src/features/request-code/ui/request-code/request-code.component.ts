@@ -39,8 +39,7 @@ export class RequestCodeComponent {
         next: (response) => {
           this.requestCodeStore.setLoading(false);
           this.requestCodeStore.setCodeSent(true);
-          // TODO: Navigate to the verification page
-          console.log('Code sent successfully:', response);
+          this.router.navigate(['/verify-otp'], { queryParams: { email } }).then(() => {});
         },
         error: (error) => {
           this.requestCodeStore.setLoading(false);
