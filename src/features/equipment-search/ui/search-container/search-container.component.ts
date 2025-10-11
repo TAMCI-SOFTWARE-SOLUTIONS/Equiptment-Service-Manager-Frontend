@@ -5,7 +5,7 @@ import {SearchResultsComponent} from '../search-results/search-results.component
 import {EquipmentSearchStore} from '../../model';
 import {ProjectService} from '../../../../entities/project/api/project.service';
 import {CabinetService} from '../../../../entities/cabinet/api';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {EquipmentTypeEnum} from '../../../../shared/model';
 import {FlowButtonsComponent} from '../flow-buttons/flow-buttons.component';
 import {CabinetTypeService} from '../../../../entities/cabinet-type/api';
@@ -35,8 +35,11 @@ export class SearchContainerComponent  implements OnInit {
   readonly panelTypesService = inject(PanelTypeService);
   readonly areasService = inject(AreaService);
   readonly route = inject(ActivatedRoute);
+  readonly router = inject(Router);
 
   projectId: string | null = null;
+
+  serviceType: string | null = null;
 
   ngOnInit(): void {
     this.subscribeToRouteParams();
@@ -49,6 +52,8 @@ export class SearchContainerComponent  implements OnInit {
       if (this.projectId) {
         this.getProjectById();
       }
+      this.serviceType = this.route.snapshot.queryParamMap.get('service');
+      console.log('SearchContainerComponent: extracted serviceType from route', this.serviceType);
     });
   }
 
@@ -160,6 +165,25 @@ export class SearchContainerComponent  implements OnInit {
   }
 
   onNext() {
-    // TODO: Implement navigation to the next step
+    const selectedCabinet = this.equipmentSearchStore.selectedCabinet();
+    const selectedPanel = this.equipmentSearchStore.selectedPanel();
+    const projectId = this.projectId;
+
+    if (!projectId) {
+      console.error('SearchContainerComponent: Project ID is missing');
+      return;
+    }
+
+    if (this.equipmentSearchStore.hasCabinetTypeInProject() && selectedCabinet) {
+      this.router.navigate([`/projects/${projectId}/equipments/${selectedCabinet.id}/start-service`], {
+        queryParams: { "equipment-type": EquipmentTypeEnum.CABINET.toLowerCase(), service: this.serviceType }
+      }).then(() => {});
+    } else if (this.equipmentSearchStore.hasPanelTypeInProject() && selectedPanel) {
+      this.router.navigate([`/projects/${projectId}/equipments/${selectedPanel.id}/start-service`], {
+        queryParams: { "equipment-type": EquipmentTypeEnum.PANEL.toLowerCase(), service: this.serviceType }
+      }).then(() => {});
+    } else {
+      console.error('SearchContainerComponent: No equipment selected or invalid equipment type');
+    }
   }
 }
