@@ -1,0 +1,149 @@
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-surface-200 shadow-sm">
+  <div class="flex items-center justify-between h-16 px-4 lg:px-6">
+
+    <!-- Left Section: Menu Button + Context -->
+    <div class="flex items-center gap-3 flex-1 min-w-0">
+
+      <!-- Menu Toggle (Mobile) -->
+      <button
+        pRipple
+        (click)="onMenuClick()"
+        class="flex lg:hidden items-center justify-center w-10 h-10 rounded-lg text-surface-700 hover:bg-sky-50 transition-colors">
+        <i class="pi pi-bars text-xl"></i>
+      </button>
+
+      <!-- Logo (Desktop) -->
+      <div class="hidden lg:flex items-center gap-3">
+        <img src="/assets/images/logo-company.png" alt="Logo" class="h-8 w-auto" />
+        <span class="font-semibold text-lg text-surface-900">Sistema</span>
+      </div>
+
+      <!-- Separador -->
+      <div class="hidden lg:block h-8 w-px bg-surface-300"></div>
+
+      <!-- Context Selector: Cliente > Proyecto -->
+      <div class="relative">
+        <button
+          pRipple
+          (click)="toggleContextSelector()"
+          class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-sky-50 transition-colors min-w-0 max-w-md">
+
+          <!-- Icono de contexto -->
+          <i class="pi pi-building text-sky-600 shrink-0"></i>
+
+          <!-- Texto del contexto -->
+          <div class="flex flex-col items-start min-w-0 flex-1">
+            <span class="text-xs text-surface-500 font-medium leading-tight">
+              {{ clienteActual()?.name || 'Sin cliente' }}
+            </span>
+            <span class="text-sm font-semibold text-surface-900 truncate w-full">
+              {{ proyectoActual()?.name || 'Sin proyecto' }}
+            </span>
+          </div>
+
+          <!-- Chevron -->
+          <i class="pi pi-chevron-down text-xs text-surface-400 shrink-0 transition-transform"
+             [class.rotate-180]="showContextSelector()"></i>
+        </button>
+
+        <!-- Dropdown Menu -->
+        @if (showContextSelector()) {
+          <div class="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-surface-200 py-2 z-50"
+               (click)="$event.stopPropagation()">
+
+            <!-- Info actual -->
+            <div class="px-4 py-3 border-b border-surface-200">
+              <p class="text-xs text-surface-500 mb-1">Contexto actual</p>
+              <p class="font-semibold text-surface-900">{{ clienteActual()?.name }}</p>
+              <p class="text-sm text-surface-600">{{ proyectoActual()?.name }}</p>
+            </div>
+
+            <!-- Acción de cambiar -->
+            <button
+              pRipple
+              (click)="cambiarContexto()"
+              class="w-full flex items-center gap-3 px-4 py-3 hover:bg-sky-50 transition-colors text-left">
+              <i class="pi pi-sync text-sky-600"></i>
+              <span class="text-sm font-medium text-surface-700">
+                Cambiar Cliente/Proyecto
+              </span>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right Section: User Menu -->
+    <div class="flex items-center gap-3 relative">
+
+      <!-- User Avatar & Menu -->
+      <button
+        pRipple
+        (click)="toggleUserMenu()"
+        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-sky-50 transition-colors">
+        <p-avatar
+          [image]="usuarioActual.avatar"
+          shape="circle"
+          size="normal"
+          styleClass="w-9 h-9">
+        </p-avatar>
+        <div class="hidden md:flex flex-col items-start">
+          <span class="text-sm font-semibold text-surface-900 leading-tight">
+            {{ usuarioActual.nombre }}
+          </span>
+          <span class="text-xs text-surface-500">
+            {{ usuarioActual.rol }}
+          </span>
+        </div>
+        <i class="pi pi-chevron-down text-xs text-surface-400 hidden md:block"></i>
+      </button>
+
+      <!-- User Dropdown -->
+      @if (showUserMenu()) {
+        <div class="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-surface-200 py-2 z-50">
+
+          <!-- User Info -->
+          <div class="px-4 py-3 border-b border-surface-200">
+            <p class="font-semibold text-surface-900">{{ usuarioActual.nombre }}</p>
+            <p class="text-sm text-surface-600">{{ usuarioActual.rol }}</p>
+          </div>
+
+          <!-- Menu Items -->
+          <button
+            pRipple
+            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-sky-50 transition-colors text-left">
+            <i class="pi pi-user text-surface-600"></i>
+            <span class="text-sm text-surface-700">Mi Perfil</span>
+          </button>
+
+          <button
+            pRipple
+            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-sky-50 transition-colors text-left">
+            <i class="pi pi-cog text-surface-600"></i>
+            <span class="text-sm text-surface-700">Configuración</span>
+          </button>
+
+          <hr class="my-2 border-surface-200" />
+
+          <button
+            pRipple
+            (click)="cerrarSesion()"
+            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-red-600">
+            <i class="pi pi-sign-out"></i>
+            <span class="text-sm font-medium">Cerrar Sesión</span>
+          </button>
+        </div>
+      }
+    </div>
+
+  </div>
+</nav>
+
+<!-- Overlay para cerrar dropdowns al hacer click fuera -->
+@if (showContextSelector() || showUserMenu()) {
+  <div (click)="showContextSelector.set(false); showUserMenu.set(false)"
+       class="fixed inset-0 z-40"></div>
+}
+
+<!-- Spacer para evitar que el contenido quede debajo del topbar fijo -->
+<div class="h-16"></div>

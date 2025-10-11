@@ -21,4 +21,12 @@ export class ClientService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  getById(id: string): Observable<ClientEntity> {
+    return this.http.get<ClientEntity>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      map((client: ClientEntity) => ClientEntityFromResponseMapper.fromDtoToEntity(client)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
 }

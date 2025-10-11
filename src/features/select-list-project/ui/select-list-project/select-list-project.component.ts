@@ -6,6 +6,7 @@ import {ProjectWithBannerItemComponent} from '../project-with-banner-item/projec
 import {Button} from 'primeng/button';
 import {ProjectEntity} from '../../../../entities/project/model/project.entity';
 import {Location, NgClass} from '@angular/common';
+import {ContextStore} from '../../../../shared/model/context.store';
 
 @Component({
   selector: 'app-select-list-project',
@@ -21,6 +22,7 @@ import {Location, NgClass} from '@angular/common';
 })
 export class SelectListProjectComponent implements OnInit{
   readonly selectListProjectStore = inject(SelectListProjectStore);
+  readonly contextStore = inject(ContextStore);
   readonly projectService = inject(ProjectService);
   readonly route = inject(ActivatedRoute);
   readonly router = inject(Router);
@@ -69,9 +71,10 @@ export class SelectListProjectComponent implements OnInit{
   }
 
   protected navigateToServiceList() {
-    const projectId = this.selectListProjectStore.projectSelectedId();
-    if (projectId) {
-      this.router.navigate(['/projects', projectId, 'services']).then(() => {});
+    const project = this.selectListProjectStore.projectSelected!();
+    if (project) {
+      this.contextStore.setProject(project);
+      this.router.navigate(['/dashboard']).then(() => {});
     }
   }
 
