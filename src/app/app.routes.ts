@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { LoginPage } from '../page/login/ui';
 import { MainLayoutLayout } from './ui';
+import {authGuard} from '../shared/guards';
 
 export const routes: Routes = [
   // ==================== AUTH ====================
@@ -9,17 +10,11 @@ export const routes: Routes = [
     title: 'Iniciar Sesión',
     component: LoginPage
   },
-  {
-    path: 'verify-otp',
-    title: 'Verificar Código',
-    loadComponent: () => import('../page/verify-opt/ui').then(m => m.VerifyOptPage)
-  },
-
   // ==================== MAIN APP ====================
   {
     path: '',
     component: MainLayoutLayout,
-    // canActivate: [authGuard], // 🔒 TODO: Disable until authGuard is implemented
+    canActivate: [authGuard],
     children: [
 
       // --- Dashboard Principal ---
@@ -229,6 +224,6 @@ export const routes: Routes = [
   // ==================== 404 ====================
   {
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: 'login'
   }
 ];
