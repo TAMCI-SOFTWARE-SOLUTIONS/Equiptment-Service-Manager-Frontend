@@ -1,12 +1,14 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, APP_INITIALIZER } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {providePrimeNG} from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
-import {provideHttpClient} from '@angular/common/http';
 import {definePreset} from '@primeuix/themes';
+import { authenticationInterceptor } from '../shared/api/authentication.interceptor';
+import { AppInitializerService } from '../shared/services/app-initializer.service';
 
 const BlueModern = definePreset(Aura, {
   semantic: {
@@ -25,7 +27,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([authenticationInterceptor])),
     provideAnimationsAsync(),
     providePrimeNG({
       ripple: true,
@@ -37,6 +39,12 @@ export const appConfig: ApplicationConfig = {
           cssLayer: false
         }
       }
-    })
+    }),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (appInitializer: AppInitializerService) => () => appInitializer.initializeApp(),
+      deps: [AppInitializerService],
+      multi: true
+    }
   ]
 };
