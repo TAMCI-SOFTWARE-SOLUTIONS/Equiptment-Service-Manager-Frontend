@@ -21,4 +21,12 @@ export class CabinetService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  public getById(id: string): Observable<CabinetEntity> {
+    return this.http.get<CabinetResponseDto>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      map((cabinet: CabinetResponseDto) => CabinetEntityFromResponseMapper.fromDtoToEntity(cabinet)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
 }

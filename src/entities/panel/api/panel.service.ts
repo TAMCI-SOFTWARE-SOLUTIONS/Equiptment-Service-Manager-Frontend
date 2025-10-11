@@ -21,4 +21,12 @@ export class PanelService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  public getById(id: string): Observable<PanelEntity> {
+    return this.http.get<PanelResponseDto>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      map((panel: PanelResponseDto) => PanelEntityFromResponseMapper.fromDtoToEntity(panel)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
 }
