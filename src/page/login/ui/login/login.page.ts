@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import {RequestCodeComponent} from '../../../../features/request-code/ui';
+import { LoginFormFeature } from '../../../../features/login-form/ui';
 
 @Component({
   selector: 'app-login',
   imports: [
-    RequestCodeComponent
+    LoginFormFeature
   ],
   templateUrl: './login.page.html',
   standalone: true,
