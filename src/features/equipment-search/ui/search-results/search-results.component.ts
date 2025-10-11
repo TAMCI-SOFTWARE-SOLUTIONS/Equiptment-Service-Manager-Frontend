@@ -1,6 +1,5 @@
 import {Component, inject} from '@angular/core';
 import {CabinetEntity} from '../../../../entities/cabinet/model';
-import {Divider} from 'primeng/divider';
 import {NgClass} from '@angular/common';
 import {EquipmentSearchStore} from '../../model';
 import {PanelEntity} from '../../../../entities/panel/model';
@@ -8,7 +7,6 @@ import {PanelEntity} from '../../../../entities/panel/model';
 @Component({
   selector: 'app-search-results',
   imports: [
-    Divider,
     NgClass
   ],
   templateUrl: './search-results.component.html',
