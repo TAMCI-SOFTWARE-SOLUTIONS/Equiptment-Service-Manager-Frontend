@@ -108,6 +108,23 @@ export const routes: Routes = [
         loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentDetailPage)
       },
 
+      // ==================== PROJECTS ====================
+      {
+        path: 'projects',
+        title: 'Proyectos',
+        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectsPage)
+      },
+      {
+        path: 'projects/new',
+        title: 'Nuevo Proyecto',
+        loadComponent: () => import('../page/admin/ui').then(m => m.AdminProjectFormPage)
+      },
+      {
+        path: 'projects/:projectId',
+        title: 'Editar Proyecto',
+        loadComponent: () => import('../page/admin/ui').then(m => m.AdminProjectFormPage)
+      },
+
       // ==================== REPORTS ====================
 /*      {
         path: 'reports',

@@ -1,3 +1,3 @@
-import { ProjectsPage } from './projects/projects.page';
+import { ProjectsPage } from './projects';
 
 export { ProjectsPage };
