@@ -32,12 +32,12 @@ export const routes: Routes = [
       // ==================== CONTEXT SELECTION ====================
       // 🎯 Páginas de selección de contexto (ya existentes)
       {
-        path: 'clients',
+        path: 'select/client',
         title: 'Seleccionar Cliente',
         loadComponent: () => import('../page/select-client/ui').then(m => m.SelectClientPage)
       },
       {
-        path: 'clients/:clientId/projects',
+        path: 'select/client/:clientId/projects',
         title: 'Seleccionar Proyecto',
         loadComponent: () => import('../page/select-project/ui').then(m => m.SelectProjectPage)
       },
@@ -124,6 +124,13 @@ export const routes: Routes = [
           }
         ]
       },*/
+
+      // ==================== CLIENTS ====================
+      {
+        path: 'clients',
+        title: 'Clientes',
+        loadComponent: () => import('../page/clients/ui/clients/clients/clients.page').then(m => m.ClientsPage)
+      },
 
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators

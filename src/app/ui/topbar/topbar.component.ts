@@ -80,7 +80,7 @@ export class TopbarComponent {
 
   cambiarContexto(): void {
     this.showContextSelector.set(false);
-    this.router.navigate(['/clients']).then(() => {});
+    this.router.navigate(['/select/client']).then(() => {});
   }
 
   cerrarSesion(): void {
