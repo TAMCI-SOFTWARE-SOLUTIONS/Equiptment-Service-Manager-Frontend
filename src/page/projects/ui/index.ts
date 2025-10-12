@@ -1,4 +1,5 @@
-import { ProjectsPage } from './projects';
-import { ProjectNewPage } from './project-new';
+import { ProjectsPage } from './projects/projects.page';
+import { ProjectNewPage } from './project-new/project-new.page';
+import { ProjectEditPage } from './project-edit/project-edit.page';
 
-export { ProjectsPage, ProjectNewPage };
+export { ProjectsPage, ProjectNewPage, ProjectEditPage };
