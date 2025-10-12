@@ -1,11 +1,11 @@
 import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { CabinetService } from '../../../entities/cabinet/api/cabinet.service';
-import { PanelService } from '../../../entities/panel/api/panel.service';
+import { CabinetService } from '../../../entities/cabinet/api';
+import { PanelService } from '../../../entities/panel/api';
 import { CabinetEntity } from '../../../entities/cabinet/model';
 import { PanelEntity } from '../../../entities/panel/model';
-import { CabinetStatusEnum } from '../../../entities/cabinet/model/cabinet-status.enum';
-import { PanelStatusEnum } from '../../../entities/panel/model/panel-status.enum';
+import { CabinetStatusEnum } from '../../../entities/cabinet/model';
+import { PanelStatusEnum } from '../../../entities/panel/model';
 import { EquipmentTypeEnum } from '../../../shared/model';
 import { firstValueFrom } from 'rxjs';
 
@@ -419,8 +419,10 @@ export const EquipmentFormStore = signalStore(
             tag: store.formData().tag.trim(),
             areaId: store.formData().areaId,
             communicationProtocol: store.formData().communicationProtocol,
+            communicationProtocolId: null,
             cabinetType: store.formData().cabinetType!,
-            location: store.formData().location,
+            cabinetTypeId: null,
+            locationId: store.formData().location,
             status: store.formData().status as CabinetStatusEnum,
             createdAt: new Date(),
             updatedAt: null,

@@ -221,7 +221,7 @@ export const EquipmentsStore = signalStore(
             id: cabinet.id,
             type: EquipmentTypeEnum.CABINET,
             tag: cabinet.tag,
-            location: cabinet.location,
+            location: cabinet.locationId,
             status: cabinet.status,
             plantId: cabinet.plantId,
             areaId: cabinet.areaId,
