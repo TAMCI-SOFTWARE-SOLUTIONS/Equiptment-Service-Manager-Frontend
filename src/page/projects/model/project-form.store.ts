@@ -7,6 +7,7 @@ import {EquipmentTypeEnum} from '../../../shared/model';
 import {firstValueFrom} from 'rxjs';
 import {ProjectEntity} from '../../../entities/project/model/project.entity';
 import {ProjectStatusEnum} from '../../../entities/project/model/project-status.enum';
+import {FileService} from '../../../entities/file/api/file.service';
 
 export interface ProjectFormData {
   name: string;
@@ -97,6 +98,7 @@ export const ProjectFormStore = signalStore(
   withMethods((store) => {
     const projectService = inject(ProjectService);
     const clientService = inject(ClientService);
+    const fileService = inject(FileService);
 
     return {
       /**
@@ -301,6 +303,8 @@ export const ProjectFormStore = signalStore(
           };
         });
 
+        console.log(file);
+
         // Generar preview
         this.generatePreview(file);
       },
@@ -456,8 +460,12 @@ export const ProjectFormStore = signalStore(
           if (store.formData().bannerFile) {
             // Por ahora, establecer bannerFileId como null
             // Cuando esté disponible el servicio de archivos, implementar aquí
-            patchState(store, { isUploadingBanner: true });
-            // bannerFileId = await this.uploadBannerFile();
+            patchState(store, {isUploadingBanner: true});
+
+            const bannerEntity = await firstValueFrom(fileService.upload(store.formData().bannerFile!));
+
+            bannerFileId = bannerEntity!.id;
+
             patchState(store, { isUploadingBanner: false });
           }
 
@@ -476,6 +484,8 @@ export const ProjectFormStore = signalStore(
           };
 
           const newProject = await firstValueFrom(projectService.create(projectData));
+
+          console.log(newProject);
 
           patchState(store, {
             isSubmitting: false,
