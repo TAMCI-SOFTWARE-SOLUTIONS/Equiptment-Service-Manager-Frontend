@@ -26,7 +26,7 @@ export class AppInitializerService {
          console.log('User data refreshed');
 
          // Initialize profile store when user is authenticated
-         this.profileStore.initialize();
+         this.profileStore.initialize(this.authStore.userId()!);
          console.log('Profile store initialized');
        }
 

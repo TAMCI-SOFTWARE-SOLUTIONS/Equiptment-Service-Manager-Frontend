@@ -6,6 +6,7 @@ import {UserEntity} from '../../entities/user/model';
 import {StorageService} from '../services';
 import {RolesEnum} from '../../entities/role/model';
 import {AuthenticationService, SignInCredentials} from '../../entities/user/api';
+import {ProfileStore} from './profile.store';
 
 export interface AuthState {
   user: UserEntity | null;
@@ -40,6 +41,7 @@ export const AuthStore = signalStore(
     const storageService = inject(StorageService);
     const authService = inject(AuthenticationService);
     const router = inject(Router);
+    const profileStore = inject(ProfileStore);
     return {
       /*
        * Check if authenticated
@@ -148,6 +150,9 @@ export const AuthStore = signalStore(
               error: null
             });
 
+            // Initialize profile store after successful login
+            profileStore.initialize(user.id);
+
             await router.navigate(['/dashboard']);
           } else {
             patchState(store, {
@@ -170,6 +175,8 @@ export const AuthStore = signalStore(
        */
       signOut() {
         storageService.clearAuthData();
+        // Clear profile store
+        profileStore.clearProfile();
         patchState(store, {
           user: null,
           token: null,
@@ -229,6 +236,9 @@ export const AuthStore = signalStore(
               tokenValidated: true,
               error: null
             });
+
+            // Initialize profile store after user refresh
+            profileStore.initialize(user.id);
 
             await router.navigate(['/dashboard']);
           } else {

@@ -1,7 +1,6 @@
 import {computed, inject} from '@angular/core';
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
 import {firstValueFrom} from 'rxjs';
-import {AuthStore} from './auth.store';
 import {ProfileEntity, ProfileService} from '../../entities/profile';
 import {FileService} from '../../entities/file/api/file.service';
 
@@ -23,59 +22,48 @@ export const ProfileStore = signalStore(
   { providedIn: 'root' },
   withState<ProfileState>(initialState),
 
-  withComputed((state) => {
-    const authStore = inject(AuthStore);
-    return {
-      // Computed properties
-      fullName: computed(() => {
-        const profile = state.profile();
-        if (!profile) return null;
-        return `${profile.names} ${profile.firstSurname} ${profile.secondSurname}`.trim();
-      }),
+  withComputed((state) => ({
+    // Computed properties
+    fullName: computed(() => {
+      const profile = state.profile();
+      if (!profile) return null;
+      return `${profile.names} ${profile.firstSurname} ${profile.secondSurname}`.trim();
+    }),
 
-      displayName: computed(() => {
-        const profile = state.profile();
-        if (!profile) return null;
-        return `${profile.names} ${profile.firstSurname}`.trim();
-      }),
+    displayName: computed(() => {
+      const profile = state.profile();
+      if (!profile) return null;
+      return `${profile.names} ${profile.firstSurname}`.trim();
+    }),
 
-      userRole: computed(() => {
-        const profile = state.profile();
-        if (!profile) return 'Usuario';
-        // Aquí puedes mapear el género o algún campo del perfil a un rol
-        // Por ahora devolveremos un rol por defecto
-        return 'Usuario';
-      }),
+    userRole: computed(() => {
+      const profile = state.profile();
+      if (!profile) return 'Usuario';
+      // Aquí puedes mapear el género o algún campo del perfil a un rol
+      // Por ahora devolveremos un rol por defecto
+      return 'Usuario';
+    }),
 
-      userInitials: computed(() => {
-        const profile = state.profile();
-        if (!profile) return 'U';
-        return `${profile.names.charAt(0)}${profile.firstSurname.charAt(0)}`.toUpperCase();
-      }),
+    userInitials: computed(() => {
+      const profile = state.profile();
+      if (!profile) return 'U';
+      return `${profile.names.charAt(0)}${profile.firstSurname.charAt(0)}`.toUpperCase();
+    }),
 
-      hasProfile: computed(() => !!state.profile()),
-      hasProfileImage: computed(() => !!state.profileImageUrl()),
-      isProfileLoading: computed(() => state.isLoading()),
-
-      // Computed que depende del AuthStore
-      userId: computed(() => authStore.userId()),
-      isAuthenticated: computed(() => authStore.isAuthenticated())
-    };
-  }),
+    hasProfile: computed(() => !!state.profile()),
+    hasProfileImage: computed(() => !!state.profileImageUrl()),
+    isProfileLoading: computed(() => state.isLoading())
+  })),
 
   withMethods((store) => {
     const profileService = inject(ProfileService);
     const fileService = inject(FileService);
-    const authStore = inject(AuthStore);
 
     return {
       /**
-       * Cargar perfil del usuario actual
-       * Se ejecuta automáticamente cuando el usuario está autenticado
+       * Cargar perfil del usuario por userId
        */
-      async loadProfile(): Promise<void> {
-        const userId = authStore.userId();
-
+      async loadProfile(userId: string): Promise<void> {
         if (!userId) {
           patchState(store, {
             profile: null,
@@ -100,8 +88,8 @@ export const ProfileStore = signalStore(
             error: null
           });
 
-          // Cargar imagen del perfil si existe photoFileId
-          if (profile.photoFileId) {
+          // Cargar imagen del perfil si existe photoFileId válido
+          if (profile.photoFileId && profile.photoFileId.trim() !== '') {
             await this.loadProfileImage(profile.photoFileId);
           } else {
             patchState(store, { profileImageUrl: null });
@@ -120,17 +108,15 @@ export const ProfileStore = signalStore(
        * Cargar imagen del perfil usando el photoFileId
        */
       async loadProfileImage(photoFileId: string): Promise<void> {
-        if (!photoFileId) {
+        if (!photoFileId || photoFileId.trim() === '') {
           patchState(store, { profileImageUrl: null });
           return;
         }
 
         try {
-          // Verificar si el archivo existe primero
-          const fileExists = await firstValueFrom(fileService.fileExists(photoFileId));
+          const imageUrl = await firstValueFrom(fileService.viewFileAsUrl(photoFileId));
 
-          if (fileExists) {
-            const imageUrl = await firstValueFrom(fileService.viewFileAsUrl(photoFileId));
+          if (imageUrl) {
             patchState(store, { profileImageUrl: imageUrl });
           } else {
             patchState(store, { profileImageUrl: null });
@@ -144,8 +130,8 @@ export const ProfileStore = signalStore(
       /**
        * Actualizar perfil completo (perfil + imagen)
        */
-      async refreshProfile(): Promise<void> {
-        await this.loadProfile();
+      async refreshProfile(userId: string): Promise<void> {
+        await this.loadProfile(userId);
       },
 
       /**
@@ -153,8 +139,10 @@ export const ProfileStore = signalStore(
        */
       async refreshProfileImage(): Promise<void> {
         const profile = store.profile();
-        if (profile?.photoFileId) {
+        if (profile?.photoFileId && profile.photoFileId.trim() !== '') {
           await this.loadProfileImage(profile.photoFileId);
+        } else {
+          patchState(store, { profileImageUrl: null });
         }
       },
 
@@ -194,15 +182,11 @@ export const ProfileStore = signalStore(
       },
 
       /**
-       * Inicializar el store (se llama cuando el usuario se autentica)
+       * Inicializar el store con un userId específico
        */
-      initialize(): void {
-        // Suscribirse a cambios en la autenticación
-        authStore.isAuthenticated;
-
-        // Si el usuario está autenticado, cargar el perfil
-        if (authStore.isAuthenticated()) {
-          this.loadProfile().then(() => {});
+      initialize(userId: string): void {
+        if (userId) {
+          this.loadProfile(userId).then(() => {});
         } else {
           this.clearProfile();
         }
