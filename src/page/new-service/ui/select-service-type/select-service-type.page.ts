@@ -1,8 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Location, NgClass } from '@angular/common';
-import {ButtonDirective, ButtonIcon, ButtonLabel} from 'primeng/button';
+import { Location } from '@angular/common';
 import { ContextStore } from '../../../../shared/model/context.store';
+import {Ripple} from 'primeng/ripple';
 
 enum ServiceTypeEnum {
   MAINTENANCE = 'MAINTENANCE',
@@ -20,7 +20,7 @@ interface ServiceType {
 
 @Component({
   selector: 'app-select-service-type',
-  imports: [NgClass, ButtonDirective, ButtonLabel, ButtonIcon],
+  imports: [Ripple],
   templateUrl: './select-service-type.page.html',
   standalone: true
 })
