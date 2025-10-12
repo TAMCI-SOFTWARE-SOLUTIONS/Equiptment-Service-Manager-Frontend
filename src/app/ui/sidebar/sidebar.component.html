@@ -1,108 +1,56 @@
-<p-drawer #drawerRef [visible]="layoutStore.sidebarOpened()" (onHide)="layoutStore.closeSidebar()">
-  <ng-template #headless>
-    <div class="flex flex-col h-full bg-white">
+<!-- Mobile Drawer (solo visible en mobile cuando está abierto) -->
+<p-drawer
+  #drawerRef
+  [visible]="layoutStore.sidebarOpened() && layoutStore.isMobile()"
+  (onHide)="layoutStore.closeSidebar()"
+  [modal]="true"
+  [showCloseIcon]="false"
+  styleClass="w-80">
 
-      <!-- Header -->
-      <header class="flex items-center justify-between px-6 py-4 shrink-0 border-b border-surface-200">
-        <div class="flex items-center">
-          <img class="h-12 w-auto" src="/assets/images/logo-company.png" alt="Logo" />
+  <ng-template #headless>
+    <div class="flex h-full flex-col bg-white">
+
+      <!-- Header Mobile -->
+      <header class="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center gap-3">
+          <img class="h-12 w-auto" src="/assets/images/logo-company.png" alt="TAMC Logo" />
         </div>
-        <p-button
+        <button
+          pRipple
           type="button"
           (click)="layoutStore.closeSidebar()"
-          icon="pi pi-times"
-          [rounded]="true"
-          [text]="true"
-          severity="secondary"
-          styleClass="h-10 w-10">
-        </p-button>
+          class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+          <i class="pi pi-times text-lg"></i>
+        </button>
       </header>
 
       <!-- Navigation -->
       <nav class="flex-1 overflow-y-auto px-3 py-4">
         <ul class="space-y-1">
-
-          <!-- Menu Items -->
           @for (item of getVisibleMenuItems(); track item.label) {
             <li>
-
-              <!-- Item sin hijos (link directo) -->
-              @if (!item.children) {
-                <a pRipple
-                   [routerLink]="item.route"
-                   routerLinkActive="bg-sky-50 text-sky-700 font-semibold"
-                   [routerLinkActiveOptions]="{exact: false}"
-                   (click)="navigateAndClose(item.route)"
-                   class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-700 hover:bg-sky-50 transition-all duration-200 cursor-pointer group">
-                  <i [class]="'pi ' + item.icon + ' text-lg'"></i>
-                  <span class="flex-1">{{ item.label }}</span>
-                  @if (item.badge) {
-                    <span class="flex items-center justify-center min-w-[1.5rem] h-6 px-2 bg-sky-500 text-white text-xs font-semibold rounded-full">
-                      {{ item.badge }}
-                    </span>
-                  }
-                </a>
-              }
-
-              <!-- Item con hijos (sección expandible) -->
-              @if (item.children) {
-                <div>
-                  <button
-                    pRipple
-                    (click)="toggleSection(item)"
-                    class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-surface-700 hover:bg-sky-50 transition-all duration-200 cursor-pointer group">
-                    <i [class]="'pi ' + item.icon + ' text-lg'"></i>
-                    <span class="flex-1 text-left font-medium">{{ item.label }}</span>
-                    <i class="pi pi-chevron-down text-sm transition-transform duration-200"
-                       [class.rotate-180]="item.expanded"></i>
-                  </button>
-
-                  <!-- Submenu -->
-                  @if (item.expanded) {
-                    <ul class="mt-1 ml-4 space-y-1 border-l-2 border-sky-200 pl-4">
-                      @for (child of item.children; track child.label) {
-                        <li>
-                          <a pRipple
-                             [routerLink]="child.route"
-                             routerLinkActive="bg-sky-50 text-sky-700 font-semibold"
-                             [routerLinkActiveOptions]="{exact: false}"
-                             (click)="navigateAndClose(child.route)"
-                             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-sky-50 transition-all duration-200 cursor-pointer text-sm">
-                            <i [class]="'pi ' + child.icon + ' text-base'"></i>
-                            <span class="flex-1">{{ child.label }}</span>
-                            @if (child.badge) {
-                              <span class="flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 bg-sky-500 text-white text-xs font-semibold rounded-full">
-                                {{ child.badge }}
-                              </span>
-                            }
-                          </a>
-                        </li>
-                      }
-                    </ul>
-                  }
-                </div>
-              }
-
+              <ng-container *ngTemplateOutlet="menuItemTemplate; context: {$implicit: item}" />
             </li>
           }
-
         </ul>
       </nav>
 
-      <!-- Footer -->
-      <footer class="shrink-0 border-t border-surface-200">
-        <div class="flex items-center justify-around p-4">
+      <!-- Footer Mobile -->
+      <footer class="shrink-0 border-t border-gray-200 p-4">
+        <div class="flex items-center justify-around gap-2">
           <button
             pRipple
-            class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-surface-700 hover:bg-sky-50 transition-all duration-200 cursor-pointer">
-            <i class="pi pi-question-circle text-lg"></i>
-            <span class="font-medium text-sm">Ayuda</span>
+            type="button"
+            class="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <i class="pi pi-question-circle text-base"></i>
+            <span>Ayuda</span>
           </button>
           <button
             pRipple
-            class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-surface-700 hover:bg-sky-50 transition-all duration-200 cursor-pointer">
-            <i class="pi pi-cog text-lg"></i>
-            <span class="font-medium text-sm">Config</span>
+            type="button"
+            class="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <i class="pi pi-cog text-base"></i>
+            <span>Config</span>
           </button>
         </div>
       </footer>
@@ -110,3 +58,104 @@
     </div>
   </ng-template>
 </p-drawer>
+
+<!-- Desktop Sidebar (siempre visible en pantallas grandes) -->
+<aside class="hidden h-full w-64 flex-col border-r border-gray-200 bg-white lg:flex">
+  <!-- Navigation Desktop -->
+  <nav class="flex-1 overflow-y-auto px-3 py-4">
+    <ul class="space-y-1">
+      @for (item of getVisibleMenuItems(); track item.label) {
+        <li>
+          <ng-container *ngTemplateOutlet="menuItemTemplate; context: {$implicit: item}" />
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <!-- Footer Desktop -->
+  <footer class="shrink-0 border-t border-gray-200 p-4">
+    <div class="flex flex-col gap-1">
+      <button
+        pRipple
+        type="button"
+        class="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500">
+        <i class="pi pi-question-circle text-base"></i>
+        <span>Ayuda</span>
+      </button>
+      <button
+        pRipple
+        type="button"
+        class="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500">
+        <i class="pi pi-cog text-base"></i>
+        <span>Configuración</span>
+      </button>
+    </div>
+  </footer>
+
+</aside>
+
+<!-- Template reutilizable para items del menú -->
+<ng-template #menuItemTemplate let-item>
+
+  <!-- Item sin hijos (link directo) -->
+  @if (!item.children) {
+    <a
+      pRipple
+      [routerLink]="item.route"
+      routerLinkActive="bg-sky-50 text-sky-700 font-semibold"
+      [routerLinkActiveOptions]="{exact: false}"
+      (click)="navigateAndClose(item.route)"
+      class="group flex cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-all duration-200 hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+    <i [class]="'pi ' + item.icon + ' text-lg'"></i>
+    <span class="flex-1">{{ item.label }}</span>
+    @if (item.badge) {
+      <span class="flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-sky-500 px-2 text-xs font-semibold text-white">
+          {{ item.badge }}
+        </span>
+    }
+    </a>
+  }
+
+  <!-- Item con hijos (sección expandible) -->
+  @if (item.children) {
+    <div>
+      <button
+        pRipple
+        type="button"
+        (click)="toggleSection(item)"
+        [attr.aria-expanded]="item.expanded"
+        class="group flex w-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-all duration-200 hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+        <i [class]="'pi ' + item.icon + ' text-lg'"></i>
+        <span class="flex-1 text-left font-medium">{{ item.label }}</span>
+        <i class="pi pi-chevron-down text-sm transition-transform duration-200"
+           [class.rotate-180]="item.expanded"></i>
+      </button>
+
+      <!-- Submenu con animación slide -->
+      @if (item.expanded) {
+        <ul class="ml-4 mt-1 space-y-1 border-l-2 border-sky-200 pl-4 animate-in slide-in-from-top-2 fade-in duration-200">
+          @for (child of item.children; track child.label) {
+            <li>
+              <a
+              pRipple
+              [routerLink]="child.route"
+              routerLinkActive="bg-sky-50 text-sky-700 font-semibold"
+              [routerLinkActiveOptions]="{exact: false}"
+              (click)="navigateAndClose(child.route)"
+              class="group flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-600 transition-all duration-200 hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+              <i [class]="'pi ' + child.icon + ' text-base'"></i>
+              <span class="flex-1">{{ child.label }}</span>
+              @if (child.badge) {
+                <span class="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-sky-500 px-1.5 text-xs font-semibold text-white">
+                    {{ child.badge }}
+                  </span>
+              }
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+</ng-template>
