@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LayoutStore } from '../../../shared/model/layout.store';
 import { ContextStore } from '../../../shared/model/context.store';
+import { ProfileStore } from '../../../shared/stores';
+import { AuthStore } from '../../../shared/stores';
 import { Avatar } from 'primeng/avatar';
 import { Ripple } from 'primeng/ripple';
 
@@ -18,20 +20,26 @@ import { Ripple } from 'primeng/ripple';
   styleUrl: './topbar.component.css'
 })
 export class TopbarComponent {
-  readonly layoutStore = inject(LayoutStore);
-  readonly contextStore = inject(ContextStore);
-  private readonly router = inject(Router);
+   readonly layoutStore = inject(LayoutStore);
+   readonly contextStore = inject(ContextStore);
+   readonly profileStore = inject(ProfileStore);
+   readonly authStore = inject(AuthStore);
+   private readonly router = inject(Router);
 
-  // Usar directamente los signals del ContextStore
-  clienteActual = this.contextStore.client;
-  proyectoActual = this.contextStore.project;
+   // Usar directamente los signals del ContextStore
+   clienteActual = this.contextStore.client;
+   proyectoActual = this.contextStore.project;
 
-  // Usuario actual (mock - reemplaza con AuthService)
-  usuarioActual = {
-    nombre: 'Juan Pérez',
-    rol: 'Supervisor',
-    avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png'
-  };
+   // Usar ProfileStore para información del usuario
+   usuarioActual = {
+     nombre: this.profileStore.displayName,
+     rol: this.profileStore.userRole,
+     avatar: this.profileStore.profileImageUrl
+   };
+
+   // Signals para mostrar estados de carga
+   isProfileLoading = this.profileStore.isProfileLoading;
+   hasProfile = this.profileStore.hasProfile;
 
   // Control de dropdowns
   showContextSelector = signal(false);
@@ -61,9 +69,10 @@ export class TopbarComponent {
     // Limpiar el contexto guardado
     this.contextStore.clearContext();
 
-    // TODO: Implementar logout real (AuthService)
-    // this.authService.logout();
+    // Limpiar el perfil
+    this.profileStore.clearProfile();
 
-    this.router.navigate(['/login']);
+    // Usar AuthStore para cerrar sesión
+    this.authStore.signOut();
   }
 }

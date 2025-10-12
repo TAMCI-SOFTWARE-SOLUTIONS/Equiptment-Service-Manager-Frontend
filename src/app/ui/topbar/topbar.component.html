@@ -81,19 +81,46 @@
         pRipple
         (click)="toggleUserMenu()"
         class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-sky-50 transition-colors">
-        <p-avatar
-          [image]="usuarioActual.avatar"
-          shape="circle"
-          size="normal"
-          styleClass="w-9 h-9">
-        </p-avatar>
+        @if (isProfileLoading()) {
+          <p-avatar
+            shape="circle"
+            size="normal"
+            class="w-9 h-9"
+            [label]="'...'"
+            [style]="{'background-color': '#f3f4f6', 'color': '#6b7280'}">
+          </p-avatar>
+        } @else if (usuarioActual.avatar()) {
+          <p-avatar
+            image="{{usuarioActual.avatar()}}"
+            shape="circle"
+            size="normal"
+            class="w-9 h-9">
+          </p-avatar>
+        } @else {
+          <p-avatar
+            [label]="profileStore.userInitials()"
+            shape="circle"
+            size="normal"
+            class="w-9 h-9"
+            [style]="{'background-color': '#3b82f6', 'color': 'white'}">
+          </p-avatar>
+        }
         <div class="hidden md:flex flex-col items-start">
-          <span class="text-sm font-semibold text-surface-900 leading-tight">
-            {{ usuarioActual.nombre }}
-          </span>
-          <span class="text-xs text-surface-500">
-            {{ usuarioActual.rol }}
-          </span>
+          @if (isProfileLoading()) {
+            <span class="text-sm font-semibold text-surface-900 leading-tight">
+              Cargando...
+            </span>
+            <span class="text-xs text-surface-500">
+              Usuario
+            </span>
+          } @else {
+            <span class="text-sm font-semibold text-surface-900 leading-tight">
+              {{ usuarioActual.nombre() || 'Usuario' }}
+            </span>
+            <span class="text-xs text-surface-500">
+              {{ usuarioActual.rol() || 'Usuario' }}
+            </span>
+          }
         </div>
         <i class="pi pi-chevron-down text-xs text-surface-400 hidden md:block"></i>
       </button>
@@ -104,8 +131,13 @@
 
           <!-- User Info -->
           <div class="px-4 py-3 border-b border-surface-200">
-            <p class="font-semibold text-surface-900">{{ usuarioActual.nombre }}</p>
-            <p class="text-sm text-surface-600">{{ usuarioActual.rol }}</p>
+            @if (isProfileLoading()) {
+              <p class="font-semibold text-surface-900">Cargando...</p>
+              <p class="text-sm text-surface-600">Usuario</p>
+            } @else {
+              <p class="font-semibold text-surface-900">{{ usuarioActual.nombre() || 'Usuario' }}</p>
+              <p class="text-sm text-surface-600">{{ usuarioActual.rol() || 'Usuario' }}</p>
+            }
           </div>
 
           <!-- Menu Items -->
