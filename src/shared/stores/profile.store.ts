@@ -1,18 +1,11 @@
-import { computed, inject } from '@angular/core';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { firstValueFrom } from 'rxjs';
-import { ProfileEntity, ProfileService } from '../../entities/profile';
-import { FileService } from '../../entities/file/api/file.service';
-import { EventBusService } from '../services';
-import { EventNames } from '../events/event-names';
-import {
-  ProfileUpdatedPayload,
-  ProfileImageUpdatedPayload,
-  ProfileClearedPayload,
-  AuthLoginPayload,
-  AuthRefreshPayload,
-  AuthLogoutPayload
-} from '../events/event-payloads';
+import {computed, inject} from '@angular/core';
+import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
+import {firstValueFrom} from 'rxjs';
+import {ProfileEntity, ProfileService} from '../../entities/profile';
+import {FileService} from '../../entities/file/api/file.service';
+import {EventBusService} from '../services';
+import {EventNames} from '../events/event-names';
+import {ProfileClearedPayload, ProfileImageUpdatedPayload, ProfileUpdatedPayload} from '../events/event-payloads';
 
 export interface ProfileState {
   profile: ProfileEntity | null;
@@ -46,14 +39,6 @@ export const ProfileStore = signalStore(
       return `${profile.names} ${profile.firstSurname}`.trim();
     }),
 
-    userRole: computed(() => {
-      const profile = state.profile();
-      if (!profile) return 'Usuario';
-      // Aquí puedes mapear el género o algún campo del perfil a un rol
-      // Por ahora devolveremos un rol por defecto
-      return 'Usuario';
-    }),
-
     userInitials: computed(() => {
       const profile = state.profile();
       if (!profile) return 'U';
@@ -74,17 +59,9 @@ export const ProfileStore = signalStore(
      * Configure event listeners
      */
     void (() => {
-      eventBus.on(EventNames.AUTH_LOGIN, (data: AuthLoginPayload) => {
-        if (data.userId) {methods.loadProfile(data.userId).then(() => {});}
-      });
-
-      eventBus.on(EventNames.AUTH_REFRESH, (data: AuthRefreshPayload) => {
-        if (data.userId) {methods.loadProfile(data.userId).then(() => {});}
-      });
-
-      eventBus.on(EventNames.AUTH_LOGOUT, (_: AuthLogoutPayload) => {
-        methods.clearProfile();
-      });
+      // Add Events when this is ready
+      // Be careful with the order of these events
+      // as they may depend on each other
     })();
 
     const methods = {
@@ -156,6 +133,8 @@ export const ProfileStore = signalStore(
           patchState(store, { profileImageUrl: null });
           return;
         }
+
+        console.log('photo:', photoFileId);
 
         console.log('🔄 ProfileStore - Cargando imagen del perfil:', photoFileId);
 
