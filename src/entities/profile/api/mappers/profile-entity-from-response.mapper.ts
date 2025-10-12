@@ -12,7 +12,7 @@ export class ProfileEntityFromResponseMapper {
       secondSurname: dto.secondSurname ?? '',
       photoFileId: dto.photoFileId ?? '',
       email: dto.email ?? '',
-      gender: GenderMapper.fromStringToEnum(dto.gender ?? ''),
+      gender: GenderMapper.mapStringToGender(dto.gender ?? ''),
     };
   }
 }
