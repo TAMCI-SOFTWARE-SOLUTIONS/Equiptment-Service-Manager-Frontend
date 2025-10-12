@@ -1,8 +1,8 @@
 import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { ClientService } from '../../../../../entities/client/api';
-import { ClientEntity } from '../../../../../entities/client/model';
-import {FileService} from '../../../../../entities/file/api/file.service';
+import { ClientService } from '../../../entities/client/api';
+import { ClientEntity } from '../../../entities/client/model';
+import {FileService} from '../../../entities/file/api/file.service';
 import {firstValueFrom} from 'rxjs';
 
 export interface ClientWithImages extends ClientEntity {

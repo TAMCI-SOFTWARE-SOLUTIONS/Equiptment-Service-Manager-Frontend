@@ -129,7 +129,12 @@ export const routes: Routes = [
       {
         path: 'clients',
         title: 'Clientes',
-        loadComponent: () => import('../page/clients/ui/clients/clients/clients.page').then(m => m.ClientsPage)
+        loadComponent: () => import('../page/clients/ui/clients/clients.page').then(m => m.ClientsPage)
+      },
+      {
+        path: 'clients/new',
+        title: 'Nuevo Cliente',
+        loadComponent: () => import('../page/clients/ui/client-new/client-new.page').then(m => m.ClientNewPage)
       },
 
       // ==================== ADMINISTRATION ====================

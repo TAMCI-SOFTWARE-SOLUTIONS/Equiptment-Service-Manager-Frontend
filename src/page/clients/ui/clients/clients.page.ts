@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ClientsStore } from '../model/clients.store';
+import { ClientsStore } from '../../model';
 import { Ripple } from 'primeng/ripple';
 import { FormsModule } from '@angular/forms';
 

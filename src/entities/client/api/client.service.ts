@@ -29,4 +29,11 @@ export class ClientService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  create(entity: ClientEntity): Observable<ClientEntity> {
+    return this.http.post<ClientResponseDto>(`${this.resourcePath()}`, entity, this.httpOptions).pipe(
+      map((client: ClientResponseDto) => ClientEntityFromResponseMapper.fromDtoToEntity(client)),
+      retry(2),
+    )
+  }
 }

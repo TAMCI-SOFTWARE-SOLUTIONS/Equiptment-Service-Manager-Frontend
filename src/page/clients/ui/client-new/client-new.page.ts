@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Ripple } from 'primeng/ripple';
-import {ClientFormStore} from '../../modal/client-form.store';
-import {ClientsStore} from '../../../clients/ui/clients/model/clients.store';
+import {ClientFormStore} from '../../model';
+import {ClientsStore} from '../../model';
 
 @Component({
   selector: 'app-client-new',
