@@ -1,4 +1,5 @@
-import {EquipmentDetailPage} from './equipment-detail/equipment-detail.page';
-import {EquipmentsListPage} from './equipments-list/equipments-list.page';
+import { EquipmentsListPage } from './equipments-list/equipments-list.page';
+import { EquipmentDetailPage } from './equipment-detail/equipment-detail.page';
+import { EquipmentsPage } from './equipments/equipments.page';
 
-export { EquipmentsListPage, EquipmentDetailPage };
+export { EquipmentsListPage, EquipmentDetailPage, EquipmentsPage };

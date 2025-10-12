@@ -100,7 +100,7 @@ export const routes: Routes = [
       {
         path: 'equipments',
         title: 'Equipos',
-        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentsListPage)
+        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentsPage)
       },
       {
         path: 'equipments/:equipmentId',
