@@ -24,6 +24,10 @@ export interface ClientFormState {
     logo?: string;
     banner?: string;
   };
+  editMode: boolean;
+  clientId: string | null;
+  originalLogoFileId: string | null;
+  originalBannerFileId: string | null;
 }
 
 const initialState: ClientFormState = {
@@ -38,7 +42,11 @@ const initialState: ClientFormState = {
   isUploadingLogo: false,
   isUploadingBanner: false,
   error: null,
-  validationErrors: {}
+  validationErrors: {},
+  editMode: false,
+  clientId: null,
+  originalLogoFileId: null,
+  originalBannerFileId: null
 };
 
 export const ClientFormStore = signalStore(
@@ -170,7 +178,7 @@ export const ClientFormStore = signalStore(
       /**
        * Validar archivo de imagen
        */
-      validateImageFile(file: File, type: 'logo' | 'banner'): { isValid: boolean; error?: string } {
+      validateImageFile(file: File, _: 'logo' | 'banner'): { isValid: boolean; error?: string } {
         // Validar tipo
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
@@ -219,9 +227,10 @@ export const ClientFormStore = signalStore(
        * Limpiar logo
        */
       clearLogo(): void {
-        // Revocar URL de preview si existe
-        if (store.logoPreview()) {
-          URL.revokeObjectURL(store.logoPreview()!);
+        // Revocar URL de preview si existe y es un blob URL
+        const currentPreview = store.logoPreview();
+        if (currentPreview && currentPreview.startsWith('blob:')) {
+          URL.revokeObjectURL(currentPreview);
         }
 
         patchState(store, (state) => {
@@ -239,9 +248,10 @@ export const ClientFormStore = signalStore(
        * Limpiar banner
        */
       clearBanner(): void {
-        // Revocar URL de preview si existe
-        if (store.bannerPreview()) {
-          URL.revokeObjectURL(store.bannerPreview()!);
+        // Revocar URL de preview si existe y es un blob URL
+        const currentPreview = store.bannerPreview();
+        if (currentPreview && currentPreview.startsWith('blob:')) {
+          URL.revokeObjectURL(currentPreview);
         }
 
         patchState(store, (state) => {
@@ -252,6 +262,32 @@ export const ClientFormStore = signalStore(
             bannerPreview: null,
             validationErrors: errors
           };
+        });
+      },
+
+      /**
+       * Cargar datos del cliente para edición
+       */
+      async loadClientData(data: {
+        id: string;
+        name: string;
+        logoFileId: string | null;
+        bannerFileId: string | null;
+        logoUrl?: string;
+        bannerUrl?: string;
+      }): Promise<void> {
+        patchState(store, {
+          editMode: true,
+          clientId: data.id,
+          formData: {
+            name: data.name,
+            logoFile: null,
+            bannerFile: null
+          },
+          originalLogoFileId: data.logoFileId,
+          originalBannerFileId: data.bannerFileId,
+          logoPreview: data.logoUrl || null,
+          bannerPreview: data.bannerUrl || null
         });
       },
 
@@ -277,9 +313,7 @@ export const ClientFormStore = signalStore(
           if (store.formData().logoFile) {
             patchState(store, { isUploadingLogo: true });
 
-            const logoEntity = await fileService
-              .upload(store.formData().logoFile!)
-              .toPromise();
+            const logoEntity = await firstValueFrom(fileService.upload(store.formData().logoFile!));
 
             logoFileId = logoEntity!.id;
 
@@ -290,25 +324,23 @@ export const ClientFormStore = signalStore(
           if (store.formData().bannerFile) {
             patchState(store, { isUploadingBanner: true });
 
-            const bannerEntity = await fileService
-              .upload(store.formData().bannerFile!)
-              .toPromise();
+            const bannerEntity = await firstValueFrom(fileService.upload(store.formData().bannerFile!));
 
             bannerFileId = bannerEntity!.id;
 
             patchState(store, { isUploadingBanner: false });
           }
 
-          const clientData: ClientEntity = {
-              id: '',
-              name: store.formData().name.trim(),
-              logoFileId,
-              bannerFileId
-          }
+          // 3. Crear ClientEntity completa
+          const newClientEntity: ClientEntity = {
+            id: '', // El backend genera el ID
+            name: store.formData().name.trim(),
+            logoFileId,
+            bannerFileId
+          };
 
-
-
-          const newClient = await firstValueFrom(clientService.create(clientData));
+          // 4. Enviar al servicio
+          const createdClient = await firstValueFrom(clientService.create(newClientEntity));
 
           patchState(store, {
             isSubmitting: false,
@@ -318,12 +350,97 @@ export const ClientFormStore = signalStore(
           // Limpiar formulario
           this.resetForm();
 
-          return newClient!;
+          return createdClient!;
 
         } catch (error: any) {
           console.error('❌ Error al crear cliente:', error);
 
           const errorMessage = error.message || 'Error al crear el cliente. Inténtalo de nuevo.';
+
+          patchState(store, {
+            isSubmitting: false,
+            isUploadingLogo: false,
+            isUploadingBanner: false,
+            error: errorMessage
+          });
+
+          return null;
+        }
+      },
+
+      /**
+       * Actualizar cliente existente
+       */
+      async updateClient(clientId: string): Promise<ClientEntity | null> {
+        if (!store.canSubmit()) {
+          return null;
+        }
+
+        patchState(store, {
+          isSubmitting: true,
+          error: null
+        });
+
+        try {
+          let logoFileId = store.originalLogoFileId();
+          let bannerFileId = store.originalBannerFileId();
+
+          // 1. Subir nuevo logo si se seleccionó uno
+          if (store.formData().logoFile) {
+            patchState(store, { isUploadingLogo: true });
+
+            const logoEntity = await firstValueFrom(fileService.upload(store.formData().logoFile!));
+
+            logoFileId = logoEntity!.id;
+
+            patchState(store, { isUploadingLogo: false });
+          }
+
+          // 2. Si se eliminó el logo (preview null pero no hay nuevo archivo)
+          if (!store.logoPreview() && !store.formData().logoFile) {
+            logoFileId = null;
+          }
+
+          // 3. Subir nuevo banner si se seleccionó uno
+          if (store.formData().bannerFile) {
+            patchState(store, { isUploadingBanner: true });
+
+            const bannerEntity = await firstValueFrom(fileService.upload(store.formData().bannerFile!));
+
+            bannerFileId = bannerEntity!.id;
+
+            patchState(store, { isUploadingBanner: false });
+          }
+
+          // 4. Si se eliminó el banner (preview null pero no hay nuevo archivo)
+          if (!store.bannerPreview() && !store.formData().bannerFile) {
+            bannerFileId = null;
+          }
+
+          // 5. Crear ClientEntity completa con el ID existente
+          const updatedClientEntity: ClientEntity = {
+            id: clientId,
+            name: store.formData().name.trim(),
+            logoFileId,
+            bannerFileId
+          };
+
+          // 6. Enviar al servicio
+          const updatedClient = await firstValueFrom(clientService.update(updatedClientEntity));
+
+          patchState(store, {
+            isSubmitting: false,
+            error: null
+          });
+
+          this.resetForm();
+
+          return updatedClient!;
+
+        } catch (error: any) {
+          console.error('❌ Error al actualizar cliente:', error);
+
+          const errorMessage = error.message || 'Error al actualizar el cliente. Inténtalo de nuevo.';
 
           patchState(store, {
             isSubmitting: false,
@@ -347,12 +464,15 @@ export const ClientFormStore = signalStore(
        * Resetear formulario
        */
       resetForm(): void {
-        // Limpiar previews
-        if (store.logoPreview()) {
-          URL.revokeObjectURL(store.logoPreview()!);
+        // Limpiar previews (solo blob URLs)
+        const logoPreview = store.logoPreview();
+        const bannerPreview = store.bannerPreview();
+
+        if (logoPreview && logoPreview.startsWith('blob:')) {
+          URL.revokeObjectURL(logoPreview);
         }
-        if (store.bannerPreview()) {
-          URL.revokeObjectURL(store.bannerPreview()!);
+        if (bannerPreview && bannerPreview.startsWith('blob:')) {
+          URL.revokeObjectURL(bannerPreview);
         }
 
         patchState(store, initialState);
