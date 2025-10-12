@@ -149,11 +149,9 @@
               (click)="onProjectSelect(project.id)"
               class="group cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-500/10">
 
-              <!-- Header with Status Icon -->
-              <div class="relative h-24 overflow-hidden bg-gradient-to-br from-sky-100 to-cyan-100">
-                <div class="flex h-full items-center justify-center">
-                  <i class="pi text-3xl text-sky-600" [class]="getStatusIcon(project.status)"></i>
-                </div>
+              <!-- Header with Project Banner -->
+              <div class="relative">
+                <app-project-banner [project]="project" />
                 <!-- Overlay gradient -->
                 <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
