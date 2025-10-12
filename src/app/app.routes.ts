@@ -122,7 +122,7 @@ export const routes: Routes = [
       {
         path: 'projects/:projectId',
         title: 'Editar Proyecto',
-        loadComponent: () => import('../page/admin/ui').then(m => m.AdminProjectFormPage)
+        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectEditPage)
       },
 
       // ==================== REPORTS ====================
