@@ -20,6 +20,6 @@ export class RoleEntityFromResponseMapper {
     }
 
     console.warn(`Invalid role name received: ${roleName}, defaulting to ROLE_CITIZEN`);
-    return RolesEnum.ROLE_CITIZEN;
+    return RolesEnum.ROLE_OPERATOR;
   }
 }

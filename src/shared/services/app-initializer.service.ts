@@ -1,37 +1,77 @@
-import { Injectable, inject } from '@angular/core';
-import { AuthStore } from '../stores';
+import {inject, Injectable} from '@angular/core';
+import {AuthStore, ProfileStore} from '../stores';
+import {EventBusService} from './event-bus.service';
+import {EventNames} from '../events/event-names';
+import {AuthLoginPayload, AuthLogoutPayload, AuthRefreshPayload, ProfileUpdatedPayload} from '../events/event-payloads';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppInitializerService {
   private readonly authStore = inject(AuthStore);
+  private readonly profileStore = inject(ProfileStore);
+  private readonly eventBus = inject(EventBusService);
 
   initializeApp(): Promise<void> {
     return new Promise(async (resolve) => {
-      /*
-       * Initialize auth state
-       * This will check if the user is authenticated and refresh user data if needed
-       */
-      this.authStore.initializeAuth();
-      console.log('Auth state initialized');
+      console.log('🚀 Inicializando aplicación...');
+      this.setupEventBusCommunication();
 
-      /*
-       * Refresh user data if needed
-       * This will check if the user is authenticated and refresh user data if needed
-       */
+      this.authStore.initializeAuth();
+      console.log('✅ Auth state initialized');
+
       if (this.authStore.isAuthenticated()) {
         await this.authStore.refreshUser();
-        console.log('User data refreshed');
+        console.log('✅ User data refreshed');
       }
 
-      console.log('App initialization complete');
-      /*
-       * Resolve the promise when initialization is complete
-       * This will allow the app to start running
-       * You can add additional initialization steps here if needed
-       */
+      console.log('✅ App initialization complete');
       resolve();
     });
+  }
+
+  /*
+  Here you can set up event listeners for events emitted by the EventBusService.
+  When to use:
+  - Only for complex orchestration logic involving multiple stores
+  - For centralized logging (optional)
+  - For initialization of global configurations
+  */
+  private setupEventBusCommunication(): void {
+    this.eventBus.on(EventNames.PROFILE_UPDATED, (_: ProfileUpdatedPayload) => {
+    });
+
+    this.eventBus.on(EventNames.AUTH_LOGIN, (data: AuthLoginPayload) => {
+      if (data.userId) {this.profileStore.loadProfile(data.userId).then(() => {});}
+    });
+
+    this.eventBus.on(EventNames.AUTH_REFRESH, (data: AuthRefreshPayload) => {
+      if (data.userId) {this.profileStore.loadProfile(data.userId).then(() => {});}
+    });
+
+    this.eventBus.on(EventNames.AUTH_LOGOUT, (_: AuthLogoutPayload) => {
+      this.profileStore.clearProfile();
+    });
+  }
+
+  public notifyAuthChange(isAuthenticated: boolean, userId: string | null): void {
+    if (isAuthenticated && userId) {
+      const payload: AuthLoginPayload = {
+        userId,
+        timestamp: new Date()
+      };
+      this.eventBus.emit(EventNames.AUTH_LOGIN, payload);
+    } else {
+      const payload: AuthLogoutPayload = {
+        reason: 'manual',
+        userId,
+        timestamp: new Date()
+      };
+      this.eventBus.emit(EventNames.AUTH_LOGOUT, payload);
+    }
+  }
+
+  public getEventBus(): EventBusService {
+    return this.eventBus;
   }
 }

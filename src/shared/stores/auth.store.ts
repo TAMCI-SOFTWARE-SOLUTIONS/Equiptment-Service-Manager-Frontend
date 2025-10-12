@@ -1,11 +1,14 @@
 import { computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
-import {firstValueFrom} from 'rxjs';
-import {UserEntity} from '../../entities/user/model';
-import {StorageService} from '../services';
-import {RolesEnum} from '../../entities/role/model';
-import {AuthenticationService, SignInCredentials} from '../../entities/user/api';
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { firstValueFrom } from 'rxjs';
+import { UserEntity } from '../../entities/user/model';
+import { StorageService } from '../services';
+import { RolesEnum } from '../../entities/role/model';
+import { AuthenticationService, SignInCredentials } from '../../entities/user/api';
+import { EventBusService } from '../services';
+import { EventNames } from '../events/event-names';
+import { AuthLoginPayload, AuthLogoutPayload, AuthRestoredPayload, AuthRefreshPayload } from '../events/event-payloads';
 
 export interface AuthState {
   user: UserEntity | null;
@@ -33,27 +36,23 @@ export const AuthStore = signalStore(
     userId: computed(() => state.user()?.id || null),
     username: computed(() => state.user()?.username || null),
     userRoles: computed(() => state.user()?.roles || []),
-    isAdmin: computed(() => state.user()?.roles.some(role => role.name === RolesEnum.ROLE_MUNICIPAL_ADMINISTRATOR) || false),
+    isAdmin: computed(() => state.user()?.roles.some(role => role.name === RolesEnum.ROLE_ADMIN) || false),
   })),
 
   withMethods((store) => {
     const storageService = inject(StorageService);
     const authService = inject(AuthenticationService);
     const router = inject(Router);
+    const eventBus = inject(EventBusService);
+
     return {
-      /*
-       * Check if authenticated
-       * This method is used to check if the user is authenticated
-       * For example, when the app starts or when the user logs in
-       */
       hasRole(roleName: string) {
         return !!store.user()?.roles?.some(role => role.name === roleName);
       },
 
       /*
        * Initialize auth
-       * This method is used to initialize the auth state
-       * For example, when the app starts or when the user logs in
+       * Se ejecuta al iniciar la app para restaurar sesión desde storage
        */
       initializeAuth() {
         const token = storageService.getToken();
@@ -67,16 +66,18 @@ export const AuthStore = signalStore(
             tokenValidated: false
           });
 
-          // Validate token after initialization
+          const payload: AuthRestoredPayload = {
+            userId: user.id,
+            token: token,
+            user: user,
+            timestamp: new Date()
+          };
+          eventBus.emit(EventNames.AUTH_RESTORED, payload);
+
           this.validateToken().then(() => {});
         }
       },
 
-      /*
-       * Validate token
-       * This method is used to validate the token
-       * For example, after a token expiration or when the user logs in
-       */
       async validateToken() {
         if (!store.token()) return;
 
@@ -93,17 +94,13 @@ export const AuthStore = signalStore(
             });
           }
         } catch (error) {
-          // This will be handled by the interceptor
           this.handleTokenExpiration();
         }
       },
 
-      /*
-       * Handle token expiration
-       * This method is used to handle token expiration
-       * For example, after a token expiration or when the user logs in
-       */
       handleTokenExpiration() {
+        const currentUserId = store.user()?.id || null;
+
         storageService.clearAuthData();
         patchState(store, {
           user: null,
@@ -112,13 +109,19 @@ export const AuthStore = signalStore(
           tokenValidated: false,
           error: 'Sesión expirada. Por favor inicia sesión nuevamente.'
         });
+
+        const payload: AuthLogoutPayload = {
+          reason: 'token_expired',
+          userId: currentUserId,
+          timestamp: new Date()
+        };
+        eventBus.emit(EventNames.AUTH_LOGOUT, payload);
+
         router.navigate(['/login']).then(() => {});
       },
 
       /*
-       * Sign In
-       * This method is used to sign in the user
-       * For example, after a user clicks on the "Sign In" button
+       * Sign In - Login desde formulario
        */
       async signIn(credentials: SignInCredentials) {
         patchState(store, {
@@ -137,16 +140,24 @@ export const AuthStore = signalStore(
 
             storageService.setUser(completeUser);
 
-            console.log(completeUser);
+            console.log('✅ Usuario autenticado:', completeUser);
 
             patchState(store, {
-              user,
+              user: completeUser,
               token: user.token,
               isAuthenticated: true,
               isLoading: false,
               tokenValidated: true,
               error: null
             });
+
+            const payload: AuthLoginPayload = {
+              userId: completeUser.id,
+              user: completeUser,
+              token: user.token,
+              timestamp: new Date()
+            };
+            eventBus.emit(EventNames.AUTH_LOGIN, payload);
 
             await router.navigate(['/dashboard']);
           } else {
@@ -164,12 +175,20 @@ export const AuthStore = signalStore(
       },
 
       /*
-       * Sign Out
-       * This method is used to sign out the user
-       * For example, after a user clicks on the "Sign Out" button
+       * Sign Out - Cerrar sesión manual
        */
       signOut() {
+        const currentUserId = store.user()?.id || null;
+
         storageService.clearAuthData();
+
+        const payload: AuthLogoutPayload = {
+          reason: 'manual',
+          userId: currentUserId,
+          timestamp: new Date()
+        };
+        eventBus.emit(EventNames.AUTH_LOGOUT, payload);
+
         patchState(store, {
           user: null,
           token: null,
@@ -178,14 +197,10 @@ export const AuthStore = signalStore(
           error: null,
           tokenValidated: false
         });
+
         router.navigate(['/login']).then(() => {});
       },
 
-      /*
-       * Retry validation
-       * This method is used to retry token validation if it fails
-       * For example, after a token expiration or when the user logs in
-       */
       retryValidation() {
         if (store.token()) {
           patchState(store, { tokenValidated: false });
@@ -193,11 +208,6 @@ export const AuthStore = signalStore(
         }
       },
 
-      /*
-       * Update user data
-       * This method is used to update the user data in the store
-       * For example, after a successful sign-in or sign-out
-       */
       updateUser(updates: Partial<UserEntity>) {
         if (store.user()) {
           const updatedUser = { ...store.user()!, ...updates };
@@ -207,9 +217,7 @@ export const AuthStore = signalStore(
       },
 
       /*
-       * Refresh user data
-       * This method is used to refresh the user data when needed
-       * For example, after a token expiration or when the user logs in
+       * Refresh User - Refrescar datos del usuario actual
        */
       async refreshUser() {
         patchState(store, {
@@ -220,8 +228,12 @@ export const AuthStore = signalStore(
 
         try {
           const user = await firstValueFrom(authService.getCurrentUser());
+
           if (user) {
             storageService.setUser(user);
+
+            const currentToken = store.token();
+
             patchState(store, {
               user,
               isAuthenticated: true,
@@ -230,7 +242,14 @@ export const AuthStore = signalStore(
               error: null
             });
 
-            await router.navigate(['/dashboard']);
+            const payload: AuthRefreshPayload = {
+              userId: user.id,
+              user: user,
+              token: currentToken!,
+              timestamp: new Date()
+            };
+            eventBus.emit(EventNames.AUTH_REFRESH, payload);
+
           } else {
             patchState(store, {
               isLoading: false,
@@ -245,11 +264,6 @@ export const AuthStore = signalStore(
         }
       },
 
-      /*
-       * Clear error
-       * This method is used to clear the error state when an action is successful
-       * For example, after a successful sign-in or sign-out
-       */
       clearError() {
         patchState(store, { error: null });
       }

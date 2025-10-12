@@ -10,7 +10,7 @@ export class CreateProfileRequestFromEntityMapper {
       firstSurname: entity.firstSurname,
       secondSurname: entity.secondSurname,
       photoFileId: entity.photoFileId,
-      gender: GenderMapper.fromEnumToString(entity.gender),
+      gender: GenderMapper.mapStringToGender(entity.gender),
       email: entity.email,
     };
   }

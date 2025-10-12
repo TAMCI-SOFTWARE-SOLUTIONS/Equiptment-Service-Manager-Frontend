@@ -1,9 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Drawer } from 'primeng/drawer';
-import { Button } from 'primeng/button';
 import { LayoutStore } from '../../../shared/model/layout.store';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Ripple } from 'primeng/ripple';
 
 interface MenuItem {
@@ -21,19 +20,18 @@ interface MenuItem {
   imports: [
     CommonModule,
     Drawer,
-    Button,
     RouterLink,
     RouterLinkActive,
     Ripple
   ],
   standalone: true,
-  templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css'
+  templateUrl: './sidebar.component.html'
 })
 export class SidebarComponent {
   readonly layoutStore = inject(LayoutStore);
+  private readonly router = inject(Router);
 
-  // Estructura del menú - LABELS EN ESPAÑOL
+  // Estructura del menú
   menuItems: MenuItem[] = [
     {
       label: 'Dashboard',
@@ -48,7 +46,7 @@ export class SidebarComponent {
           label: 'Activos',
           icon: 'pi-play-circle',
           route: '/services/active',
-          badge: 3 // Dinámico - actualizar desde service
+          badge: 3
         },
         {
           label: 'Crear Nuevo',
@@ -126,7 +124,7 @@ export class SidebarComponent {
     }
   ];
 
-  // Mock - reemplaza con tu lógica real de auth
+  // TODO: Reemplazar con lógica real de auth
   isAdmin = true;
 
   toggleSection(item: MenuItem): void {
@@ -137,7 +135,11 @@ export class SidebarComponent {
 
   navigateAndClose(route?: string): void {
     if (route) {
-      this.layoutStore.closeSidebar();
+      // Solo cerrar sidebar en mobile
+      if (this.layoutStore.isMobile()) {
+        this.layoutStore.closeSidebar();
+      }
+      this.router.navigate([route]).then(() => {});
     }
   }
 

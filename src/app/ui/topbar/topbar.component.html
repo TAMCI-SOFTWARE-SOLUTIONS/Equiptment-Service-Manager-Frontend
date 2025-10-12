@@ -1,134 +1,195 @@
-<nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-surface-200 shadow-sm">
-  <div class="flex items-center justify-between h-16 px-4 lg:px-6">
+<nav class="fixed left-0 right-0 top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+  <div class="flex h-16 items-center justify-between gap-4 px-4 lg:gap-6 lg:px-6">
 
-    <!-- Left Section: Menu Button + Context -->
-    <div class="flex items-center gap-3 flex-1 min-w-0">
+    <!-- LEFT SECTION: Menu + Logo + Context -->
+    <div class="flex min-w-0 flex-1 items-center gap-3">
 
-      <!-- Menu Toggle (Mobile) -->
+      <!-- Hamburger Menu (Mobile/Tablet) -->
       <button
         pRipple
+        type="button"
         (click)="onMenuClick()"
-        class="flex lg:hidden items-center justify-center w-10 h-10 rounded-lg text-surface-700 hover:bg-sky-50 transition-colors">
+        aria-label="Abrir menú de navegación"
+        class="flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 lg:hidden">
         <i class="pi pi-bars text-xl"></i>
       </button>
 
       <!-- Logo (Desktop) -->
-      <div class="hidden lg:flex items-center gap-3">
-        <img src="/assets/images/logo-company.png" alt="Logo" class="h-8 w-auto" />
-        <span class="font-semibold text-lg text-surface-900">Sistema</span>
+      <div class="hidden items-center gap-3 lg:flex">
+        <img
+          src="/assets/images/logo-company.png"
+          alt="TAMC Logo"
+          class="h-8 w-auto" />
       </div>
 
-      <!-- Separador -->
-      <div class="hidden lg:block h-8 w-px bg-surface-300"></div>
+      <!-- Divider (Desktop) -->
+      <div class="hidden h-8 w-px bg-gray-300 lg:block"></div>
 
       <!-- Context Selector: Cliente > Proyecto -->
       <div class="relative">
         <button
           pRipple
+          type="button"
           (click)="toggleContextSelector()"
-          class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-sky-50 transition-colors min-w-0 max-w-md">
+          [attr.aria-expanded]="showContextSelector()"
+          aria-label="Seleccionar contexto de cliente y proyecto"
+          class="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
 
-          <!-- Icono de contexto -->
-          <i class="pi pi-building text-sky-600 shrink-0"></i>
+          <!-- Icon -->
+          <i class="pi pi-briefcase shrink-0 text-sky-600"></i>
 
-          <!-- Texto del contexto -->
-          <div class="flex flex-col items-start min-w-0 flex-1">
-            <span class="text-xs text-surface-500 font-medium leading-tight">
-              {{ clienteActual()?.name || 'Sin cliente' }}
-            </span>
-            <span class="text-sm font-semibold text-surface-900 truncate w-full">
-              {{ proyectoActual()?.name || 'Sin proyecto' }}
-            </span>
+          <!-- Context Text -->
+          <div class="flex min-w-0 max-w-xs flex-col items-start lg:max-w-sm">
+      <span class="text-xs font-medium leading-tight text-gray-500">
+        {{ clienteActual()?.name || 'Sin cliente' }}
+      </span>
+            <span class="truncate text-sm font-semibold text-gray-900">
+        {{ proyectoActual()?.name || 'Sin proyecto' }}
+      </span>
           </div>
 
           <!-- Chevron -->
-          <i class="pi pi-chevron-down text-xs text-surface-400 shrink-0 transition-transform"
+          <i class="pi pi-chevron-down shrink-0 text-xs text-gray-400 transition-transform duration-200"
              [class.rotate-180]="showContextSelector()"></i>
         </button>
 
-        <!-- Dropdown Menu -->
+        <!-- Context Dropdown -->
         @if (showContextSelector()) {
-          <div class="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-surface-200 py-2 z-50"
-               (click)="$event.stopPropagation()">
+          <div class="absolute left-0 top-full z-50 mt-2 w-72 animate-in fade-in slide-in-from-top-2 rounded-lg border border-gray-200 bg-white py-2 shadow-lg duration-200">
 
-            <!-- Info actual -->
-            <div class="px-4 py-3 border-b border-surface-200">
-              <p class="text-xs text-surface-500 mb-1">Contexto actual</p>
-              <p class="font-semibold text-surface-900">{{ clienteActual()?.name }}</p>
-              <p class="text-sm text-surface-600">{{ proyectoActual()?.name }}</p>
+            <!-- Current Context Info -->
+            <div class="border-b border-gray-200 px-4 py-3">
+              <p class="mb-1 text-xs font-medium text-gray-500">Contexto actual</p>
+              <p class="font-semibold text-gray-900">
+                {{ clienteActual()?.name || 'Sin cliente seleccionado' }}
+              </p>
+              <p class="text-sm text-gray-600">
+                {{ proyectoActual()?.name || 'Sin proyecto seleccionado' }}
+              </p>
             </div>
 
-            <!-- Acción de cambiar -->
+            <!-- Change Context Action -->
             <button
               pRipple
+              type="button"
               (click)="cambiarContexto()"
-              class="w-full flex items-center gap-3 px-4 py-3 hover:bg-sky-50 transition-colors text-left">
+              class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-sky-50 focus:bg-sky-50 focus:outline-none">
               <i class="pi pi-sync text-sky-600"></i>
-              <span class="text-sm font-medium text-surface-700">
-                Cambiar Cliente/Proyecto
-              </span>
+              <span class="text-sm font-medium text-gray-700">
+          Cambiar Cliente/Proyecto
+        </span>
+              <i class="pi pi-arrow-right ml-auto text-xs text-gray-400"></i>
             </button>
           </div>
         }
       </div>
     </div>
 
-    <!-- Right Section: User Menu -->
-    <div class="flex items-center gap-3 relative">
-
-      <!-- User Avatar & Menu -->
+    <!-- RIGHT SECTION: User Menu -->
+    <div class="relative flex items-center">
       <button
         pRipple
+        type="button"
         (click)="toggleUserMenu()"
-        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-sky-50 transition-colors">
-        <p-avatar
-          [image]="usuarioActual.avatar"
-          shape="circle"
-          size="normal"
-          styleClass="w-9 h-9">
-        </p-avatar>
-        <div class="hidden md:flex flex-col items-start">
-          <span class="text-sm font-semibold text-surface-900 leading-tight">
-            {{ usuarioActual.nombre }}
-          </span>
-          <span class="text-xs text-surface-500">
-            {{ usuarioActual.rol }}
-          </span>
+        [attr.aria-expanded]="showUserMenu()"
+        aria-label="Menú de usuario"
+        class="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+
+        <!-- Avatar -->
+        @if (isProfileLoading()) {
+          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-200 animate-pulse">
+            <i class="pi pi-spin pi-spinner text-gray-400"></i>
+          </div>
+        } @else if (usuarioActual.avatar()) {
+          <p-avatar
+            [image]="usuarioActual.avatar()!"
+            shape="circle"
+            size="normal"
+            class="h-9 w-9">
+          </p-avatar>
+        } @else {
+          <p-avatar
+            [label]="profileStore.userInitials()"
+            shape="circle"
+            size="normal"
+            class="h-9 w-9"
+            [style]="{'background-color': '#0ea5e9', 'color': 'white', 'font-weight': '600'}">
+          </p-avatar>
+        }
+
+        <!-- User Info (Desktop) -->
+        <div class="hidden flex-col items-start md:flex">
+          @if (isProfileLoading()) {
+            <span class="text-sm font-semibold leading-tight text-gray-900">
+              Cargando...
+            </span>
+            <span class="text-xs text-gray-500">
+              Usuario
+            </span>
+          } @else {
+            <span class="text-sm font-semibold leading-tight text-gray-900">
+              {{ usuarioActual.nombre() || 'Usuario' }}
+            </span>
+            <span class="text-xs text-gray-500">
+              {{ usuarioActual.rol() }}
+            </span>
+          }
         </div>
-        <i class="pi pi-chevron-down text-xs text-surface-400 hidden md:block"></i>
+
+        <!-- Chevron (Desktop) -->
+        <i class="pi pi-chevron-down hidden text-xs text-gray-400 transition-transform duration-200 md:block"
+           [class.rotate-180]="showUserMenu()"></i>
       </button>
 
       <!-- User Dropdown -->
       @if (showUserMenu()) {
-        <div class="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-surface-200 py-2 z-50">
+        <div class="absolute right-0 top-full z-50 mt-2 w-64 animate-in fade-in slide-in-from-top-2 rounded-lg border border-gray-200 bg-white py-2 shadow-lg duration-200">
 
-          <!-- User Info -->
-          <div class="px-4 py-3 border-b border-surface-200">
-            <p class="font-semibold text-surface-900">{{ usuarioActual.nombre }}</p>
-            <p class="text-sm text-surface-600">{{ usuarioActual.rol }}</p>
+          <!-- User Info Header -->
+          <div class="border-b border-gray-200 px-4 py-3">
+            @if (isProfileLoading()) {
+              <div class="space-y-2">
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200"></div>
+                <div class="h-3 w-24 animate-pulse rounded bg-gray-200"></div>
+              </div>
+            } @else {
+              <p class="font-semibold text-gray-900">
+                {{ usuarioActual.nombre() || 'Usuario' }}
+              </p>
+              <p class="text-sm text-gray-600">
+                {{ usuarioActual.rol() }}
+              </p>
+            }
           </div>
 
-          <!-- Menu Items -->
+          <!-- Menu Actions -->
+          <div class="py-1">
+            <button
+              pRipple
+              type="button"
+              class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-sky-50 focus:bg-sky-50 focus:outline-none">
+              <i class="pi pi-user text-gray-600"></i>
+              <span class="text-sm text-gray-700">Mi Perfil</span>
+            </button>
+
+            <button
+              pRipple
+              type="button"
+              class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-sky-50 focus:bg-sky-50 focus:outline-none">
+              <i class="pi pi-cog text-gray-600"></i>
+              <span class="text-sm text-gray-700">Configuración</span>
+            </button>
+          </div>
+
+          <!-- Divider -->
+          <hr class="my-1 border-gray-200" />
+
+          <!-- Logout -->
           <button
             pRipple
-            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-sky-50 transition-colors text-left">
-            <i class="pi pi-user text-surface-600"></i>
-            <span class="text-sm text-surface-700">Mi Perfil</span>
-          </button>
-
-          <button
-            pRipple
-            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-sky-50 transition-colors text-left">
-            <i class="pi pi-cog text-surface-600"></i>
-            <span class="text-sm text-surface-700">Configuración</span>
-          </button>
-
-          <hr class="my-2 border-surface-200" />
-
-          <button
-            pRipple
+            type="button"
             (click)="cerrarSesion()"
-            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-red-600">
+            class="flex w-full items-center gap-3 px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-50 focus:bg-red-50 focus:outline-none">
             <i class="pi pi-sign-out"></i>
             <span class="text-sm font-medium">Cerrar Sesión</span>
           </button>
@@ -139,11 +200,14 @@
   </div>
 </nav>
 
-<!-- Overlay para cerrar dropdowns al hacer click fuera -->
+<!-- Overlay Backdrop -->
 @if (showContextSelector() || showUserMenu()) {
-  <div (click)="showContextSelector.set(false); showUserMenu.set(false)"
-       class="fixed inset-0 z-40"></div>
+  <div
+    (click)="closeAllDropdowns()"
+    class="fixed inset-0 z-40 bg-black/5 animate-in fade-in duration-200"
+    aria-hidden="true">
+  </div>
 }
 
-<!-- Spacer para evitar que el contenido quede debajo del topbar fijo -->
-<div class="h-16"></div>
+<!-- Spacer to prevent content overlap -->
+<div class="h-16" aria-hidden="true"></div>

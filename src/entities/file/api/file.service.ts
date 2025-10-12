@@ -65,16 +65,6 @@ export class FileService extends BaseService {
     );
   }
 
-  fileExists(fileId: string): Observable<boolean> {
-    return this.http.head(`${this.resourcePath()}/view/${fileId}`, {
-      observe: 'response',
-      responseType: 'blob'
-    }).pipe(
-      map(response => response.status === 200),
-      catchError(() => of(false))
-    );
-  }
-
   private handleFileError(error: any): Observable<never> {
     let errorMessage = 'Error desconocido con el archivo';
 
