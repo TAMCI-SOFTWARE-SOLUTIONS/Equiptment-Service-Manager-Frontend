@@ -244,7 +244,7 @@ export const EquipmentsStore = signalStore(
             id: panel.id,
             type: EquipmentTypeEnum.PANEL,
             tag: panel.tag,
-            location: panel.location,
+            location: panel.locationId,
             status: panel.status,
             plantId: panel.plantId,
             areaId: panel.areaId,

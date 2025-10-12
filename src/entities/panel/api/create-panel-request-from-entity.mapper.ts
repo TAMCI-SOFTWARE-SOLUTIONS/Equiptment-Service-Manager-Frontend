@@ -18,9 +18,9 @@ export class CreatePanelRequestFromEntityMapper {
       plantId: entity.plantId,
       tag: entity.tag,
       areaId: entity.areaId,
-      communicationProtocol: entity.communicationProtocol,
-      panelType: entity.panelType,
-      location: entity.location
+      locationId: entity.locationId,
+      communicationProtocolId: entity.communicationProtocolId,
+      panelTypeId: entity.panelTypeId,
     };
   }
 }
