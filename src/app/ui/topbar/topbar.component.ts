@@ -90,6 +90,11 @@ export class TopbarComponent {
     this.authStore.signOut();
   }
 
+  onProfileClick(): void {
+    this.showUserMenu.set(false);
+    this.router.navigate(['/profile']).then(() => {});
+  }
+
   /**
    * Cierra todos los dropdowns
    */
