@@ -105,7 +105,12 @@ export const routes: Routes = [
       {
         path: 'equipments/:equipmentId',
         title: 'Detalle Equipo',
-        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentDetailPage)
+        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentNewPage)
+      },
+      {
+        path: 'equipments/new',
+        title: 'Nuevo Equipo',
+        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentNewPage)
       },
 
       // ==================== PROJECTS ====================
@@ -205,7 +210,7 @@ export const routes: Routes = [
             loadComponent: () => import('../page/admin/ui').then(m => m.AdminClientFormPage)
           },
 
-          // --- Projects Management (CRUD) ---
+/*          // --- Projects Management (CRUD) ---
           {
             path: 'projects',
             title: 'Gestión de Proyectos',
@@ -220,7 +225,7 @@ export const routes: Routes = [
             path: 'projects/:projectId',
             title: 'Editar Proyecto',
             loadComponent: () => import('../page/admin/ui').then(m => m.AdminProjectFormPage)
-          },
+          },*/
 
           // --- Equipments Management (CRUD) ---
           {

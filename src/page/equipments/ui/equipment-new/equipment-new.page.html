@@ -1,0 +1,305 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-4xl">
+      <div class="flex items-center gap-4">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50">
+          <i class="pi pi-arrow-left text-lg"></i>
+        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 lg:text-3xl">
+            Nuevo Equipo
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Crea un nuevo equipo (Cabinet o Panel) con su configuración
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Area -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-4xl">
+
+      <!-- Error State -->
+      @if (formStore.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ formStore.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="formStore.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <form class="space-y-8" (ngSubmit)="onSubmit()" #equipmentForm="ngForm">
+
+        <!-- Tipo de Equipo -->
+        <div class="rounded-xl border border-gray-200 bg-white p-6">
+          <h2 class="mb-6 text-lg font-semibold text-gray-900">
+            Tipo de Equipo
+          </h2>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            @for (equipmentType of equipmentTypes; track equipmentType.value) {
+              <label
+                [class]="'flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-4 transition-all hover:bg-gray-50 ' + (formStore.formData().selectedType === equipmentType.value ? 'border-sky-500 bg-sky-50' : '')">
+                <input
+                  type="radio"
+                  [value]="equipmentType.value"
+                  [checked]="formStore.formData().selectedType === equipmentType.value"
+                  (change)="onEquipmentTypeChange(equipmentType.value)"
+                  name="equipmentType"
+                  class="h-4 w-4 border-gray-300 text-sky-600 focus:ring-sky-500">
+                <div class="flex items-center gap-3">
+                  <i [class]="equipmentType.icon + ' text-xl text-gray-600'"></i>
+                  <span class="text-sm font-medium text-gray-900">{{ equipmentType.label }}</span>
+                </div>
+              </label>
+            }
+          </div>
+
+          @if (formStore.validationErrors().selectedType) {
+            <p class="mt-3 text-sm text-red-600">{{ formStore.validationErrors().selectedType }}</p>
+          }
+        </div>
+
+        <!-- Información Básica -->
+        <div class="rounded-xl border border-gray-200 bg-white p-6">
+          <h2 class="mb-6 text-lg font-semibold text-gray-900">
+            Información Básica
+          </h2>
+
+          <div class="grid gap-6 md:grid-cols-2">
+            <!-- Tag del equipo -->
+            <div class="md:col-span-2">
+              <label for="equipmentTag" class="block text-sm font-medium text-gray-700">
+                Tag del Equipo *
+              </label>
+              <input
+                type="text"
+                id="equipmentTag"
+                [value]="formStore.formData().tag"
+                (input)="formStore.setTag($any($event.target).value.toUpperCase())"
+                placeholder="Ej: CAB-001, PNL-001"
+                maxlength="50"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-mono uppercase transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                [class.border-red-300]="formStore.validationErrors().tag"
+                [class.focus:border-red-500]="formStore.validationErrors().tag">
+              @if (formStore.validationErrors().tag) {
+                <p class="mt-1 text-sm text-red-600">{{ formStore.validationErrors().tag }}</p>
+              }
+            </div>
+
+            <!-- Plant ID -->
+            <div>
+              <label for="plantId" class="block text-sm font-medium text-gray-700">
+                ID de Planta *
+              </label>
+              <input
+                type="text"
+                id="plantId"
+                [value]="formStore.formData().plantId"
+                (input)="formStore.setPlantId($any($event.target).value)"
+                placeholder="ID del proyecto/planta"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                [class.border-red-300]="formStore.validationErrors().plantId"
+                [class.focus:border-red-500]="formStore.validationErrors().plantId">
+              @if (formStore.validationErrors().plantId) {
+                <p class="mt-1 text-sm text-red-600">{{ formStore.validationErrors().plantId }}</p>
+              }
+            </div>
+
+            <!-- Area ID -->
+            <div>
+              <label for="areaId" class="block text-sm font-medium text-gray-700">
+                ID de Área *
+              </label>
+              <input
+                type="text"
+                id="areaId"
+                [value]="formStore.formData().areaId"
+                (input)="formStore.setAreaId($any($event.target).value)"
+                placeholder="ID del área"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                [class.border-red-300]="formStore.validationErrors().areaId"
+                [class.focus:border-red-500]="formStore.validationErrors().areaId">
+              @if (formStore.validationErrors().areaId) {
+                <p class="mt-1 text-sm text-red-600">{{ formStore.validationErrors().areaId }}</p>
+              }
+            </div>
+
+            <!-- Protocolo de comunicación -->
+            <div>
+              <label for="communicationProtocol" class="block text-sm font-medium text-gray-700">
+                Protocolo de Comunicación *
+              </label>
+              <input
+                type="text"
+                id="communicationProtocol"
+                [value]="formStore.formData().communicationProtocol"
+                (input)="formStore.setCommunicationProtocol($any($event.target).value)"
+                placeholder="Ej: Modbus TCP, Profibus, etc."
+                maxlength="100"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                [class.border-red-300]="formStore.validationErrors().communicationProtocol"
+                [class.focus:border-red-500]="formStore.validationErrors().communicationProtocol">
+              @if (formStore.validationErrors().communicationProtocol) {
+                <p class="mt-1 text-sm text-red-600">{{ formStore.validationErrors().communicationProtocol }}</p>
+              }
+            </div>
+
+            <!-- Ubicación -->
+            <div>
+              <label for="location" class="block text-sm font-medium text-gray-700">
+                Ubicación *
+              </label>
+              <input
+                type="text"
+                id="location"
+                [value]="formStore.formData().location"
+                (input)="formStore.setLocation($any($event.target).value)"
+                placeholder="Ubicación física del equipo"
+                maxlength="200"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                [class.border-red-300]="formStore.validationErrors().location"
+                [class.focus:border-red-500]="formStore.validationErrors().location">
+              @if (formStore.validationErrors().location) {
+                <p class="mt-1 text-sm text-red-600">{{ formStore.validationErrors().location }}</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuración Específica por Tipo -->
+        @if (formStore.formData().selectedType === 'CABINET') {
+          <div class="rounded-xl border border-gray-200 bg-white p-6">
+            <h2 class="mb-6 text-lg font-semibold text-gray-900">
+              Configuración de Cabinet
+            </h2>
+
+            <div class="grid gap-6 md:grid-cols-2">
+              <!-- Tipo de Cabinet -->
+              <div class="md:col-span-2">
+                <label for="cabinetType" class="block text-sm font-medium text-gray-700">
+                  Tipo de Cabinet *
+                </label>
+                <input
+                  type="text"
+                  id="cabinetType"
+                  [value]="formStore.formData().cabinetType || ''"
+                  (input)="formStore.setCabinetType($any($event.target).value)"
+                  placeholder="Ej: Control Cabinet, Power Cabinet, etc."
+                  maxlength="100"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                  [class.border-red-300]="formStore.validationErrors().cabinetType"
+                  [class.focus:border-red-500]="formStore.validationErrors().cabinetType">
+                @if (formStore.validationErrors().cabinetType) {
+                  <p class="mt-1 text-sm text-red-600">{{ formStore.validationErrors().cabinetType }}</p>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (formStore.formData().selectedType === 'PANEL') {
+          <div class="rounded-xl border border-gray-200 bg-white p-6">
+            <h2 class="mb-6 text-lg font-semibold text-gray-900">
+              Configuración de Panel
+            </h2>
+
+            <div class="grid gap-6 md:grid-cols-2">
+              <!-- Tipo de Panel -->
+              <div class="md:col-span-2">
+                <label for="panelType" class="block text-sm font-medium text-gray-700">
+                  Tipo de Panel *
+                </label>
+                <input
+                  type="text"
+                  id="panelType"
+                  [value]="formStore.formData().panelType || ''"
+                  (input)="formStore.setPanelType($any($event.target).value)"
+                  placeholder="Ej: Control Panel, Operator Panel, etc."
+                  maxlength="100"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                  [class.border-red-300]="formStore.validationErrors().panelType"
+                  [class.focus:border-red-500]="formStore.validationErrors().panelType">
+                @if (formStore.validationErrors().panelType) {
+                  <p class="mt-1 text-sm text-red-600">{{ formStore.validationErrors().panelType }}</p>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Estado Inicial -->
+        <div class="rounded-xl border border-gray-200 bg-white p-6">
+          <h2 class="mb-6 text-lg font-semibold text-gray-900">
+            Estado Inicial
+          </h2>
+
+          <div class="grid gap-6 md:grid-cols-2">
+            <!-- Estado -->
+            <div>
+              <label for="status" class="block text-sm font-medium text-gray-700">
+                Estado
+              </label>
+              <select
+                id="status"
+                [value]="formStore.formData().status"
+                (change)="formStore.setStatus($any($event.target).value)"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                [class.border-red-300]="formStore.validationErrors().status"
+                [class.focus:border-red-500]="formStore.validationErrors().status">
+                <option value="">Seleccionar estado...</option>
+                @for (status of getCurrentStatuses(); track status) {
+                  <option [value]="status">{{ status }}</option>
+                }
+              </select>
+              @if (formStore.validationErrors().status) {
+                <p class="mt-1 text-sm text-red-600">{{ formStore.validationErrors().status }}</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-4 rounded-xl border border-gray-200 bg-white p-6">
+          <button
+            type="button"
+            (click)="onCancel()"
+            class="rounded-lg border border-gray-300 bg-white px-6 py-2.5 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            [disabled]="!formStore.canSubmit()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            @if (formStore.isLoading()) {
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Creando...</span>
+            } @else {
+              <i class="pi pi-check"></i>
+              <span>Crear {{ formStore.selectedTypeLabel() }}</span>
+            }
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </main>
+
+</div>
