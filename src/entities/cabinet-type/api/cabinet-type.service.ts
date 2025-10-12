@@ -4,6 +4,8 @@ import {catchError, map, Observable, retry} from 'rxjs';
 import {CabinetTypeEntity} from '../model';
 import {CabinetTypeResponseDto} from './cabinet-type-response.dto';
 import {CabinetTypeFromResponseMapper} from './cabinet-type-from-response.mapper';
+import {CreateCabinetTypeRequest} from './create-cabinet-type-request.type';
+import {CreateCabinetTypeRequestFromEntityMapper} from './create-cabinet-type-request-from-entity.mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +14,14 @@ export class CabinetTypeService extends BaseService {
   constructor() {
     super();
     this.resourceEndpoint = 'cabinet-types';
+  }
+
+  create(entity: CabinetTypeEntity): Observable<CabinetTypeEntity> {
+    const request: CreateCabinetTypeRequest = CreateCabinetTypeRequestFromEntityMapper.fromEntityToDto(entity);
+    return this.http.post<CabinetTypeResponseDto>(this.resourcePath(), request, this.httpOptions).pipe(
+      map((response: CabinetTypeResponseDto) => CabinetTypeFromResponseMapper.fromDtoToEntity(response)),
+      catchError(this.handleError)
+    );
   }
 
   public getAll(): Observable<CabinetTypeEntity[]> {
