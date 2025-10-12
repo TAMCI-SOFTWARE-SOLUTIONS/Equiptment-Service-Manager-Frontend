@@ -1,9 +1,9 @@
 import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { CabinetService } from '../../../entities/cabinet/api';
-import { PanelService } from '../../../entities/panel/api/panel.service';
+import { PanelService } from '../../../entities/panel/api';
 import { ClientService } from '../../../entities/client/api';
-import { ProjectService } from '../../../entities/project/api/project.service';
+import { ProjectService } from '../../../entities/project/api';
 import { CabinetEntity } from '../../../entities/cabinet/model';
 import { PanelEntity } from '../../../entities/panel/model';
 import { ClientEntity } from '../../../entities/client/model';

@@ -1,6 +1,6 @@
 import { CabinetEntity } from '../model';
 import { CabinetResponseDto } from './cabinet-response.dto';
-import { CabinetStatusEnum } from '../model/cabinet-status.enum';
+import { CabinetStatusEnum } from '../model';
 
 /**
  * Mapper class for converting CabinetResponseDto to CabinetEntity

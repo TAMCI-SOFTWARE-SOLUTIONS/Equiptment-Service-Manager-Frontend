@@ -1,6 +1,6 @@
 import { PanelEntity } from '../model';
 import { PanelResponseDto } from './panel-response.dto';
-import { PanelStatusEnum } from '../model/panel-status.enum';
+import { PanelStatusEnum } from '../model';
 
 /**
  * Mapper class for converting PanelResponseDto to PanelEntity
