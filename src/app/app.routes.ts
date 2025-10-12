@@ -153,6 +153,11 @@ export const routes: Routes = [
         title: 'Nuevo Cliente',
         loadComponent: () => import('../page/clients/ui/client-new/client-new.page').then(m => m.ClientNewPage)
       },
+      {
+        path: 'clients/:clientId/edit',
+        title: 'Editar Cliente',
+        loadComponent: () => import('../page/clients/ui/client-edit/client-edit.page').then(m => m.ClientEditPage)
+      },
 
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
