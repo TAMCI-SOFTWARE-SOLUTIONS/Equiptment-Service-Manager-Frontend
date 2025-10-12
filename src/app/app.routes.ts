@@ -32,14 +32,9 @@ export const routes: Routes = [
       // ==================== CONTEXT SELECTION ====================
       // 🎯 Páginas de selección de contexto (ya existentes)
       {
-        path: 'select/client',
-        title: 'Seleccionar Cliente',
-        loadComponent: () => import('../page/select-client/ui').then(m => m.SelectClientPage)
-      },
-      {
-        path: 'select/client/:clientId/projects',
-        title: 'Seleccionar Proyecto',
-        loadComponent: () => import('../page/select-project/ui').then(m => m.SelectProjectPage)
+        path: 'select-context',
+        title: 'Seleccionar Contexto',
+        loadComponent: () => import('../page/select-context/ui').then(m => m.SelectContextPage)
       },
 
       // ==================== SERVICES ====================

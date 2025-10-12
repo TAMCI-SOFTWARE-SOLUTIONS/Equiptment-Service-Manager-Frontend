@@ -78,12 +78,12 @@ export class TopbarComponent {
     this.showContextSelector.set(false);
   }
 
-  cambiarContexto(): void {
+  changeContext(): void {
     this.showContextSelector.set(false);
-    this.router.navigate(['/select/client']).then(() => {});
+    this.router.navigate(['/select-context']).then(() => {});
   }
 
-  cerrarSesion(): void {
+  logOut(): void {
     this.showUserMenu.set(false);
     this.contextStore.clearContext();
     this.profileStore.clearProfile();
