@@ -36,7 +36,7 @@ export const AuthStore = signalStore(
     userId: computed(() => state.user()?.id || null),
     username: computed(() => state.user()?.username || null),
     userRoles: computed(() => state.user()?.roles || []),
-    isAdmin: computed(() => state.user()?.roles.some(role => role.name === RolesEnum.ROLE_MUNICIPAL_ADMINISTRATOR) || false),
+    isAdmin: computed(() => state.user()?.roles.some(role => role.name === RolesEnum.ROLE_ADMIN) || false),
   })),
 
   withMethods((store) => {
