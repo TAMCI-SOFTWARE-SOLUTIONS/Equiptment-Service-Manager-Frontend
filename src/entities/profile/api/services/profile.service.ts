@@ -3,10 +3,12 @@ import { Observable } from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 import { BaseService } from '../../../../shared/api';
 import { ProfileEntity } from '../../model';
-import { ProfileResponse } from '../types/profile-response.type';
-import { CreateProfileRequest } from '../types/create-profile-request.type';
-import { ProfileEntityFromResponseMapper } from '../mappers/profile-entity-from-response.mapper';
-import { CreateProfileRequestFromEntityMapper } from '../mappers/create-profile-request-from-entity.mapper';
+import { ProfileResponse } from '../types';
+import { CreateProfileRequest } from '../types';
+import { UpdateProfileRequest } from '../types';
+import { ProfileEntityFromResponseMapper } from '../mappers';
+import { CreateProfileRequestFromEntityMapper } from '../mappers';
+import { UpdateProfileRequestFromEntityMapper } from '../mappers';
 
 @Injectable({
   providedIn: 'root'
@@ -57,6 +59,33 @@ export class ProfileService extends BaseService {
       ),
       retry(2),
       catchError(this.handleError)
-    )
+    );
+  }
+
+  update(profileId: string, entity: ProfileEntity): Observable<ProfileEntity> {
+    const request: UpdateProfileRequest =
+      UpdateProfileRequestFromEntityMapper.fromEntityToDto(entity);
+
+    return this.http.put<ProfileResponse>(
+      `${this.resourcePath()}/${profileId}`,
+      request,
+      this.httpOptions
+    ).pipe(
+      map((response: ProfileResponse) =>
+        ProfileEntityFromResponseMapper.fromDtoToEntity(response)
+      ),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  delete(profileId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.resourcePath()}/${profileId}`,
+      this.httpOptions
+    ).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
   }
 }

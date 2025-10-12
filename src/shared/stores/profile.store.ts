@@ -197,27 +197,93 @@ export const ProfileStore = signalStore(
       },
 
       /**
-       * Actualizar información del perfil localmente
-       */
-      updateProfile(updates: Partial<ProfileEntity>): void {
-        console.log('🔄 ProfileStore - Actualizando perfil localmente:', updates);
-        const currentProfile = store.profile();
-        if (currentProfile) {
-          const updatedProfile = { ...currentProfile, ...updates };
-          patchState(store, { profile: updatedProfile });
-
-          // Si cambió el photoFileId, recargar la imagen
-          if (updates.photoFileId && updates.photoFileId !== currentProfile.photoFileId) {
-            methods.loadProfileImage(updates.photoFileId).then(() => {});
-          }
-        }
-      },
-
-      /**
        * Limpiar error
        */
       clearError(): void {
         patchState(store, { error: null });
+      },
+
+      /**
+       * Actualizar perfil completo
+       */
+      async updateProfile(profileId: string, updates: ProfileEntity): Promise<void> {
+        console.log('🔄 ProfileStore - Actualizando perfil:', profileId);
+
+        patchState(store, {
+          isLoading: true,
+          error: null
+        });
+
+        try {
+          const updatedProfile = await firstValueFrom(
+            profileService.update(profileId, updates)
+          );
+
+          patchState(store, {
+            profile: updatedProfile,
+            isLoading: false,
+            error: null
+          });
+
+          // 🔥 Emitir evento de perfil actualizado
+          const payload: ProfileUpdatedPayload = {
+            userId: updatedProfile.userId,
+            profile: updatedProfile,
+            timestamp: new Date()
+          };
+          eventBus.emit(EventNames.PROFILE_UPDATED, payload);
+
+          // Recargar imagen si cambió el photoFileId
+          if (updates.photoFileId && updates.photoFileId !== store.profile()?.photoFileId) {
+            await methods.loadProfileImage(updates.photoFileId);
+          }
+
+          console.log('✅ ProfileStore - Perfil actualizado exitosamente');
+        } catch (error: any) {
+          console.error('❌ ProfileStore - Error al actualizar perfil:', error);
+          patchState(store, {
+            isLoading: false,
+            error: error.message || 'Error al actualizar el perfil'
+          });
+        }
+      },
+
+      /**
+       * Eliminar perfil
+       */
+      async deleteProfile(profileId: string): Promise<void> {
+        console.log('🗑️ ProfileStore - Eliminando perfil:', profileId);
+
+        patchState(store, {
+          isLoading: true,
+          error: null
+        });
+
+        try {
+          await firstValueFrom(profileService.delete(profileId));
+
+          // 🔥 Emitir evento de perfil limpiado
+          const payload: ProfileClearedPayload = {
+            reason: 'deleted',
+            timestamp: new Date()
+          };
+          eventBus.emit(EventNames.PROFILE_CLEARED, payload);
+
+          patchState(store, {
+            profile: null,
+            profileImageUrl: null,
+            isLoading: false,
+            error: null
+          });
+
+          console.log('✅ ProfileStore - Perfil eliminado exitosamente');
+        } catch (error: any) {
+          console.error('❌ ProfileStore - Error al eliminar perfil:', error);
+          patchState(store, {
+            isLoading: false,
+            error: error.message || 'Error al eliminar el perfil'
+          });
+        }
       },
 
       /**
