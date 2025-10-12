@@ -79,8 +79,6 @@ export const ProfileStore = signalStore(
           return;
         }
 
-        console.log('🔄 ProfileStore - Cargando perfil para userId:', userId);
-
         patchState(store, {
           isLoading: true,
           error: null
@@ -95,8 +93,6 @@ export const ProfileStore = signalStore(
             isLoading: false,
             error: null
           });
-
-          console.log('✅ ProfileStore - Perfil cargado exitosamente:', profile);
 
           // 🔥 Emitir evento de perfil actualizado
           const payload: ProfileUpdatedPayload = {
@@ -134,17 +130,12 @@ export const ProfileStore = signalStore(
           return;
         }
 
-        console.log('photo:', photoFileId);
-
-        console.log('🔄 ProfileStore - Cargando imagen del perfil:', photoFileId);
 
         try {
           const imageUrl = await firstValueFrom(fileService.viewFileAsUrl(photoFileId));
 
           if (imageUrl) {
             patchState(store, { profileImageUrl: imageUrl });
-
-            console.log('✅ ProfileStore - Imagen de perfil cargada exitosamente');
 
             // 🔥 Emitir evento de imagen actualizada
             const payload: ProfileImageUpdatedPayload = {

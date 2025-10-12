@@ -36,7 +36,8 @@ export class EventBusService {
    * });
    */
   emit<K extends keyof EventPayloadMap>(event: K, data: EventPayloadMap[K]): void {
-    console.log(`Event Bus - Emitting event: ${event}`, data);
+    // Uncomment for debugging
+    //console.log(`Event Bus - Emitting event: ${event}`, data);
 
     const callbacks = this.listeners.get(event);
     if (callbacks) {
