@@ -6,6 +6,7 @@ export class PanelTypeFromResponseMapper {
     return {
       id: dto.id ?? '',
       code: dto.code ?? '',
+      name: dto.name ?? '',
     }
   }
 }
