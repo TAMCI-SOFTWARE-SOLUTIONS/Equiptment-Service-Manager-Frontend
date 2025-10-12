@@ -1,6 +1,6 @@
 import {computed, inject} from '@angular/core';
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
-import {ProjectService} from '../../../entities/project/api/project.service';
+import {ProjectService} from '../../../entities/project/api';
 import {ClientService} from '../../../entities/client/api';
 import {ClientEntity} from '../../../entities/client/model';
 import {EquipmentTypeEnum} from '../../../shared/model';
@@ -369,7 +369,74 @@ export const ProjectFormStore = signalStore(
       },
 
       /**
-       * Subir proyecto
+       * Actualizar proyecto existente
+       */
+      async updateProject(projectId: string): Promise<ProjectEntity | null> {
+        // Validación final
+        if (!store.canSubmit()) {
+          return null;
+        }
+
+        patchState(store, {
+          isSubmitting: true,
+          error: null
+        });
+
+        try {
+          let bannerFileId: string | null = null;
+
+          // 1. Subir banner si existe (si hay servicio de archivos)
+          if (store.formData().bannerFile) {
+            // Por ahora, establecer bannerFileId como null
+            // Cuando esté disponible el servicio de archivos, implementar aquí
+            patchState(store, { isUploadingBanner: true });
+            // bannerFileId = await this.uploadBannerFile();
+            patchState(store, { isUploadingBanner: false });
+          }
+
+          const projectData: ProjectEntity = {
+            id: projectId,
+            name: store.formData().name.trim(),
+            code: store.formData().code.trim(),
+            description: store.formData().description.trim(),
+            clientId: store.formData().clientId,
+            bannerId: bannerFileId,
+            startAt: store.formData().startAt,
+            completionAt: store.formData().completionAt,
+            cancelledAt: null,
+            status: store.formData().startAt ? ProjectStatusEnum.IN_PROGRESS : ProjectStatusEnum.PLANNED,
+            allowedEquipmentTypes: store.formData().allowedEquipmentTypes
+          };
+
+          const updatedProject = await firstValueFrom(projectService.update(projectId, projectData));
+
+          patchState(store, {
+            isSubmitting: false,
+            error: null
+          });
+
+          // Limpiar formulario
+          this.resetForm();
+
+          return updatedProject!;
+
+        } catch (error: any) {
+          console.error('❌ Error al actualizar proyecto:', error);
+
+          const errorMessage = error.message || 'Error al actualizar el proyecto. Inténtalo de nuevo.';
+
+          patchState(store, {
+            isSubmitting: false,
+            isUploadingBanner: false,
+            error: errorMessage
+          });
+
+          return null;
+        }
+      },
+
+      /**
+       * Subir proyecto (método original para crear)
        */
       async submitProject(): Promise<ProjectEntity | null> {
         // Validación final
