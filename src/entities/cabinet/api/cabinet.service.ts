@@ -4,6 +4,8 @@ import {catchError, map, Observable, retry} from 'rxjs';
 import {CabinetEntity} from '../model';
 import {CabinetResponseDto} from './cabinet-response.dto';
 import {CabinetEntityFromResponseMapper} from './cabinet-entity-from-response.mapper';
+import {CreateCabinetRequest} from './create-cabinet-request.type';
+import {CreateCabinetRequestFromEntityMapper} from './create-cabinet-request-from-entity.mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -26,6 +28,14 @@ export class CabinetService extends BaseService {
     return this.http.get<CabinetResponseDto>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
       map((cabinet: CabinetResponseDto) => CabinetEntityFromResponseMapper.fromDtoToEntity(cabinet)),
       retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  create(entity: CabinetEntity): Observable<CabinetEntity> {
+    const request: CreateCabinetRequest = CreateCabinetRequestFromEntityMapper.fromEntityToDto(entity);
+    return this.http.post<CabinetResponseDto>(this.resourcePath(), request, this.httpOptions).pipe(
+      map((response: CabinetResponseDto) => CabinetEntityFromResponseMapper.fromDtoToEntity(response)),
       catchError(this.handleError)
     );
   }

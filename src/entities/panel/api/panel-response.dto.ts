@@ -1,3 +1,9 @@
+/**
+ * Response DTO for panel data from backend
+ * Corresponds to: PanelResponse.java
+ *
+ * @see PanelResponse.java in backend
+ */
 export interface PanelResponseDto {
   id: string | null;
   plantId: string | null;
@@ -7,7 +13,7 @@ export interface PanelResponseDto {
   panelType: string | null;
   location: string | null;
   status: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-  lastServiceAt: string | null;
+  createdAt: string | null; // ISO string from backend
+  updatedAt: string | null; // ISO string from backend
+  lastServiceAt: string | null; // ISO string from backend
 }
