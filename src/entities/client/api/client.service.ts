@@ -2,11 +2,11 @@ import {BaseService} from '../../../shared/api';
 import {Injectable} from '@angular/core';
 import {catchError, map, Observable, retry} from 'rxjs';
 import {ClientEntity} from '../model';
-import {ClientResponseDto} from './client-response.dto';
 import {ClientEntityFromResponseMapper} from './client-entity-from-response.mapper';
 import {CreateClientRequest} from './create-client-request.type';
 import {CreateClientRequestFromEntityMapper} from './create-client-request-from-entity.mapper';
 import {ClientResponse} from './client-response.type';
+import {UpdateClientRequestFromEntityMapper} from './update-client-request-from-entity.mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -34,9 +34,25 @@ export class ClientService extends BaseService {
     );
   }
 
+  update(entity: ClientEntity): Observable<ClientEntity> {
+    const request: CreateClientRequest =
+      UpdateClientRequestFromEntityMapper.fromEntityToDto(entity);
+    return this.http.put<ClientResponse>(
+      `${this.resourcePath()}/${entity.id}`,
+      request,
+      this.httpOptions
+    ).pipe(
+      map((response: ClientResponse) =>
+        ClientEntityFromResponseMapper.fromDtoToEntity(response)
+      ),
+      // NO retry for POST (non-idempotent)
+      catchError(this.handleError)
+    );
+  }
+
   getAll(): Observable<ClientEntity[]> {
-    return this.http.get<ClientResponseDto[]>(`${this.resourcePath()}`, this.httpOptions).pipe(
-      map((clients: ClientResponseDto[]) => clients.map(client => ClientEntityFromResponseMapper.fromDtoToEntity(client))),
+    return this.http.get<ClientResponse[]>(`${this.resourcePath()}`, this.httpOptions).pipe(
+      map((clients: ClientResponse[]) => clients.map(client => ClientEntityFromResponseMapper.fromDtoToEntity(client))),
       retry(2),
       catchError(this.handleError)
     );

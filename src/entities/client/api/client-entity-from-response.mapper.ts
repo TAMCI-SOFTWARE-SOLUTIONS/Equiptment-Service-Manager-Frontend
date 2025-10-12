@@ -1,8 +1,8 @@
-import {ClientResponseDto} from './client-response.dto';
 import {ClientEntity} from '../model';
+import {ClientResponse} from './client-response.type';
 
 export class ClientEntityFromResponseMapper {
-  static fromDtoToEntity(dto: ClientResponseDto): ClientEntity {
+  static fromDtoToEntity(dto: ClientResponse): ClientEntity {
     return {
       id: dto.id ?? '',
       name: dto.name ?? '',
