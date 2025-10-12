@@ -32,14 +32,9 @@ export const routes: Routes = [
       // ==================== CONTEXT SELECTION ====================
       // 🎯 Páginas de selección de contexto (ya existentes)
       {
-        path: 'select/client',
-        title: 'Seleccionar Cliente',
-        loadComponent: () => import('../page/select-client/ui').then(m => m.SelectClientPage)
-      },
-      {
-        path: 'select/client/:clientId/projects',
-        title: 'Seleccionar Proyecto',
-        loadComponent: () => import('../page/select-project/ui').then(m => m.SelectProjectPage)
+        path: 'select-context',
+        title: 'Seleccionar Contexto',
+        loadComponent: () => import('../page/select-context/ui').then(m => m.SelectContextPage)
       },
 
       // ==================== SERVICES ====================
@@ -100,12 +95,34 @@ export const routes: Routes = [
       {
         path: 'equipments',
         title: 'Equipos',
-        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentsListPage)
+        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentsPage)
       },
       {
         path: 'equipments/:equipmentId',
         title: 'Detalle Equipo',
-        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentDetailPage)
+        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentNewPage)
+      },
+      {
+        path: 'equipments/new',
+        title: 'Nuevo Equipo',
+        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentNewPage)
+      },
+
+      // ==================== PROJECTS ====================
+      {
+        path: 'projects',
+        title: 'Proyectos',
+        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectsPage)
+      },
+      {
+        path: 'projects/new',
+        title: 'Nuevo Proyecto',
+        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectNewPage)
+      },
+      {
+        path: 'projects/:projectId',
+        title: 'Editar Proyecto',
+        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectEditPage)
       },
 
       // ==================== REPORTS ====================
@@ -129,7 +146,17 @@ export const routes: Routes = [
       {
         path: 'clients',
         title: 'Clientes',
-        loadComponent: () => import('../page/clients/ui/clients/clients/clients.page').then(m => m.ClientsPage)
+        loadComponent: () => import('../page/clients/ui/clients/clients.page').then(m => m.ClientsPage)
+      },
+      {
+        path: 'clients/new',
+        title: 'Nuevo Cliente',
+        loadComponent: () => import('../page/clients/ui/client-new/client-new.page').then(m => m.ClientNewPage)
+      },
+      {
+        path: 'clients/:clientId/edit',
+        title: 'Editar Cliente',
+        loadComponent: () => import('../page/clients/ui/client-edit/client-edit.page').then(m => m.ClientEditPage)
       },
 
       // ==================== ADMINISTRATION ====================
@@ -178,7 +205,7 @@ export const routes: Routes = [
             loadComponent: () => import('../page/admin/ui').then(m => m.AdminClientFormPage)
           },
 
-          // --- Projects Management (CRUD) ---
+/*          // --- Projects Management (CRUD) ---
           {
             path: 'projects',
             title: 'Gestión de Proyectos',
@@ -193,7 +220,7 @@ export const routes: Routes = [
             path: 'projects/:projectId',
             title: 'Editar Proyecto',
             loadComponent: () => import('../page/admin/ui').then(m => m.AdminProjectFormPage)
-          },
+          },*/
 
           // --- Equipments Management (CRUD) ---
           {

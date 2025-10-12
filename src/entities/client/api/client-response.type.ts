@@ -1,4 +1,4 @@
-export interface ClientResponseDto {
+export interface ClientResponse {
   id: string | null;
   name: string | null;
   logoFileId: string | null;

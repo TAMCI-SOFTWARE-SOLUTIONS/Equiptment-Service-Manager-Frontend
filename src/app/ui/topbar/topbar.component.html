@@ -72,7 +72,7 @@
             <button
               pRipple
               type="button"
-              (click)="cambiarContexto()"
+              (click)="changeContext()"
               class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-sky-50 focus:bg-sky-50 focus:outline-none">
               <i class="pi pi-sync text-sky-600"></i>
               <span class="text-sm font-medium text-gray-700">
@@ -167,6 +167,7 @@
             <button
               pRipple
               type="button"
+              (click)="onProfileClick()"
               class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-sky-50 focus:bg-sky-50 focus:outline-none">
               <i class="pi pi-user text-gray-600"></i>
               <span class="text-sm text-gray-700">Mi Perfil</span>
@@ -188,7 +189,7 @@
           <button
             pRipple
             type="button"
-            (click)="cerrarSesion()"
+            (click)="logOut()"
             class="flex w-full items-center gap-3 px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-50 focus:bg-red-50 focus:outline-none">
             <i class="pi pi-sign-out"></i>
             <span class="text-sm font-medium">Cerrar Sesión</span>
