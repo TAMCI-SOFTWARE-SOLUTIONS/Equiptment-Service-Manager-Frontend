@@ -117,7 +117,7 @@ export const routes: Routes = [
       {
         path: 'projects/new',
         title: 'Nuevo Proyecto',
-        loadComponent: () => import('../page/admin/ui').then(m => m.AdminProjectFormPage)
+        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectNewPage)
       },
       {
         path: 'projects/:projectId',
