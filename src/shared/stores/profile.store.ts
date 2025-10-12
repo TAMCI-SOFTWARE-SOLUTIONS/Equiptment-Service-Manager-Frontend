@@ -1,8 +1,18 @@
-import {computed, inject} from '@angular/core';
-import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
-import {firstValueFrom} from 'rxjs';
-import {ProfileEntity, ProfileService} from '../../entities/profile';
-import {FileService} from '../../entities/file/api/file.service';
+import { computed, inject } from '@angular/core';
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { firstValueFrom } from 'rxjs';
+import { ProfileEntity, ProfileService } from '../../entities/profile';
+import { FileService } from '../../entities/file/api/file.service';
+import { EventBusService } from '../services';
+import { EventNames } from '../events/event-names';
+import {
+  ProfileUpdatedPayload,
+  ProfileImageUpdatedPayload,
+  ProfileClearedPayload,
+  AuthLoginPayload,
+  AuthRefreshPayload,
+  AuthLogoutPayload
+} from '../events/event-payloads';
 
 export interface ProfileState {
   profile: ProfileEntity | null;
@@ -58,13 +68,32 @@ export const ProfileStore = signalStore(
   withMethods((store) => {
     const profileService = inject(ProfileService);
     const fileService = inject(FileService);
+    const eventBus = inject(EventBusService);
 
-    return {
+    /*
+     * Configure event listeners
+     */
+    void (() => {
+      eventBus.on(EventNames.AUTH_LOGIN, (data: AuthLoginPayload) => {
+        if (data.userId) {methods.loadProfile(data.userId).then(() => {});}
+      });
+
+      eventBus.on(EventNames.AUTH_REFRESH, (data: AuthRefreshPayload) => {
+        if (data.userId) {methods.loadProfile(data.userId).then(() => {});}
+      });
+
+      eventBus.on(EventNames.AUTH_LOGOUT, (_: AuthLogoutPayload) => {
+        methods.clearProfile();
+      });
+    })();
+
+    const methods = {
       /**
        * Cargar perfil del usuario por userId
        */
       async loadProfile(userId: string): Promise<void> {
         if (!userId) {
+          console.warn('⚠️ ProfileStore - No se puede cargar perfil sin userId');
           patchState(store, {
             profile: null,
             profileImageUrl: null,
@@ -72,6 +101,8 @@ export const ProfileStore = signalStore(
           });
           return;
         }
+
+        console.log('🔄 ProfileStore - Cargando perfil para userId:', userId);
 
         patchState(store, {
           isLoading: true,
@@ -88,13 +119,25 @@ export const ProfileStore = signalStore(
             error: null
           });
 
+          console.log('✅ ProfileStore - Perfil cargado exitosamente:', profile);
+
+          // 🔥 Emitir evento de perfil actualizado
+          const payload: ProfileUpdatedPayload = {
+            userId: profile.userId,
+            profile: profile,
+            timestamp: new Date()
+          };
+          eventBus.emit(EventNames.PROFILE_UPDATED, payload);
+
           // Cargar imagen del perfil si existe photoFileId válido
           if (profile.photoFileId && profile.photoFileId.trim() !== '') {
-            await this.loadProfileImage(profile.photoFileId);
+            await methods.loadProfileImage(profile.photoFileId);
           } else {
+            console.log('ℹ️ ProfileStore - No hay photoFileId, imagen nula');
             patchState(store, { profileImageUrl: null });
           }
         } catch (error: any) {
+          console.error('❌ ProfileStore - Error al cargar perfil:', error);
           patchState(store, {
             profile: null,
             profileImageUrl: null,
@@ -109,20 +152,34 @@ export const ProfileStore = signalStore(
        */
       async loadProfileImage(photoFileId: string): Promise<void> {
         if (!photoFileId || photoFileId.trim() === '') {
+          console.log('ℹ️ ProfileStore - photoFileId vacío, imagen nula');
           patchState(store, { profileImageUrl: null });
           return;
         }
+
+        console.log('🔄 ProfileStore - Cargando imagen del perfil:', photoFileId);
 
         try {
           const imageUrl = await firstValueFrom(fileService.viewFileAsUrl(photoFileId));
 
           if (imageUrl) {
             patchState(store, { profileImageUrl: imageUrl });
+
+            console.log('✅ ProfileStore - Imagen de perfil cargada exitosamente');
+
+            // 🔥 Emitir evento de imagen actualizada
+            const payload: ProfileImageUpdatedPayload = {
+              userId: store.profile()?.userId,
+              imageUrl: imageUrl,
+              timestamp: new Date()
+            };
+            eventBus.emit(EventNames.PROFILE_IMAGE_UPDATED, payload);
           } else {
+            console.warn('⚠️ ProfileStore - viewFileAsUrl retornó null/undefined');
             patchState(store, { profileImageUrl: null });
           }
         } catch (error: any) {
-          console.warn('Error al cargar imagen del perfil:', error.message);
+          console.warn('⚠️ ProfileStore - Error al cargar imagen del perfil:', error.message);
           patchState(store, { profileImageUrl: null });
         }
       },
@@ -131,16 +188,18 @@ export const ProfileStore = signalStore(
        * Actualizar perfil completo (perfil + imagen)
        */
       async refreshProfile(userId: string): Promise<void> {
-        await this.loadProfile(userId);
+        console.log('🔄 ProfileStore - Refrescando perfil completo');
+        await methods.loadProfile(userId);
       },
 
       /**
        * Actualizar solo la imagen del perfil
        */
       async refreshProfileImage(): Promise<void> {
+        console.log('🔄 ProfileStore - Refrescando solo imagen del perfil');
         const profile = store.profile();
         if (profile?.photoFileId && profile.photoFileId.trim() !== '') {
-          await this.loadProfileImage(profile.photoFileId);
+          await methods.loadProfileImage(profile.photoFileId);
         } else {
           patchState(store, { profileImageUrl: null });
         }
@@ -150,18 +209,28 @@ export const ProfileStore = signalStore(
        * Limpiar estado del perfil (útil para logout)
        */
       clearProfile(): void {
+        console.log('🧹 ProfileStore - Limpiando perfil');
+
         patchState(store, {
           profile: null,
           profileImageUrl: null,
           isLoading: false,
           error: null
         });
+
+        // 🔥 Emitir evento de perfil limpiado
+        const payload: ProfileClearedPayload = {
+          reason: 'logout',
+          timestamp: new Date()
+        };
+        eventBus.emit(EventNames.PROFILE_CLEARED, payload);
       },
 
       /**
        * Actualizar información del perfil localmente
        */
       updateProfile(updates: Partial<ProfileEntity>): void {
+        console.log('🔄 ProfileStore - Actualizando perfil localmente:', updates);
         const currentProfile = store.profile();
         if (currentProfile) {
           const updatedProfile = { ...currentProfile, ...updates };
@@ -169,7 +238,7 @@ export const ProfileStore = signalStore(
 
           // Si cambió el photoFileId, recargar la imagen
           if (updates.photoFileId && updates.photoFileId !== currentProfile.photoFileId) {
-            this.loadProfileImage(updates.photoFileId).then(() => {});
+            methods.loadProfileImage(updates.photoFileId).then(() => {});
           }
         }
       },
@@ -183,14 +252,19 @@ export const ProfileStore = signalStore(
 
       /**
        * Inicializar el store con un userId específico
+       * NOTA: Este método ahora es principalmente para uso manual/testing
+       * Ya que el store se inicializa automáticamente escuchando eventos
        */
       initialize(userId: string): void {
+        console.log('🚀 ProfileStore - Initialize llamado manualmente con userId:', userId);
         if (userId) {
-          this.loadProfile(userId).then(() => {});
+          methods.loadProfile(userId).then(() => {});
         } else {
-          this.clearProfile();
+          methods.clearProfile();
         }
       }
     };
+
+    return methods;
   })
 );
