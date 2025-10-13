@@ -2,8 +2,8 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { PanelTypeEntity } from '../../../../entities/panel-type/model';
-import { PanelTypeService } from '../../../../entities/panel-type/api';
+import {PanelTypeService} from '../../../../entities/panel-type/api/panel-type.service';
+import {PanelTypeEntity} from '../../../../entities/panel-type/model/panel-type.entity';
 
 @Component({
   selector: 'app-panel-type-form',

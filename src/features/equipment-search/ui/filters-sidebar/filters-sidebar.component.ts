@@ -6,7 +6,7 @@ import {MultiSelect} from 'primeng/multiselect';
 import {CabinetTypeEntity} from '../../../../entities/cabinet-type/model';
 import {FormsModule} from '@angular/forms';
 import {AreaEntity} from '../../../../entities/area/model';
-import {PanelTypeEntity} from '../../../../entities/panel-type/model';
+import {PanelTypeEntity} from '../../../../entities/panel-type/model/panel-type.entity';
 
 @Component({
   selector: 'app-filters-sidebar',

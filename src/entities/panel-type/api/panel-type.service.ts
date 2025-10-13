@@ -1,11 +1,11 @@
 import {Injectable} from '@angular/core';
 import {BaseService} from '../../../shared/api';
 import {catchError, map, Observable, retry} from 'rxjs';
-import {PanelTypeEntity} from '../model';
 import {PanelTypeResponseDto} from './panel-type-response.dto';
 import {PanelTypeFromResponseMapper} from './panel-type-from-response.mapper';
 import {CreatePanelTypeRequestFromEntityMapper} from './create-panel-type-request-from-entity.mapper';
 import {CreatePanelTypeRequest} from './create-panel-type-request.type';
+import {PanelTypeEntity} from '../model/panel-type.entity';
 
 @Injectable({
   providedIn: 'root'

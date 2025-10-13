@@ -1,5 +1,5 @@
-import {PanelTypeEntity} from '../model';
 import {PanelTypeResponseDto} from './panel-type-response.dto';
+import {PanelTypeEntity} from '../model/panel-type.entity';
 
 export class PanelTypeFromResponseMapper {
   static fromDtoToEntity(dto: PanelTypeResponseDto): PanelTypeEntity {

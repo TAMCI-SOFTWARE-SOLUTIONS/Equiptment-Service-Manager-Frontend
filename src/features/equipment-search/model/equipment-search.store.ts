@@ -5,8 +5,8 @@ import {computed} from '@angular/core';
 import {CabinetTypeEntity} from '../../../entities/cabinet-type/model';
 import {AreaEntity} from '../../../entities/area/model';
 import {PanelEntity} from '../../../entities/panel/model';
-import {PanelTypeEntity} from '../../../entities/panel-type/model';
 import {EquipmentTypeEnum} from '../../../shared/model';
+import {PanelTypeEntity} from '../../../entities/panel-type/model/panel-type.entity';
 
 interface EquipmentSearchState {
   searchTerm: string;

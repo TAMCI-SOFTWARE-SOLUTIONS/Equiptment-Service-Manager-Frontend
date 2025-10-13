@@ -30,7 +30,7 @@
           <div class="flex justify-end gap-2">
             <button
               class="p-2 bg-transparent border-none cursor-pointer rounded-1 transition-colors duration-300 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800"
-              (click)="onEdit(cabinetType)"
+              [routerLink]="['/cabinet-types', cabinetType.id, 'edit']"
               title="Editar">
               <i class="pi pi-pencil"></i>
             </button>
