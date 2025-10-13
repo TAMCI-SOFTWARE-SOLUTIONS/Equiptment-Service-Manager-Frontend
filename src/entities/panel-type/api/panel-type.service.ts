@@ -1,9 +1,13 @@
 import {Injectable} from '@angular/core';
 import {BaseService} from '../../../shared/api';
 import {catchError, map, Observable, retry} from 'rxjs';
-import {PanelTypeEntity} from '../model';
 import {PanelTypeResponseDto} from './panel-type-response.dto';
 import {PanelTypeFromResponseMapper} from './panel-type-from-response.mapper';
+import {CreatePanelTypeRequestFromEntityMapper} from './create-panel-type-request-from-entity.mapper';
+import {CreatePanelTypeRequest} from './create-panel-type-request.type';
+import {PanelTypeEntity} from '../model/panel-type.entity';
+import {UpdatePanelTypeRequest} from './update-panel-type-request.type';
+import {UpdatePanelTypeRequestFromEntityMapper} from './update-panel-type-request-from-entity.mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -13,10 +17,43 @@ export class PanelTypeService extends BaseService {
     super();
     this.resourceEndpoint = 'panel-types';
   }
-  
+
   public getAll(): Observable<PanelTypeEntity[]> {
     return this.http.get<PanelTypeResponseDto[]>(this.resourcePath(), this.httpOptions).pipe(
       map((types: PanelTypeResponseDto[]) => types.map(type => PanelTypeFromResponseMapper.fromDtoToEntity(type))),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  create(entity: PanelTypeEntity): Observable<PanelTypeEntity> {
+    const request: CreatePanelTypeRequest = CreatePanelTypeRequestFromEntityMapper.fromEntityToDto(entity);
+    return this.http.post<PanelTypeResponseDto>(this.resourcePath(), request, this.httpOptions).pipe(
+      map((response: PanelTypeResponseDto) => PanelTypeFromResponseMapper.fromDtoToEntity(response)),
+      // NO retry for POST (non-idempotent)
+      catchError(this.handleError)
+    );
+  }
+
+  getById(id: string): Observable<PanelTypeEntity> {
+    return this.http.get<PanelTypeResponseDto>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      map((response: PanelTypeResponseDto) => PanelTypeFromResponseMapper.fromDtoToEntity(response)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  update(id: string, entity: PanelTypeEntity): Observable<PanelTypeEntity> {
+    const request: UpdatePanelTypeRequest = UpdatePanelTypeRequestFromEntityMapper.fromEntityToDto(entity);
+    return this.http.put<PanelTypeResponseDto>(`${this.resourcePath()}/${id}`, request, this.httpOptions).pipe(
+      map((response: PanelTypeResponseDto) => PanelTypeFromResponseMapper.fromDtoToEntity(response)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
       retry(2),
       catchError(this.handleError)
     );

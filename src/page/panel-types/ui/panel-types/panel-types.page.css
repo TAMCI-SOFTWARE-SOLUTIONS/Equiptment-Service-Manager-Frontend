@@ -1,0 +1,15 @@
+/* Panel Types Page - Minimal custom styles since using Tailwind utilities in template */
+.panel-types-page {
+  /* Custom grid layout that Tailwind can't handle easily */
+}
+
+.panel-types-page .panel-types-grid {
+  grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));
+}
+
+/* Responsive breakpoint for grid */
+@media (max-width: 768px) {
+  .panel-types-page .panel-types-grid {
+    grid-template-columns: 1fr;
+  }
+}

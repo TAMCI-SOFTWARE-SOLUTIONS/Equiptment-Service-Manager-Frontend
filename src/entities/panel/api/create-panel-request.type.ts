@@ -8,7 +8,7 @@ export interface CreatePanelRequest {
   plantId: string | null;
   tag: string | null;
   areaId: string | null;
-  communicationProtocol: string | null;
-  panelType: string | null;
-  location: string | null;
+  locationId: string | null;
+  communicationProtocolId: string | null;
+  panelTypeId: string | null;
 }

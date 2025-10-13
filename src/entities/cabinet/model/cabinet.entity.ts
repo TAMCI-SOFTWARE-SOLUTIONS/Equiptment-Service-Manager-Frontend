@@ -5,9 +5,11 @@ export interface CabinetEntity {
   plantId: string;
   tag: string;
   areaId: string;
+  locationId: string;
+  communicationProtocolId: string | null;
   communicationProtocol: string;
+  cabinetTypeId: string | null;
   cabinetType: string;
-  location: string;
   status: CabinetStatusEnum;
   createdAt: Date;
   updatedAt: Date | null;

@@ -5,9 +5,11 @@ export interface PanelEntity {
   plantId: string;
   tag: string;
   areaId: string;
+  locationId: string;
+  communicationProtocolId: string | null;
   communicationProtocol: string;
+  panelTypeId: string | null;
   panelType: string;
-  location: string;
   status: PanelStatusEnum;
   createdAt: Date;
   updatedAt: Date | null;

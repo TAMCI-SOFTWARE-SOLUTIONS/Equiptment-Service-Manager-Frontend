@@ -108,6 +108,38 @@ export const routes: Routes = [
         loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentNewPage)
       },
 
+      // ==================== EQUIPMENT TYPES ====================
+      {
+        path: 'panel-types',
+        title: 'Tipos de Panel',
+        loadComponent: () => import('../page/panel-types/ui/panel-types/panel-types.page').then(m => m.PanelTypesPage)
+      },
+      {
+        path: 'panel-types/new',
+        title: 'Nuevo Tipo de Panel',
+        loadComponent: () => import('../page/panel-types/ui/panel-type-form/panel-type-form.page').then(m => m.PanelTypeFormPage)
+      },
+      {
+        path: 'panel-types/:id/edit',
+        title: 'Editar Tipo de Panel',
+        loadComponent: () => import('../page/panel-types/ui/panel-type-form/panel-type-form.page').then(m => m.PanelTypeFormPage)
+      },
+      {
+        path: 'cabinet-types',
+        title: 'Tipos de Gabinete',
+        loadComponent: () => import('../page/cabinet-types/ui/cabinet-types/cabinet-types.page').then(m => m.CabinetTypesPage)
+      },
+      {
+        path: 'cabinet-types/new',
+        title: 'Nuevo Tipo de Gabinete',
+        loadComponent: () => import('../page/cabinet-types/ui/cabinet-type-form/cabinet-type-form.page').then(m => m.CabinetTypeFormPage)
+      },
+      {
+        path: 'cabinet-types/:id/edit',
+        title: 'Editar Tipo de Gabinete',
+        loadComponent: () => import('../page/cabinet-types/ui/cabinet-type-form/cabinet-type-form.page').then(m => m.CabinetTypeFormPage)
+      },
+
       // ==================== PROJECTS ====================
       {
         path: 'projects',

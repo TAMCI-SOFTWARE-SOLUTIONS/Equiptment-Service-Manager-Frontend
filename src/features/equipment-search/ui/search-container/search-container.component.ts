@@ -3,15 +3,15 @@ import {SearchInputComponent} from '../search-input/search-input.component';
 import {FiltersSidebarComponent} from '../filters-sidebar/filters-sidebar.component';
 import {SearchResultsComponent} from '../search-results/search-results.component';
 import {EquipmentSearchStore} from '../../model';
-import {ProjectService} from '../../../../entities/project/api/project.service';
+import {ProjectService} from '../../../../entities/project/api';
 import {CabinetService} from '../../../../entities/cabinet/api';
 import {ActivatedRoute, Router} from '@angular/router';
 import {EquipmentTypeEnum} from '../../../../shared/model';
 import {FlowButtonsComponent} from '../flow-buttons/flow-buttons.component';
 import {CabinetTypeService} from '../../../../entities/cabinet-type/api';
 import {AreaService} from '../../../../entities/area/api';
-import {PanelService} from '../../../../entities/panel/api/panel.service';
-import {PanelTypeService} from '../../../../entities/panel-type/api';
+import {PanelService} from '../../../../entities/panel/api';
+import {PanelTypeService} from '../../../../entities/panel-type/api/panel-type.service';
 
 @Component({
   selector: 'app-search-container',
