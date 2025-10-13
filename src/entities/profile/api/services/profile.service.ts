@@ -3,12 +3,12 @@ import { Observable } from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 import { BaseService } from '../../../../shared/api';
 import { ProfileEntity } from '../../model';
-import { ProfileResponse } from '../types';
-import { CreateProfileRequest } from '../types';
-import { UpdateProfileRequest } from '../types';
-import { ProfileEntityFromResponseMapper } from '../mappers';
-import { CreateProfileRequestFromEntityMapper } from '../mappers';
-import { UpdateProfileRequestFromEntityMapper } from '../mappers';
+import {CreateProfileRequest, ProfileResponse, UpdateProfileRequest} from '../types';
+import {
+  CreateProfileRequestFromEntityMapper,
+  ProfileEntityFromResponseMapper,
+  UpdateProfileRequestFromEntityMapper
+} from '../mappers';
 
 @Injectable({
   providedIn: 'root'
