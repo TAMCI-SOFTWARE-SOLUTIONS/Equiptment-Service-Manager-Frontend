@@ -6,6 +6,8 @@ import {CabinetTypeResponseDto} from './cabinet-type-response.dto';
 import {CabinetTypeFromResponseMapper} from './cabinet-type-from-response.mapper';
 import {CreateCabinetTypeRequest} from './create-cabinet-type-request.type';
 import {CreateCabinetTypeRequestFromEntityMapper} from './create-cabinet-type-request-from-entity.mapper';
+import {UpdateCabinetTypeRequestFromEntityMapper} from './update-cabinet-type-request-from-entity.mapper';
+import {UpdateCabinetTypeRequest} from './update-cabinet-type-request.type';
 
 @Injectable({
   providedIn: 'root'
@@ -41,7 +43,7 @@ export class CabinetTypeService extends BaseService {
   }
 
   update(id: string, entity: CabinetTypeEntity): Observable<CabinetTypeEntity> {
-    const request: CreateCabinetTypeRequest = CreateCabinetTypeRequestFromEntityMapper.fromEntityToDto(entity);
+    const request: UpdateCabinetTypeRequest = UpdateCabinetTypeRequestFromEntityMapper.fromEntityToDto(entity);
     return this.http.put<CabinetTypeResponseDto>(`${this.resourcePath()}/${id}`, request, this.httpOptions).pipe(
       map((response: CabinetTypeResponseDto) => CabinetTypeFromResponseMapper.fromDtoToEntity(response)),
       retry(2),
