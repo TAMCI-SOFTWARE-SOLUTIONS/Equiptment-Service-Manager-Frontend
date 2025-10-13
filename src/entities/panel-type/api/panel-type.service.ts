@@ -32,4 +32,28 @@ export class PanelTypeService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  getById(id: string): Observable<PanelTypeEntity> {
+    return this.http.get<PanelTypeResponseDto>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      map((response: PanelTypeResponseDto) => PanelTypeFromResponseMapper.fromDtoToEntity(response)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  update(id: string, entity: PanelTypeEntity): Observable<PanelTypeEntity> {
+    const request: CreatePanelTypeRequest = CreatePanelTypeRequestFromEntityMapper.fromEntityToDto(entity);
+    return this.http.put<PanelTypeResponseDto>(`${this.resourcePath()}/${id}`, request, this.httpOptions).pipe(
+      map((response: PanelTypeResponseDto) => PanelTypeFromResponseMapper.fromDtoToEntity(response)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
 }
