@@ -48,14 +48,7 @@ export class CabinetTypesPage implements OnInit {
   confirmDelete(): void {
     const cabinetType = this.cabinetTypeToDelete();
     if (!cabinetType) return;
-
-    // TODO: Llamar al servicio para eliminar
-    console.log('Delete confirmed:', cabinetType);
-
-    // Por ahora, solo removemos de la lista
     this.store.removeCabinetType(cabinetType.id);
-
-    // Cerrar modal
     this.closeDeleteModal();
   }
 

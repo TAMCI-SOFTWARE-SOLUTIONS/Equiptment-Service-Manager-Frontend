@@ -155,10 +155,27 @@ export const CabinetTypesStore = signalStore(
       /**
        * Eliminar cabinet type de la lista
        */
-      removeCabinetType(cabinetTypeId: string): void {
-        patchState(store, (state) => ({
-          cabinetTypes: state.cabinetTypes.filter(ct => ct.id !== cabinetTypeId)
-        }));
+      async removeCabinetType(cabinetTypeId: string): Promise<void> {
+        patchState(store, {
+          isLoading: true,
+          error: null
+        });
+
+        try {
+          await firstValueFrom(cabinetTypeService.delete(cabinetTypeId));
+
+          patchState(store, (state) =>({
+            isLoading: false,
+            error: null,
+            cabinetTypes: state.cabinetTypes.filter(ct => ct.id !== cabinetTypeId)
+          }));
+        } catch (error: any) {
+          console.log('❌ Error deleting cabinet type:', error);
+          patchState(store, {
+            isLoading: false,
+            error: error.message || 'Error al eliminar el tipo de gabinete'
+          });
+        }
       },
 
       /**
