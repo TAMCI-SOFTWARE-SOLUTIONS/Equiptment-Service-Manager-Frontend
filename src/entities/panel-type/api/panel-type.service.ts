@@ -6,6 +6,8 @@ import {PanelTypeFromResponseMapper} from './panel-type-from-response.mapper';
 import {CreatePanelTypeRequestFromEntityMapper} from './create-panel-type-request-from-entity.mapper';
 import {CreatePanelTypeRequest} from './create-panel-type-request.type';
 import {PanelTypeEntity} from '../model/panel-type.entity';
+import {UpdatePanelTypeRequest} from './update-panel-type-request.type';
+import {UpdatePanelTypeRequestFromEntityMapper} from './update-panel-type-request-from-entity.mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -42,7 +44,7 @@ export class PanelTypeService extends BaseService {
   }
 
   update(id: string, entity: PanelTypeEntity): Observable<PanelTypeEntity> {
-    const request: CreatePanelTypeRequest = CreatePanelTypeRequestFromEntityMapper.fromEntityToDto(entity);
+    const request: UpdatePanelTypeRequest = UpdatePanelTypeRequestFromEntityMapper.fromEntityToDto(entity);
     return this.http.put<PanelTypeResponseDto>(`${this.resourcePath()}/${id}`, request, this.httpOptions).pipe(
       map((response: PanelTypeResponseDto) => PanelTypeFromResponseMapper.fromDtoToEntity(response)),
       retry(2),
