@@ -77,6 +77,22 @@ export class SidebarComponent {
       route: '/equipments'
     },
     {
+      label: 'Tipos de Equipo',
+      icon: 'pi-cog',
+      children: [
+        {
+          label: 'Tipo de Panel',
+          icon: 'pi-th-large',
+          route: '/panel-types'
+        },
+        {
+          label: 'Tipo de Gabinete',
+          icon: 'pi-server',
+          route: '/cabinet-types'
+        }
+      ]
+    },
+    {
       label: 'Reportes',
       icon: 'pi-chart-bar',
       children: [
