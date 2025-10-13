@@ -48,14 +48,7 @@ export class PanelTypesPage implements OnInit {
   confirmDelete(): void {
     const panelType = this.panelTypeToDelete();
     if (!panelType) return;
-
-    // TODO: Llamar al servicio para eliminar
-    console.log('Delete confirmed:', panelType);
-
-    // Por ahora, solo removemos de la lista
-    this.store.removePanelType(panelType.id);
-
-    // Cerrar modal
+    this.store.removePanelType(panelType.id)
     this.closeDeleteModal();
   }
 

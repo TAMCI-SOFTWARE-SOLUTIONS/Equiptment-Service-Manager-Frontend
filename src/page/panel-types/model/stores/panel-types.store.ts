@@ -2,6 +2,7 @@ import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import {PanelTypeEntity} from '../../../../entities/panel-type/model/panel-type.entity';
 import {PanelTypeService} from '../../../../entities/panel-type/api/panel-type.service';
+import {firstValueFrom} from 'rxjs';
 
 export interface PanelTypesState {
   panelTypes: PanelTypeEntity[];
@@ -92,7 +93,7 @@ export const PanelTypesStore = signalStore(
         });
 
         try {
-          const panelTypes = await panelTypeService.getAll().toPromise();
+          const panelTypes = await firstValueFrom(panelTypeService.getAll());
 
           patchState(store, {
             panelTypes: panelTypes || [],
@@ -154,10 +155,27 @@ export const PanelTypesStore = signalStore(
       /**
        * Eliminar panel type de la lista
        */
-      removePanelType(panelTypeId: string): void {
-        patchState(store, (state) => ({
-          panelTypes: state.panelTypes.filter(pt => pt.id !== panelTypeId)
-        }));
+      async removePanelType(panelTypeId: string): Promise<void> {
+        patchState(store, {
+          isLoading: true,
+          error: null
+        });
+
+        try {
+          await firstValueFrom(panelTypeService.delete(panelTypeId));
+
+          patchState(store, (state) =>({
+            isLoading: false,
+            error: null,
+            panelTypes: state.panelTypes.filter(ct => ct.id !== panelTypeId)
+          }));
+        } catch (error: any) {
+          console.log('❌ Error deleting cabinet type:', error);
+          patchState(store, {
+            isLoading: false,
+            error: error.message || 'Error al eliminar el tipo de gabinete'
+          });
+        }
       },
 
       /**
