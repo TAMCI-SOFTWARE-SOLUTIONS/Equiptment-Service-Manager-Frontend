@@ -1,52 +1,70 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { CabinetTypeEntity } from '../../../../entities/cabinet-type/model';
-import { CabinetTypeService } from '../../../../entities/cabinet-type/api';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Ripple } from 'primeng/ripple';
+import {CabinetTypesStore} from '../../modal/stores/cabinet-types.store';
+import {CabinetTypeEntity} from '../../../../entities/cabinet-type/model';
 
 @Component({
   selector: 'app-cabinet-types',
   standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './cabinet-types.page.html',
-  styleUrl: './cabinet-types.page.css'
+  imports: [CommonModule, FormsModule, Ripple],
+  templateUrl: './cabinet-types.page.html'
 })
 export class CabinetTypesPage implements OnInit {
-  readonly cabinetTypeService = inject(CabinetTypeService);
+  readonly store = inject(CabinetTypesStore);
+  private readonly router = inject(Router);
 
-  // Signals para el estado
-  readonly cabinetTypes = signal<CabinetTypeEntity[]>([]);
-  readonly isLoading = signal(true);
-  readonly error = signal<string | null>(null);
+  // UI state para modal de confirmación
+  readonly showDeleteModal = signal(false);
+  readonly cabinetTypeToDelete = signal<CabinetTypeEntity | null>(null);
 
   ngOnInit(): void {
-    this.loadCabinetTypes();
+    this.store.loadCabinetTypes();
   }
 
-  public loadCabinetTypes(): void {
-    this.isLoading.set(true);
-    this.error.set(null);
+  onSearchChange(value: string): void {
+    this.store.setSearchQuery(value);
+  }
 
-    this.cabinetTypeService.getAll().subscribe({
-      next: (cabinetTypes) => {
-        this.cabinetTypes.set(cabinetTypes);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        this.error.set('Error al cargar los tipos de gabinete');
-        this.isLoading.set(false);
-        console.error('Error loading cabinet types:', error);
-      }
-    });
+  clearSearch(): void {
+    this.store.clearSearch();
+  }
+
+  onRefresh(): void {
+    this.store.loadCabinetTypes();
   }
 
   onEdit(cabinetType: CabinetTypeEntity): void {
-    // TODO: Implementar navegación a página de edición
-    console.log('Edit cabinet type:', cabinetType);
+    this.router.navigate(['/cabinet-types', cabinetType.id, 'edit']).then(() => {});
   }
 
-  onDelete(cabinetType: CabinetTypeEntity): void {
-    // TODO: Implementar eliminación
-    console.log('Delete cabinet type:', cabinetType);
+  onDeleteClick(cabinetType: CabinetTypeEntity): void {
+    this.cabinetTypeToDelete.set(cabinetType);
+    this.showDeleteModal.set(true);
+  }
+
+  confirmDelete(): void {
+    const cabinetType = this.cabinetTypeToDelete();
+    if (!cabinetType) return;
+
+    // TODO: Llamar al servicio para eliminar
+    console.log('Delete confirmed:', cabinetType);
+
+    // Por ahora, solo removemos de la lista
+    this.store.removeCabinetType(cabinetType.id);
+
+    // Cerrar modal
+    this.closeDeleteModal();
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal.set(false);
+    this.cabinetTypeToDelete.set(null);
+  }
+
+  onCreateNew(): void {
+    this.router.navigate(['/cabinet-types/new']).then(() => {});
   }
 }

@@ -1,56 +1,255 @@
-<div class="p-6">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-4xl font-bold text-neutral-900">Tipos de Gabinete</h1>
-    <button class="px-5 py-3 bg-primary-200 text-white border-none rounded-2 cursor-pointer flex items-center gap-2 text-base font-medium transition-colors duration-300 hover:bg-primary-300" routerLink="/cabinet-types/new">
-      <i class="pi pi-plus"></i>
-      Nuevo Tipo de Gabinete
-    </button>
-  </div>
+<div class="flex h-full flex-col bg-gray-50">
 
-  @if (isLoading()) {
-    <div class="text-center p-8">
-      <p class="text-base">Cargando tipos de gabinete...</p>
-    </div>
-  } @else if (error()) {
-    <div class="text-center p-8">
-      <p class="text-base text-destructive-500 mb-4">{{ error() }}</p>
-      <button class="px-5 py-3 bg-neutral-100 text-neutral-700 border border-neutral-300 rounded-2 cursor-pointer text-base font-medium transition-all duration-300 hover:bg-neutral-200" (click)="loadCabinetTypes()">
-        Reintentar
-      </button>
-    </div>
-  } @else {
-    <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));">
-      @for (cabinetType of cabinetTypes(); track cabinetType.id) {
-        <div class="p-5 bg-white border border-neutral-200 rounded-2 shadow-sm transition-shadow duration-300 hover:shadow-md">
-          <div class="mb-4">
-            <h3 class="m-0 mb-2 text-xl font-semibold text-neutral-900">{{ cabinetType.name }}</h3>
-            <span class="inline-block px-3 py-1 bg-primary-50 text-primary-700 rounded-1 text-sm font-medium">{{ cabinetType.code }}</span>
-          </div>
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-5xl">
 
-          <div class="flex justify-end gap-2">
-            <button
-              class="p-2 bg-transparent border-none cursor-pointer rounded-1 transition-colors duration-300 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800"
-              [routerLink]="['/cabinet-types', cabinetType.id, 'edit']"
-              title="Editar">
-              <i class="pi pi-pencil"></i>
-            </button>
-            <button
-              class="p-2 bg-transparent border-none cursor-pointer rounded-1 transition-colors duration-300 text-neutral-600 hover:bg-destructive-50 hover:text-destructive-600"
-              (click)="onDelete(cabinetType)"
-              title="Eliminar">
-              <i class="pi pi-trash"></i>
-            </button>
-          </div>
+      <!-- Title & Actions -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            Tipos de Gabinete
+          </h1>
+          @if (store.hasCabinetTypes() && !store.isLoading()) {
+            <span class="flex h-6 items-center rounded-full bg-gray-100 px-2.5 text-xs font-semibold text-gray-700">
+              {{ store.filteredCount() }}
+            </span>
+          }
         </div>
-      } @empty {
-        <div class="col-span-full text-center p-8 text-neutral-600">
-          <i class="pi pi-inbox block text-5xl mb-4"></i>
-          <p class="text-base mb-4">No hay tipos de gabinete registrados</p>
-          <button class="px-5 py-3 bg-primary-200 text-white border-none rounded-2 cursor-pointer text-base font-medium transition-colors duration-300 hover:bg-primary-300" routerLink="/cabinet-types/new">
-            Crear el primero
+
+        <div class="flex items-center gap-2">
+          <button
+            pRipple
+            type="button"
+            (click)="onRefresh()"
+            [disabled]="store.isLoading()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (store.isLoading()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+            } @else {
+              <i class="pi pi-refresh text-base"></i>
+            }
           </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onCreateNew()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            <i class="pi pi-plus text-sm"></i>
+            <span>Nuevo Tipo</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      @if (store.hasCabinetTypes() && !store.isLoading()) {
+        <div class="mt-4">
+          <div class="relative">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <i class="pi pi-search text-sm text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              [value]="store.searchQuery()"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Buscar por nombre o código..."
+              class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+
+            @if (store.searchQuery()) {
+              <button
+                type="button"
+                (click)="clearSearch()"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                <i class="pi pi-times text-xs"></i>
+              </button>
+            }
+          </div>
         </div>
       }
     </div>
-  }
+  </header>
+
+  <!-- Content Area -->
+  <main class="flex-1 overflow-auto px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-base text-red-600"></i>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-red-800">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-xs"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="space-y-2">
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <div class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4">
+              <div class="h-10 w-10 animate-pulse rounded-lg bg-gray-200"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-4 w-1/3 animate-pulse rounded bg-gray-200"></div>
+                <div class="h-3 w-1/4 animate-pulse rounded bg-gray-200"></div>
+              </div>
+              <div class="flex gap-2">
+                <div class="h-8 w-20 animate-pulse rounded-lg bg-gray-200"></div>
+                <div class="h-8 w-8 animate-pulse rounded-lg bg-gray-200"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      @else if (store.filteredCabinetTypes().length > 0) {
+        <!-- Grid para desktop, lista para mobile -->
+        <div class="grid gap-2 lg:grid-cols-2">
+          @for (cabinetType of store.filteredCabinetTypes(); track cabinetType.id) {
+            <article class="group flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-sky-300 hover:bg-sky-50/30 hover:shadow-sm">
+
+              <!-- Icon -->
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700 transition-colors group-hover:bg-sky-200">
+                <i class="pi pi-box text-lg"></i>
+              </div>
+
+              <!-- Info -->
+              <div class="min-w-0 flex-1">
+                <h3 class="truncate text-base font-semibold text-gray-900 transition-colors group-hover:text-sky-700">
+                  {{ cabinetType.name }}
+                </h3>
+                <p class="mt-0.5 text-xs font-mono text-gray-500">
+                  {{ cabinetType.code }}
+                </p>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex shrink-0 items-center gap-2">
+                <button
+                  pRipple
+                  type="button"
+                  (click)="onEdit(cabinetType)"
+                  class="flex items-center gap-1.5 rounded-lg border border-sky-500 bg-white px-3 py-1.5 text-xs font-medium text-sky-600 transition-all hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+                  <i class="pi pi-pencil text-xs"></i>
+                  <span class="hidden sm:inline">Editar</span>
+                </button>
+
+                <button
+                  pRipple
+                  type="button"
+                  (click)="onDeleteClick(cabinetType)"
+                  title="Eliminar"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
+                  <i class="pi pi-trash text-xs"></i>
+                </button>
+              </div>
+
+            </article>
+          }
+        </div>
+
+        <!-- Search No Results -->
+        @if (store.searchQuery() && !store.hasSearchResults()) {
+          <div class="flex flex-col items-center justify-center py-12 text-center">
+            <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <i class="pi pi-search text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900">
+              No se encontraron resultados
+            </h3>
+            <p class="mt-1 text-sm text-gray-600">
+              No hay tipos de gabinete que coincidan con "<strong>{{ store.searchQuery() }}</strong>"
+            </p>
+            <button
+              pRipple
+              type="button"
+              (click)="clearSearch()"
+              class="mt-4 flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600">
+              <i class="pi pi-times text-xs"></i>
+              Limpiar búsqueda
+            </button>
+          </div>
+        }
+      }
+      @else if (!store.isLoading() && !store.hasCabinetTypes()) {
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-sky-100">
+            <i class="pi pi-box text-4xl text-sky-600"></i>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900">
+            No hay tipos de gabinete registrados
+          </h3>
+          <p class="mt-2 max-w-md text-sm text-gray-600">
+            Comienza agregando el primer tipo de gabinete para organizar tu sistema.
+          </p>
+          <button
+            pRipple
+            type="button"
+            (click)="onCreateNew()"
+            class="mt-6 flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
+            <i class="pi pi-plus"></i>
+            Crear Primer Tipo
+          </button>
+        </div>
+      }
+
+    </div>
+  </main>
+
 </div>
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200"
+       (click)="closeDeleteModal()">
+    <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl animate-in zoom-in slide-in-from-bottom-4 duration-300"
+         (click)="$event.stopPropagation()">
+
+      <!-- Icon -->
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+        <i class="pi pi-exclamation-triangle text-2xl text-red-600"></i>
+      </div>
+
+      <!-- Content -->
+      <h3 class="text-xl font-bold text-gray-900">
+        ¿Eliminar tipo de gabinete?
+      </h3>
+      <p class="mt-2 text-sm text-gray-600">
+        Estás a punto de eliminar el tipo de gabinete
+        <strong class="font-semibold text-gray-900">{{ cabinetTypeToDelete()?.name }}</strong>
+        <span class="font-mono text-gray-500">({{ cabinetTypeToDelete()?.code }})</span>.
+      </p>
+      <p class="mt-2 text-sm font-medium text-red-600">
+        Esta acción no se puede deshacer.
+      </p>
+
+      <!-- Actions -->
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button
+          pRipple
+          type="button"
+          (click)="closeDeleteModal()"
+          class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+          Cancelar
+        </button>
+
+        <button
+          pRipple
+          type="button"
+          (click)="confirmDelete()"
+          class="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+          <i class="pi pi-trash text-sm"></i>
+          Sí, eliminar
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
