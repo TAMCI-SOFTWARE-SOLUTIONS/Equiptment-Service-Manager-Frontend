@@ -129,6 +129,16 @@ export const routes: Routes = [
         title: 'Tipos de Gabinete',
         loadComponent: () => import('../page/cabinet-types/ui/cabinet-types/cabinet-types.page').then(m => m.CabinetTypesPage)
       },
+      {
+        path: 'cabinet-types/new',
+        title: 'Nuevo Tipo de Gabinete',
+        loadComponent: () => import('../page/cabinet-types/ui/cabinet-type-form/cabinet-type-form.page').then(m => m.CabinetTypeFormPage)
+      },
+      {
+        path: 'cabinet-types/:id/edit',
+        title: 'Editar Tipo de Gabinete',
+        loadComponent: () => import('../page/cabinet-types/ui/cabinet-type-form/cabinet-type-form.page').then(m => m.CabinetTypeFormPage)
+      },
 
       // ==================== PROJECTS ====================
       {
