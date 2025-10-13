@@ -1,0 +1,80 @@
+<div class="p-6 max-w-4xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-4xl font-bold text-neutral-900">
+      {{ isEditing() ? 'Editar' : 'Nuevo' }} Tipo de Gabinete
+    </h1>
+    <button class="px-5 py-3 bg-neutral-100 text-neutral-700 border border-neutral-300 rounded-2 cursor-pointer flex items-center gap-2 text-base font-medium transition-all duration-300 hover:bg-neutral-200" (click)="onCancel()">
+      <i class="pi pi-arrow-left"></i>
+      Volver
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="text-center p-8">
+      <p class="text-base">Cargando...</p>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-6 bg-white rounded-2 shadow-md">
+      <div class="grid gap-5 mb-6" style="grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr));">
+        <!-- Código -->
+        <div class="flex flex-col">
+          <label for="code" class="mb-2 font-medium text-neutral-700">
+            Código <span class="text-destructive-500">*</span>
+          </label>
+          <input
+            id="code"
+            type="text"
+            formControlName="code"
+            class="px-3 py-3 border border-neutral-300 rounded-2 text-base transition-all duration-300 focus:outline-none focus:border-primary-200 focus:ring-2 focus:ring-primary-focus"
+            [class.border-destructive-500]="form.get('code')?.invalid && form.get('code')?.touched"
+            placeholder="Ej: GAB-001">
+          @if (form.get('code')?.invalid && form.get('code')?.touched) {
+            <span class="mt-1 text-sm text-destructive-500">
+              @if (form.get('code')?.hasError('required')) {
+                El código es requerido
+              } @else if (form.get('code')?.hasError('minlength')) {
+                El código debe tener al menos 2 caracteres
+              }
+            </span>
+          }
+        </div>
+
+        <!-- Nombre -->
+        <div class="flex flex-col">
+          <label for="name" class="mb-2 font-medium text-neutral-700">
+            Nombre <span class="text-destructive-500">*</span>
+          </label>
+          <input
+            id="name"
+            type="text"
+            formControlName="name"
+            class="px-3 py-3 border border-neutral-300 rounded-2 text-base transition-all duration-300 focus:outline-none focus:border-primary-200 focus:ring-2 focus:ring-primary-focus"
+            [class.border-destructive-500]="form.get('name')?.invalid && form.get('name')?.touched"
+            placeholder="Ej: Gabinete de Pared">
+          @if (form.get('name')?.invalid && form.get('name')?.touched) {
+            <span class="mt-1 text-sm text-destructive-500">
+              @if (form.get('name')?.hasError('required')) {
+                El nombre es requerido
+              } @else if (form.get('name')?.hasError('minlength')) {
+                El nombre debe tener al menos 3 caracteres
+              }
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="flex justify-end gap-3 pt-5 border-t border-neutral-200">
+        <button type="button" class="px-5 py-3 bg-neutral-100 text-neutral-700 border border-neutral-300 rounded-2 cursor-pointer text-base font-medium transition-all duration-300 hover:bg-neutral-200" (click)="onCancel()">
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="px-6 py-3 bg-primary-200 text-white border-none rounded-2 cursor-pointer text-base font-medium transition-colors duration-300 hover:bg-primary-300 disabled:bg-neutral-300 disabled:cursor-not-allowed"
+          [disabled]="form.invalid || isLoading()">
+          {{ isEditing() ? 'Actualizar' : 'Crear' }} Tipo de Gabinete
+        </button>
+      </div>
+    </form>
+  }
+</div>

@@ -1,0 +1,15 @@
+/* Cabinet Type Form Page - Minimal custom styles since using Tailwind utilities in template */
+.cabinet-type-form-page {
+  /* Custom grid layout that Tailwind can't handle easily */
+}
+
+.cabinet-type-form-page .form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr));
+}
+
+/* Responsive breakpoint for grid */
+@media (max-width: 768px) {
+  .cabinet-type-form-page .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
