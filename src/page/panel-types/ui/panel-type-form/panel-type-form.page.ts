@@ -1,82 +1,66 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import {PanelTypeService} from '../../../../entities/panel-type/api/panel-type.service';
-import {PanelTypeEntity} from '../../../../entities/panel-type/model/panel-type.entity';
+import { Ripple } from 'primeng/ripple';
+import {PanelTypeFormStore} from '../../model/stores/panel-type-form.store';
+import {PanelTypesStore} from '../../model/stores/panel-types.store';
 
 @Component({
   selector: 'app-panel-type-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './panel-type-form.page.html',
-  styleUrl: './panel-type-form.page.css'
+  imports: [CommonModule, FormsModule, Ripple],
+  providers: [PanelTypeFormStore],
+  templateUrl: './panel-type-form.page.html'
 })
-export class PanelTypeFormPage implements OnInit {
-  private readonly fb = inject(FormBuilder);
+export class PanelTypeFormPage implements OnInit, OnDestroy {
+  readonly store = inject(PanelTypeFormStore);
+  readonly panelTypesStore = inject(PanelTypesStore);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  readonly panelTypeService = inject(PanelTypeService);
-
-  readonly isEditing = signal(false);
-  readonly isLoading = signal(false);
-  readonly panelTypeId = signal<string | null>(null);
-
-  readonly form: FormGroup = this.fb.group({
-    code: ['', [Validators.required, Validators.minLength(2)]],
-    name: ['', [Validators.required, Validators.minLength(3)]]
-  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
+
     if (id) {
-      this.isEditing.set(true);
-      this.panelTypeId.set(id);
-      this.loadPanelType(id);
+      // Modo edición
+      this.store.initializeForEdit(id);
+    } else {
+      // Modo creación
+      this.store.initializeForCreate();
     }
   }
 
-  private loadPanelType(id: string): void {
-    this.isLoading.set(true);
-    this.panelTypeService.getById(id).subscribe({
-      next: (panelType) => {
-        this.form.patchValue(panelType);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        console.error('Error loading panel type:', error);
-        this.isLoading.set(false);
-      }
-    });
+  ngOnDestroy(): void {
+    this.store.reset();
   }
 
-  onSubmit(): void {
-    if (this.form.valid) {
-      this.isLoading.set(true);
-      const panelTypeData: PanelTypeEntity = {
-        id: this.panelTypeId() || '',
-        ...this.form.value
-      };
+  onCodeChange(value: string): void {
+    this.store.setCode(value);
+  }
 
-      const operation = this.isEditing()
-        ? this.panelTypeService.update(this.panelTypeId()!, panelTypeData)
-        : this.panelTypeService.create(panelTypeData);
+  onNameChange(value: string): void {
+    this.store.setName(value);
+  }
 
-      operation.subscribe({
-        next: () => {
-          this.router.navigate(['/panel-types']);
-        },
-        error: (error) => {
-          console.error('Error saving panel type:', error);
-          this.isLoading.set(false);
-        }
-      });
-    } else {
-      this.form.markAllAsTouched();
+  async onSubmit(): Promise<void> {
+    const result = await this.store.submit();
+
+    if (result) {
+      // Actualizar el store global de panel types
+      if (this.store.isEditing()) {
+        this.panelTypesStore.updatePanelType(result);
+      } else {
+        this.panelTypesStore.addPanelType(result);
+      }
+
+      // Navegar de vuelta a la lista
+      this.router.navigate(['/panel-types']).then(() => {});
     }
   }
 
   onCancel(): void {
-    this.router.navigate(['/panel-types']);
+    this.store.reset();
+    this.router.navigate(['/panel-types']).then(() => {});
   }
 }
