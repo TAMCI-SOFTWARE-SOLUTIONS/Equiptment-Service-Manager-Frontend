@@ -1,52 +1,94 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { PanelTypeEntity } from '../../../../entities/panel-type/model';
-import { PanelTypeService } from '../../../../entities/panel-type/api';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Ripple } from 'primeng/ripple';
+import {PanelTypesStore} from '../../model/stores/panel-types.store';
+import {PanelTypeEntity} from '../../../../entities/panel-type/model/panel-type.entity';
 
 @Component({
   selector: 'app-panel-types',
   standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './panel-types.page.html',
-  styleUrl: './panel-types.page.css'
+  imports: [CommonModule, FormsModule, Ripple],
+  templateUrl: './panel-types.page.html'
 })
 export class PanelTypesPage implements OnInit {
-  readonly panelTypeService = inject(PanelTypeService);
+  readonly store = inject(PanelTypesStore);
+  private readonly router = inject(Router);
 
-  // Signals para el estado
-  readonly panelTypes = signal<PanelTypeEntity[]>([]);
-  readonly isLoading = signal(true);
-  readonly error = signal<string | null>(null);
+  // UI state para modal de confirmación
+  readonly showDeleteModal = signal(false);
+  readonly panelTypeToDelete = signal<PanelTypeEntity | null>(null);
 
   ngOnInit(): void {
-    this.loadPanelTypes();
+    this.store.loadPanelTypes();
   }
 
-  public loadPanelTypes(): void {
-    this.isLoading.set(true);
-    this.error.set(null);
+  onSearchChange(value: string): void {
+    this.store.setSearchQuery(value);
+  }
 
-    this.panelTypeService.getAll().subscribe({
-      next: (panelTypes) => {
-        this.panelTypes.set(panelTypes);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        this.error.set('Error al cargar los tipos de panel');
-        this.isLoading.set(false);
-        console.error('Error loading panel types:', error);
-      }
-    });
+  clearSearch(): void {
+    this.store.clearSearch();
+  }
+
+  onRefresh(): void {
+    this.store.loadPanelTypes();
+  }
+
+  onView(panelType: PanelTypeEntity): void {
+    // Si hay vista de detalles, navegar
+    this.router.navigate(['/panel-types', panelType.id]);
   }
 
   onEdit(panelType: PanelTypeEntity): void {
-    // TODO: Implementar navegación a página de edición
-    console.log('Edit panel type:', panelType);
+    this.router.navigate(['/panel-types', panelType.id, 'edit']);
   }
 
-  onDelete(panelType: PanelTypeEntity): void {
-    // TODO: Implementar eliminación
-    console.log('Delete panel type:', panelType);
+  onDeleteClick(panelType: PanelTypeEntity): void {
+    this.panelTypeToDelete.set(panelType);
+    this.showDeleteModal.set(true);
+  }
+
+  confirmDelete(): void {
+    const panelType = this.panelTypeToDelete();
+    if (!panelType) return;
+
+    // TODO: Llamar al servicio para eliminar
+    console.log('Delete confirmed:', panelType);
+
+    // Por ahora, solo removemos de la lista
+    this.store.removePanelType(panelType.id);
+
+    // Cerrar modal
+    this.closeDeleteModal();
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal.set(false);
+    this.panelTypeToDelete.set(null);
+  }
+
+  onCreateNew(): void {
+    this.router.navigate(['/panel-types/new']);
+  }
+
+  /**
+   * Genera color único basado en el código
+   */
+  getColorFromCode(code: string): string {
+    const colors = [
+      'from-blue-400 to-blue-600',
+      'from-purple-400 to-purple-600',
+      'from-pink-400 to-pink-600',
+      'from-green-400 to-green-600',
+      'from-yellow-400 to-yellow-600',
+      'from-red-400 to-red-600',
+      'from-indigo-400 to-indigo-600',
+      'from-cyan-400 to-cyan-600'
+    ];
+
+    const index = code.charCodeAt(0) % colors.length;
+    return colors[index];
   }
 }
