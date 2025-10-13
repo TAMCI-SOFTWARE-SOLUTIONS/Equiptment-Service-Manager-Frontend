@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Ripple } from 'primeng/ripple';
-import {PanelTypesStore} from '../../model/stores/panel-types.store';
-import {PanelTypeEntity} from '../../../../entities/panel-type/model/panel-type.entity';
+import { PanelTypesStore } from '../../model/stores/panel-types.store';
+import { PanelTypeEntity } from '../../../../entities/panel-type/model/panel-type.entity';
 
 @Component({
   selector: 'app-panel-types',
@@ -36,13 +36,8 @@ export class PanelTypesPage implements OnInit {
     this.store.loadPanelTypes();
   }
 
-  onView(panelType: PanelTypeEntity): void {
-    // Si hay vista de detalles, navegar
-    this.router.navigate(['/panel-types', panelType.id]);
-  }
-
   onEdit(panelType: PanelTypeEntity): void {
-    this.router.navigate(['/panel-types', panelType.id, 'edit']);
+    this.router.navigate(['/panel-types', panelType.id, 'edit']).then(() => {});
   }
 
   onDeleteClick(panelType: PanelTypeEntity): void {
@@ -70,25 +65,6 @@ export class PanelTypesPage implements OnInit {
   }
 
   onCreateNew(): void {
-    this.router.navigate(['/panel-types/new']);
-  }
-
-  /**
-   * Genera color único basado en el código
-   */
-  getColorFromCode(code: string): string {
-    const colors = [
-      'from-blue-400 to-blue-600',
-      'from-purple-400 to-purple-600',
-      'from-pink-400 to-pink-600',
-      'from-green-400 to-green-600',
-      'from-yellow-400 to-yellow-600',
-      'from-red-400 to-red-600',
-      'from-indigo-400 to-indigo-600',
-      'from-cyan-400 to-cyan-600'
-    ];
-
-    const index = code.charCodeAt(0) % colors.length;
-    return colors[index];
+    this.router.navigate(['/panel-types/new']).then(() => {});
   }
 }
