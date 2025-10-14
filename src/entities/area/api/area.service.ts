@@ -54,18 +54,6 @@ export class AreaService extends BaseService {
   }
 
   /**
-   * GET /api/v1/areas?plantId={plantId}
-   * Get all areas by plant ID
-   */
-  public getAllByPlantId(plantId: string): Observable<AreaEntity[]> {
-    return this.http.get<AreaResponseDto[]>(`${this.resourcePath()}?plantId=${plantId}`, this.httpOptions).pipe(
-      map((areas: AreaResponseDto[]) => areas.map(area => AreaEntityFromResponseMapper.fromDtoToEntity(area))),
-      retry(2),
-      catchError(this.handleError)
-    );
-  }
-
-  /**
    * PUT /api/v1/areas/{areaId}
    * Update area
    */

@@ -4,7 +4,6 @@ import { firstValueFrom } from 'rxjs';
 import {PlantEntity, PlantService} from '../../../../entities/plant';
 import {ClientEntity} from '../../../../entities/client/model';
 import {AreaEntity} from '../../../../entities/area/model';
-import {AreaService} from '../../../../entities/area/api';
 import {ClientService} from '../../../../entities/client/api';
 
 export interface PlantDetailState {
@@ -56,7 +55,6 @@ export const PlantDetailStore = signalStore(
 
   withMethods((store) => {
     const plantService = inject(PlantService);
-    const areaService = inject(AreaService);
     const clientService = inject(ClientService);
 
     return {
@@ -89,7 +87,7 @@ export const PlantDetailStore = signalStore(
           });
 
           // 3. Cargar áreas de la planta
-          const areas = await firstValueFrom(areaService.getAllByPlantId(plantId));
+          const areas = await firstValueFrom(plantService.getAllAreasByPlantId(plantId));
 
           patchState(store, {
             areas,

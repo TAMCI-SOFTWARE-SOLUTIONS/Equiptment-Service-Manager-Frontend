@@ -9,6 +9,8 @@ import { PlantEntityFromResponseMapper } from '../mappers/plant-entity-from-resp
 import { CreatePlantRequestFromEntityMapper } from '../mappers/create-plant-request-from-entity.mapper';
 import {UpdatePlantRequestFromEntityMapper} from '../mappers/update-plant-request-from-entity.mapper';
 import {UpdatePlantRequest} from '../types/update-plant-request.type';
+import {AreaEntity} from '../../../area/model';
+import {AreaEntityFromResponseMapper, AreaResponseDto} from '../../../area/api';
 
 @Injectable({
   providedIn: 'root'
@@ -70,6 +72,21 @@ export class PlantService extends BaseService {
       map((responses: PlantResponse[]) =>
         responses.map(r => PlantEntityFromResponseMapper.fromDtoToEntity(r))
       ),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * GET /api/v1/plants/{plantId}/areas
+   * Get all areas by plant ID
+   */
+  getAllAreasByPlantId(plantId: string): Observable<AreaEntity[]> {
+    return this.http.get<AreaResponseDto[]>(
+      `${this.resourcePath()}/${plantId}/areas`,
+      this.httpOptions
+    ).pipe(
+      map((areas: AreaResponseDto[]) => areas.map(area => AreaEntityFromResponseMapper.fromDtoToEntity(area))),
       retry(2),
       catchError(this.handleError)
     );
