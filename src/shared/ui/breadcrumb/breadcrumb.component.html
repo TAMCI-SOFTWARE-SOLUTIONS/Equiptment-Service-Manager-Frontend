@@ -1,0 +1,16 @@
+<nav class="flex items-center space-x-2 text-sm">
+  @for (item of items; track $index; let isLast = $last) {
+    @if (!isLast && item.route) {
+      <a
+        [routerLink]="item.route"
+        class="text-gray-600 transition-colors hover:text-sky-600">
+      {{ item.label }}
+      </a>
+      <i class="pi pi-chevron-right text-xs text-gray-400"></i>
+    } @else {
+      <span class="font-medium text-gray-900">
+        {{ item.label }}
+      </span>
+    }
+  }
+</nav>
