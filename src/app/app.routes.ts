@@ -196,6 +196,13 @@ export const routes: Routes = [
         loadComponent: () => import('../page/clients/ui/client-detail/client-detail.page').then(m => m.ClientDetailPage)
       },
 
+      // ==================== PLANTS ====================
+      {
+        path: 'clients/:clientId/plants/:plantId',
+        title: 'Detalle Planta',
+        loadComponent: () => import('../page/plants/ui/plant-detail/plant-detail.page').then(m => m.PlantDetailPage)
+      },
+
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
       {
