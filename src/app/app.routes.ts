@@ -203,6 +203,14 @@ export const routes: Routes = [
         loadComponent: () => import('../page/plants/ui/plant-detail/plant-detail.page').then(m => m.PlantDetailPage)
       },
 
+      // ==================== AREAS ====================
+
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId',
+        title: 'Detalle Área',
+        loadComponent: () => import('../page/areas/ui/area-detail/area-detail.page').then(m => m.AreaDetailPage)
+      },
+
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
       {
