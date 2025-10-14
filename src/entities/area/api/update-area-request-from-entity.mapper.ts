@@ -8,7 +8,7 @@ export class UpdateAreaRequestFromEntityMapper {
       name: entity.name,
       code: entity.code,
       allowedEquipmentTypes: entity.allowedEquipmentTypes.map(type =>
-        EquipmentTypeMapper.fromEnumToString(type)
+        EquipmentTypeMapper.mapStringToEquipmentType(type)
       ),
     };
   }
