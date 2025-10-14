@@ -7,6 +7,8 @@ import { PlantResponse } from '../types/plant-response.type';
 import { CreatePlantRequest } from '../types/create-plant-request.type';
 import { PlantEntityFromResponseMapper } from '../mappers/plant-entity-from-response.mapper';
 import { CreatePlantRequestFromEntityMapper } from '../mappers/create-plant-request-from-entity.mapper';
+import {UpdatePlantRequestFromEntityMapper} from '../mappers/update-plant-request-from-entity.mapper';
+import {UpdatePlantRequest} from '../types/update-plant-request.type';
 
 @Injectable({
   providedIn: 'root'
@@ -68,6 +70,40 @@ export class PlantService extends BaseService {
       map((responses: PlantResponse[]) =>
         responses.map(r => PlantEntityFromResponseMapper.fromDtoToEntity(r))
       ),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * PUT /api/v1/plants/{plantId}
+   * Update plant
+   */
+  update(plantId: string, entity: PlantEntity): Observable<PlantEntity> {
+    const request: UpdatePlantRequest = UpdatePlantRequestFromEntityMapper.fromEntityToDto(entity);
+
+    return this.http.put<PlantResponse>(
+      `${this.resourcePath()}/${plantId}`,
+      request,
+      this.httpOptions
+    ).pipe(
+      map((response: PlantResponse) =>
+        PlantEntityFromResponseMapper.fromDtoToEntity(response)
+      ),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * DELETE /api/v1/plants/{plantId}
+   * Delete plant
+   */
+  delete(plantId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.resourcePath()}/${plantId}`,
+      this.httpOptions
+    ).pipe(
       retry(2),
       catchError(this.handleError)
     );
