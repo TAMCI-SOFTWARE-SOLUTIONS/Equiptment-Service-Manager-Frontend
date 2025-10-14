@@ -183,12 +183,12 @@ export const routes: Routes = [
       {
         path: 'clients/new',
         title: 'Nuevo Cliente',
-        loadComponent: () => import('../page/clients/ui/client-new/client-new.page').then(m => m.ClientNewPage)
+        loadComponent: () => import('../page/clients/ui/client-form/client-form.page').then(m => m.ClientFormPage)
       },
       {
         path: 'clients/:clientId/edit',
         title: 'Editar Cliente',
-        loadComponent: () => import('../page/clients/ui/client-edit/client-edit.page').then(m => m.ClientEditPage)
+        loadComponent: () => import('../page/clients/ui/client-form/client-form.page').then(m => m.ClientFormPage)
       },
       {
         path: 'clients/:clientId',
