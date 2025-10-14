@@ -190,6 +190,11 @@ export const routes: Routes = [
         title: 'Editar Cliente',
         loadComponent: () => import('../page/clients/ui/client-edit/client-edit.page').then(m => m.ClientEditPage)
       },
+      {
+        path: 'clients/:clientId',
+        title: 'Detalle Cliente',
+        loadComponent: () => import('../page/clients/ui/client-detail/client-detail.page').then(m => m.ClientDetailPage)
+      },
 
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
