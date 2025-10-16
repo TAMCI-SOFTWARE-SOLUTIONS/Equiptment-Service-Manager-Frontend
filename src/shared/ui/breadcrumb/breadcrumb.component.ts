@@ -9,6 +9,7 @@ export interface BreadcrumbItem {
 
 @Component({
   selector: 'app-breadcrumb',
+  standalone: true,
   imports: [
     RouterLink
   ],

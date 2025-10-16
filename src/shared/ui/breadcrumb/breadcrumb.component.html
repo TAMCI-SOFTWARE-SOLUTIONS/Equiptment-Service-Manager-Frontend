@@ -1,16 +1,50 @@
-<nav class="flex items-center space-x-2 text-sm">
-  @for (item of items; track $index; let isLast = $last) {
-    @if (!isLast && item.route) {
-      <a
-        [routerLink]="item.route"
-        class="text-gray-600 transition-colors hover:text-sky-600">
-      {{ item.label }}
-      </a>
-      <i class="pi pi-chevron-right text-xs text-gray-400"></i>
-    } @else {
-      <span class="font-medium text-gray-900">
-        {{ item.label }}
-      </span>
-    }
-  }
+<nav class="w-full">
+  <div class="flex items-center space-x-2 text-sm">
+
+    <!-- Mobile: Solo muestra el último y penúltimo item -->
+    <div class="flex items-center space-x-2 lg:hidden">
+      @if (items.length > 2) {
+        <button
+          type="button"
+          class="flex items-center gap-1 text-gray-600 hover:text-sky-600">
+          <i class="pi pi-ellipsis-h text-xs"></i>
+        </button>
+        <i class="pi pi-chevron-right text-xs text-gray-400"></i>
+      }
+
+      @for (item of items.slice(-2); track $index; let isLast = $last) {
+        @if (!isLast && item.route) {
+          <a
+          [routerLink]="item.route"
+            class="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-sky-600">
+          {{ item.label }}
+          </a>
+          <i class="pi pi-chevron-right shrink-0 text-xs text-gray-400"></i>
+        } @else {
+          <span class="shrink-0 whitespace-nowrap font-medium text-gray-900">
+            {{ item.label }}
+          </span>
+        }
+      }
+    </div>
+
+    <!-- Desktop: Muestra todo con scroll si es necesario -->
+    <div class="hidden items-center space-x-2 overflow-x-auto pb-1 scrollbar-thin lg:flex">
+      @for (item of items; track $index; let isLast = $last) {
+        @if (!isLast && item.route) {
+          <a
+          [routerLink]="item.route"
+            class="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-sky-600">
+          {{ item.label }}
+          </a>
+          <i class="pi pi-chevron-right shrink-0 text-xs text-gray-400"></i>
+        } @else {
+          <span class="shrink-0 whitespace-nowrap font-medium text-gray-900">
+            {{ item.label }}
+          </span>
+        }
+      }
+    </div>
+
+  </div>
 </nav>
