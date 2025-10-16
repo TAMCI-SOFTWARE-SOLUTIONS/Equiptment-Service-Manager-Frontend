@@ -198,6 +198,16 @@ export const routes: Routes = [
 
       // ==================== PLANTS ====================
       {
+        path: 'clients/:clientId/plants/new',
+        title: 'Nueva Planta',
+        loadComponent: () => import('../page/plants/ui/plant-form/plant-form.page').then(m => m.PlantFormPage)
+      },
+      {
+        path: 'clients/:clientId/plants/:plantId/edit',
+        title: 'Editar Planta',
+        loadComponent: () => import('../page/plants/ui/plant-form/plant-form.page').then(m => m.PlantFormPage)
+      },
+      {
         path: 'clients/:clientId/plants/:plantId',
         title: 'Detalle Planta',
         loadComponent: () => import('../page/plants/ui/plant-detail/plant-detail.page').then(m => m.PlantDetailPage)
