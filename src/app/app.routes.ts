@@ -214,7 +214,16 @@ export const routes: Routes = [
       },
 
       // ==================== AREAS ====================
-
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/new',
+        title: 'Nueva Área',
+        loadComponent: () => import('../page/areas/ui/area-form/area-form.page').then(m => m.AreaFormPage)
+      },
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId/edit',
+        title: 'Editar Área',
+        loadComponent: () => import('../page/areas/ui/area-form/area-form.page').then(m => m.AreaFormPage)
+      },
       {
         path: 'clients/:clientId/plants/:plantId/areas/:areaId',
         title: 'Detalle Área',
