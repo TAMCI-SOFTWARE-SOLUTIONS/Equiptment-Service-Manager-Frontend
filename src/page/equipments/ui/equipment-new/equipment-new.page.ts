@@ -87,4 +87,6 @@ export class EquipmentNewPage implements OnInit, OnDestroy {
     const equipmentType = this.equipmentTypes.find(et => et.value === type);
     return equipmentType?.label || 'Desconocido';
   }
+
+  protected readonly EquipmentTypeEnum = EquipmentTypeEnum;
 }
