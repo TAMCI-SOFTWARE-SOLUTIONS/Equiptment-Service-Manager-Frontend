@@ -1,0 +1,162 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-3xl">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex-1">
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            {{ store.formTitle() }}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            {{ store.isEditing() ? 'Actualiza' : 'Completa' }} la información de la planta
+          </p>
+        </div>
+
+        <button
+          pRipple
+          type="button"
+          (click)="onCancel()"
+          [disabled]="store.isSubmitting()"
+          class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+          <i class="pi pi-times text-base"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-3xl">
+
+      <!-- Error Global -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div class="space-y-6">
+            <div class="space-y-2">
+              <div class="h-4 w-20 animate-pulse rounded bg-gray-200"></div>
+              <div class="h-10 w-full animate-pulse rounded-lg bg-gray-200"></div>
+            </div>
+          </div>
+        </div>
+      }
+      @else {
+        <form (ngSubmit)="onSubmit()" class="space-y-6">
+
+          <!-- Información Básica -->
+          <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div class="mb-6 flex items-center gap-3">
+              <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500">
+                <i class="pi pi-building text-xl text-white"></i>
+              </div>
+              <div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Información de la Planta
+                </h2>
+                <p class="text-sm text-gray-600">
+                  Define el nombre de la planta
+                </p>
+              </div>
+            </div>
+
+            <!-- Nombre -->
+            <div class="space-y-2">
+              <label for="name" class="block text-sm font-medium text-gray-700">
+                Nombre de la Planta
+                <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="name"
+                type="text"
+                [value]="store.formData().name"
+                (input)="onNameChange($any($event.target).value)"
+                [disabled]="store.isSubmitting()"
+                placeholder="Ej: Planta Norte, Fábrica Central, etc."
+                maxlength="100"
+                class="block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                [ngClass]="{
+                  'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().name,
+                  'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().name
+                }">
+
+              @if (store.validationErrors().name) {
+                <p class="mt-1.5 flex items-start text-xs text-red-600">
+                  <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                  {{ store.validationErrors().name }}
+                </p>
+              } @else {
+                <p class="mt-1.5 text-xs text-gray-500">
+                  Ingresa un nombre descriptivo para identificar esta planta
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- Info Card -->
+          <div class="rounded-xl border border-sky-200 bg-sky-50 p-4">
+            <div class="flex gap-3">
+              <div class="shrink-0">
+                <i class="pi pi-info-circle text-lg text-sky-600"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-sky-900">
+                  Acerca de las Plantas
+                </h3>
+                <p class="mt-1 text-sm text-sky-700">
+                  Las plantas representan ubicaciones físicas o instalaciones del cliente. Cada planta puede contener múltiples áreas de trabajo.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              pRipple
+              type="button"
+              (click)="onCancel()"
+              [disabled]="store.isSubmitting()"
+              class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+              <i class="pi pi-times text-sm"></i>
+              Cancelar
+            </button>
+
+            <button
+              pRipple
+              type="submit"
+              [disabled]="!store.canSubmit()"
+              class="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+              @if (store.isSubmitting()) {
+                <i class="pi pi-spinner pi-spin text-sm"></i>
+                <span>{{ store.isEditing() ? 'Actualizando...' : 'Creando...' }}</span>
+              } @else {
+                <i class="pi pi-check text-sm"></i>
+                <span>{{ store.submitButtonText() }}</span>
+              }
+            </button>
+          </div>
+
+        </form>
+      }
+
+    </div>
+  </main>
+
+</div>
