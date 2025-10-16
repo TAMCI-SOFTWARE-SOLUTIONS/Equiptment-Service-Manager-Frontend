@@ -241,6 +241,11 @@ export const routes: Routes = [
         title: 'Editar Ubicación',
         loadComponent: () => import('../page/locations/ui/location-form/location-form.page').then(m => m.LocationFormPage)
       },
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId/locations/:locationId',
+        title: 'Detalle Ubicación',
+        loadComponent: () => import('../page/locations/ui/location-detail/location-detail.page').then(m => m.LocationDetailPage)
+      },
 
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
