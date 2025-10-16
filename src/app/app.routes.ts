@@ -230,6 +230,18 @@ export const routes: Routes = [
         loadComponent: () => import('../page/areas/ui/area-detail/area-detail.page').then(m => m.AreaDetailPage)
       },
 
+      // ==================== LOCATIONS ====================
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId/locations/new',
+        title: 'Nueva Ubicación',
+        loadComponent: () => import('../page/locations/ui/location-form/location-form.page').then(m => m.LocationFormPage)
+      },
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId/locations/:locationId/edit',
+        title: 'Editar Ubicación',
+        loadComponent: () => import('../page/locations/ui/location-form/location-form.page').then(m => m.LocationFormPage)
+      },
+
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
       {
