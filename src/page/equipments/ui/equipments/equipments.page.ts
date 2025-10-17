@@ -75,19 +75,17 @@ export class EquipmentsPage implements OnInit {
   // ==================== ACTIONS ====================
 
   onCreateNew(): void {
-    // TODO: Abrir modal o navegar a formulario
-    // Por ahora solo navegamos a una ruta genérica
-    this.router.navigate(['/equipments/new']);
+    this.router.navigate(['/equipments/new']).then();
   }
 
   onViewEquipment(equipment: EquipmentEntity): void {
     const type = equipment.type === EquipmentTypeEnum.CABINET ? 'cabinet' : 'panel';
-    this.router.navigate(['/equipments', type, equipment.id]);
+    this.router.navigate(['/equipments', type, equipment.id]).then();
   }
 
   onEditEquipment(equipment: EquipmentEntity): void {
     const type = equipment.type === EquipmentTypeEnum.CABINET ? 'cabinet' : 'panel';
-    this.router.navigate(['/equipments', type, equipment.id, 'edit']);
+    this.router.navigate(['/equipments', type, equipment.id, 'edit']).then();
   }
 
   onDeleteClick(equipment: EquipmentEntity): void {
