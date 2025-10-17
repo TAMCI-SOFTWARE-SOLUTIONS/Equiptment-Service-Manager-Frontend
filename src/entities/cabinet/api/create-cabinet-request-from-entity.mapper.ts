@@ -5,6 +5,7 @@ export class CreateCabinetRequestFromEntityMapper {
 
   static fromEntityToDto(entity: CabinetEntity): CreateCabinetRequest {
     return {
+      clientId: entity.clientId,
       plantId: entity.plantId,
       tag: entity.tag,
       areaId: entity.areaId,

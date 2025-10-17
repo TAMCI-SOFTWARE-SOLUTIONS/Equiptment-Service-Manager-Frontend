@@ -98,14 +98,34 @@ export const routes: Routes = [
         loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentsPage)
       },
       {
-        path: 'equipments/:equipmentId',
-        title: 'Detalle Equipo',
-        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentNewPage)
-      },
-      {
         path: 'equipments/new',
         title: 'Nuevo Equipo',
-        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentNewPage)
+        loadComponent: () => import('../page/equipments/ui/equipment-form/equipment-form.page').then(m => m.EquipmentFormPage)
+      },
+      {
+        path: 'equipments/:type/new', // cabinet/new o panel/new
+        title: 'Nuevo Equipo',
+        loadComponent: () => import('../page/equipments/ui/equipment-form/equipment-form.page').then(m => m.EquipmentFormPage)
+      },
+      {
+        path: 'equipments/cabinet/:id',
+        title: 'Detalle Gabinete',
+        loadComponent: () => import('../page/equipments/ui/equipment-detail/equipment-detail.page').then(m => m.EquipmentDetailPage)
+      },
+      {
+        path: 'equipments/cabinet/:id/edit',
+        title: 'Editar Gabinete',
+        loadComponent: () => import('../page/equipments/ui/equipment-form/equipment-form.page').then(m => m.EquipmentFormPage)
+      },
+      {
+        path: 'equipments/panel/:id',
+        title: 'Detalle Panel',
+        loadComponent: () => import('../page/equipments/ui/equipment-detail/equipment-detail.page').then(m => m.EquipmentDetailPage)
+      },
+      {
+        path: 'equipments/panel/:id/edit',
+        title: 'Editar Panel',
+        loadComponent: () => import('../page/equipments/ui/equipment-form/equipment-form.page').then(m => m.EquipmentFormPage)
       },
 
       // ==================== EQUIPMENT TYPES ====================

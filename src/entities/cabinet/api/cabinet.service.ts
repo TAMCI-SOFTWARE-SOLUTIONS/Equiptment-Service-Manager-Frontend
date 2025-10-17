@@ -39,4 +39,18 @@ export class CabinetService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  update(entity: CabinetEntity): Observable<CabinetEntity> {
+    const request: CreateCabinetRequest = CreateCabinetRequestFromEntityMapper.fromEntityToDto(entity);
+    return this.http.put<CabinetResponseDto>(`${this.resourcePath()}/${entity.id}`, request, this.httpOptions).pipe(
+      map((response: CabinetResponseDto) => CabinetEntityFromResponseMapper.fromDtoToEntity(response)),
+      catchError(this.handleError)
+    )
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
 }

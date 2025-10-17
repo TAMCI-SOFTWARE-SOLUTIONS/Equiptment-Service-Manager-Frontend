@@ -1,0 +1,679 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-4xl">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex-1">
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            {{ store.formTitle() }}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Paso {{ store.currentStep() }} de {{ store.totalSteps() }}
+          </p>
+        </div>
+
+        <button
+          pRipple
+          type="button"
+          (click)="onCancel()"
+          [disabled]="store.isSubmitting()"
+          class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+          <i class="pi pi-times text-base"></i>
+        </button>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mt-4 h-2 overflow-hidden rounded-full bg-gray-200">
+        <div
+          class="h-full bg-gradient-to-r from-sky-500 to-cyan-500 transition-all duration-500 ease-out"
+          [style.width.%]="store.progress()">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-4xl">
+
+      <!-- Error Global -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <div class="grid gap-6 lg:grid-cols-12">
+
+        <!-- Stepper Sidebar (Desktop) -->
+        <aside class="hidden lg:col-span-3 lg:block">
+          <div class="sticky top-6 space-y-2">
+            @for (step of [1, 2, 3, 4]; track step) {
+              <button
+                type="button"
+                (click)="onGoToStep(step)"
+                [disabled]="!canAccessStep(step)"
+                class="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                [class.bg-sky-50]="isStepActive(step)"
+                [class.border-2]="isStepActive(step)"
+                [class.border-sky-500]="isStepActive(step)"
+                [class.hover:bg-gray-50]="!isStepActive(step) && canAccessStep(step)">
+
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all"
+                     [class.bg-sky-500]="isStepActive(step)"
+                     [class.text-white]="isStepActive(step)"
+                     [class.bg-sky-100]="!isStepActive(step) && isStepCompleted(step)"
+                     [class.text-sky-600]="!isStepActive(step) && isStepCompleted(step)"
+                     [class.bg-gray-100]="!isStepActive(step) && !isStepCompleted(step)"
+                     [class.text-gray-400]="!isStepActive(step) && !isStepCompleted(step)">
+                  @if (isStepCompleted(step) && !isStepActive(step)) {
+                    <i class="pi pi-box text-sm font-bold"></i>
+                  } @else {
+                    <i class="text-base pi" [ngClass]="getStepIcon(step)"></i>
+                  }
+                </div>
+
+                <div class="flex-1">
+                  <p class="text-sm font-semibold"
+                     [class.text-sky-900]="isStepActive(step)"
+                     [class.text-gray-900]="!isStepActive(step) && isStepCompleted(step)"
+                     [class.text-gray-600]="!isStepActive(step) && !isStepCompleted(step)">
+                    {{ getStepTitle(step) }}
+                  </p>
+                  @if (isStepActive(step)) {
+                    <p class="mt-0.5 text-xs text-sky-600">
+                      En progreso
+                    </p>
+                  } @else if (isStepCompleted(step)) {
+                    <p class="mt-0.5 text-xs text-gray-500">
+                      Completado
+                    </p>
+                  }
+                </div>
+
+                @if (isStepActive(step)) {
+                  <i class="pi pi-chevron-right text-sky-600"></i>
+                }
+              </button>
+            }
+          </div>
+        </aside>
+
+        <!-- Stepper Pills (Mobile) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 lg:hidden">
+          @for (step of [1, 2, 3, 4]; track step) {
+            <button
+              type="button"
+              (click)="onGoToStep(step)"
+              [disabled]="!canAccessStep(step)"
+              class="flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
+              [class.bg-sky-500]="isStepActive(step)"
+              [class.text-white]="isStepActive(step)"
+              [class.shadow-lg]="isStepActive(step)"
+              [class.bg-sky-100]="!isStepActive(step) && isStepCompleted(step)"
+              [class.text-sky-700]="!isStepActive(step) && isStepCompleted(step)"
+              [class.bg-gray-100]="!isStepActive(step) && !isStepCompleted(step)"
+              [class.text-gray-600]="!isStepActive(step) && !isStepCompleted(step)">
+            @if (isStepCompleted(step) && !isStepActive(step)) {
+              <i class="pi pi-check text-xs font-bold"></i>
+            } @else {
+              <i class="text-xs pi" [ngClass]="getStepIcon(step)"></i>
+            }
+            <span>{{ getStepTitle(step) }}</span>
+            </button>
+          }
+        </div>
+
+        <!-- Form Content -->
+        <div class="lg:col-span-9">
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+
+            <!-- Step Header -->
+            <div class="border-b border-gray-200 p-6">
+              <div class="flex items-start gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500">
+                  <i class="text-xl text-white pi" [ngClass]="getStepIcon(store.currentStep())"></i>
+                </div>
+                <div class="flex-1">
+                  <h2 class="text-lg font-semibold text-gray-900">
+                    {{ store.currentStepTitle() }}
+                  </h2>
+                  <p class="mt-1 text-sm text-gray-600">
+                    {{ store.currentStepDescription() }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step Content -->
+            <div class="p-6">
+
+              <!-- STEP 1: Tipo de Equipo -->
+              @if (store.currentStep() === 1) {
+                <div class="space-y-4">
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <!-- Cabinet -->
+                    <label
+                      class="group relative flex cursor-pointer items-center gap-4 rounded-lg border-2 p-4 transition-all"
+                      [class.border-sky-500]="store.formData().type === EquipmentTypeEnum.CABINET"
+                      [class.bg-sky-50]="store.formData().type === EquipmentTypeEnum.CABINET"
+                      [class.border-gray-300]="store.formData().type !== EquipmentTypeEnum.CABINET"
+                      [class.hover:border-gray-400]="store.formData().type !== EquipmentTypeEnum.CABINET">
+
+                      <input
+                        type="radio"
+                        name="equipmentType"
+                        [value]="EquipmentTypeEnum.CABINET"
+                        [checked]="store.formData().type === EquipmentTypeEnum.CABINET"
+                        (change)="onTypeChange(EquipmentTypeEnum.CABINET)"
+                        [disabled]="store.isSubmitting()"
+                        class="h-5 w-5 border-gray-300 text-sky-600 focus:ring-2 focus:ring-sky-500 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50">
+
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                          <span class="text-2xl">📦</span>
+                          <p class="font-semibold text-gray-900">Gabinete</p>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-600">
+                          Gabinete eléctrico o de control
+                        </p>
+                      </div>
+
+                      @if (store.formData().type === EquipmentTypeEnum.CABINET) {
+                        <i class="pi pi-check-circle text-xl text-sky-600"></i>
+                      }
+                    </label>
+
+                    <!-- Panel -->
+                    <label
+                      class="group relative flex cursor-pointer items-center gap-4 rounded-lg border-2 p-4 transition-all"
+                      [class.border-sky-500]="store.formData().type === EquipmentTypeEnum.PANEL"
+                      [class.bg-sky-50]="store.formData().type === EquipmentTypeEnum.PANEL"
+                      [class.border-gray-300]="store.formData().type !== EquipmentTypeEnum.PANEL"
+                      [class.hover:border-gray-400]="store.formData().type !== EquipmentTypeEnum.PANEL">
+
+                      <input
+                        type="radio"
+                        name="equipmentType"
+                        [value]="EquipmentTypeEnum.PANEL"
+                        [checked]="store.formData().type === EquipmentTypeEnum.PANEL"
+                        (change)="onTypeChange(EquipmentTypeEnum.PANEL)"
+                        [disabled]="store.isSubmitting()"
+                        class="h-5 w-5 border-gray-300 text-sky-600 focus:ring-2 focus:ring-sky-500 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50">
+
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                          <span class="text-2xl">📋</span>
+                          <p class="font-semibold text-gray-900">Panel</p>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-600">
+                          Panel de control o tablero
+                        </p>
+                      </div>
+
+                      @if (store.formData().type === EquipmentTypeEnum.PANEL) {
+                        <i class="pi pi-check-circle text-xl text-sky-600"></i>
+                      }
+                    </label>
+                  </div>
+                </div>
+              }
+
+              <!-- STEP 2: Tag -->
+              @if (store.currentStep() === 2) {
+                <div class="space-y-2">
+                  <label for="tag" class="block text-sm font-medium text-gray-700">
+                    {{ getTagLabel() }}
+                    <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="tag"
+                    type="text"
+                    [value]="store.formData().tag"
+                    (input)="onTagChange($any($event.target).value)"
+                    [disabled]="store.isSubmitting()"
+                    placeholder="Ej: GAB-001, PAN-001, etc."
+                    class="block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                    [ngClass]="{
+                      'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().tag,
+                      'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().tag
+                    }">
+
+                  @if (store.validationErrors().tag) {
+                    <p class="mt-1.5 flex items-start text-xs text-red-600">
+                      <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                      {{ store.validationErrors().tag }}
+                    </p>
+                  } @else if (store.formData().tag.trim()) {
+                    <p class="mt-1.5 flex items-start text-xs text-green-600">
+                      <i class="pi pi-check-circle mr-1.5 mt-0.5 text-xs"></i>
+                      Tag válido
+                    </p>
+                  }
+                </div>
+              }
+              <!-- STEP 3: Ubicación -->
+              @if (store.currentStep() === 3) {
+                <div class="space-y-4">
+
+                  <!-- Cliente -->
+                  <div class="space-y-2">
+                    <label for="client" class="block text-sm font-medium text-gray-700">
+                      Cliente
+                      <span class="text-red-500">*</span>
+                    </label>
+
+                    @if (store.isLoadingClients()) {
+                      <div class="flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3">
+                        <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+                        <span class="ml-2 text-sm text-gray-500">Cargando clientes...</span>
+                      </div>
+                    } @else {
+                      <select
+                        id="client"
+                        [value]="store.formData().clientId"
+                        (change)="onClientChange($any($event.target).value)"
+                        [disabled]="store.isSubmitting()"
+                        class="block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                        [ngClass]="{
+                          'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().clientId,
+                          'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().clientId
+                        }">
+                        <option value="">Selecciona un cliente</option>
+                        @for (client of store.clients(); track client.id) {
+                          <option [value]="client.id">{{ client.name }}</option>
+                        }
+                      </select>
+
+                      @if (store.validationErrors().clientId) {
+                        <p class="mt-1.5 flex items-start text-xs text-red-600">
+                          <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                          {{ store.validationErrors().clientId }}
+                        </p>
+                      } @else if (store.formData().clientId) {
+                        <p class="mt-1.5 flex items-start text-xs text-sky-600">
+                          <i class="pi pi-check-circle mr-1.5 mt-0.5 text-xs"></i>
+                          Cliente seleccionado
+                        </p>
+                      }
+                    }
+                  </div>
+
+                  <!-- Planta -->
+                  <div class="space-y-2">
+                    <label for="plant" class="block text-sm font-medium text-gray-700">
+                      Planta
+                      <span class="text-red-500">*</span>
+                    </label>
+
+                    @if (store.isLoadingPlants()) {
+                      <div class="flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3">
+                        <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+                        <span class="ml-2 text-sm text-gray-500">Cargando plantas...</span>
+                      </div>
+                    } @else {
+                      <select
+                        id="plant"
+                        [value]="store.formData().plantId"
+                        (change)="onPlantChange($any($event.target).value)"
+                        [disabled]="!store.formData().clientId || store.isSubmitting()"
+                        class="block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                        [ngClass]="{
+                          'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().plantId,
+                          'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().plantId
+                        }">
+                        <option value="">{{ store.formData().clientId ? 'Selecciona una planta' : 'Primero selecciona un cliente' }}</option>
+                        @for (plant of store.plants(); track plant.id) {
+                          <option [value]="plant.id">{{ plant.name }}</option>
+                        }
+                      </select>
+
+                      @if (store.validationErrors().plantId) {
+                        <p class="mt-1.5 flex items-start text-xs text-red-600">
+                          <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                          {{ store.validationErrors().plantId }}
+                        </p>
+                      } @else if (store.formData().plantId) {
+                        <p class="mt-1.5 flex items-start text-xs text-sky-600">
+                          <i class="pi pi-check-circle mr-1.5 mt-0.5 text-xs"></i>
+                          Planta seleccionada
+                        </p>
+                      }
+                    }
+                  </div>
+
+                  <!-- Área -->
+                  <div class="space-y-2">
+                    <label for="area" class="block text-sm font-medium text-gray-700">
+                      Área
+                      <span class="text-red-500">*</span>
+                    </label>
+
+                    @if (store.isLoadingAreas()) {
+                      <div class="flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3">
+                        <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+                        <span class="ml-2 text-sm text-gray-500">Cargando áreas...</span>
+                      </div>
+                    } @else {
+                      <select
+                        id="area"
+                        [value]="store.formData().areaId"
+                        (change)="onAreaChange($any($event.target).value)"
+                        [disabled]="!store.formData().plantId || store.isSubmitting()"
+                        class="block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                        [ngClass]="{
+                          'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().areaId,
+                          'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().areaId
+                        }">
+                        <option value="">{{ store.formData().plantId ? 'Selecciona un área' : 'Primero selecciona una planta' }}</option>
+                        @for (area of store.areas(); track area.id) {
+                          <option [value]="area.id">{{ area.name }}</option>
+                        }
+                      </select>
+
+                      @if (store.validationErrors().areaId) {
+                        <p class="mt-1.5 flex items-start text-xs text-red-600">
+                          <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                          {{ store.validationErrors().areaId }}
+                        </p>
+                      } @else if (store.formData().areaId) {
+                        <p class="mt-1.5 flex items-start text-xs text-sky-600">
+                          <i class="pi pi-check-circle mr-1.5 mt-0.5 text-xs"></i>
+                          Área seleccionada
+                        </p>
+                      }
+                    }
+                  </div>
+
+                  <!-- Ubicación -->
+                  <div class="space-y-2">
+                    <label for="location" class="block text-sm font-medium text-gray-700">
+                      Ubicación
+                      <span class="text-red-500">*</span>
+                    </label>
+
+                    @if (store.isLoadingLocations()) {
+                      <div class="flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3">
+                        <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+                        <span class="ml-2 text-sm text-gray-500">Cargando ubicaciones...</span>
+                      </div>
+                    } @else {
+                      <select
+                        id="location"
+                        [value]="store.formData().locationId"
+                        (change)="onLocationChange($any($event.target).value)"
+                        [disabled]="!store.formData().areaId || store.isSubmitting()"
+                        class="block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                        [ngClass]="{
+                          'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().locationId,
+                          'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().locationId
+                        }">
+                        <option value="">{{ store.formData().areaId ? 'Selecciona una ubicación' : 'Primero selecciona un área' }}</option>
+                        @for (location of store.locations(); track location.id) {
+                          <option [value]="location.id">{{ location.name }}</option>
+                        }
+                      </select>
+
+                      @if (store.validationErrors().locationId) {
+                        <p class="mt-1.5 flex items-start text-xs text-red-600">
+                          <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                          {{ store.validationErrors().locationId }}
+                        </p>
+                      } @else if (store.formData().locationId) {
+                        <p class="mt-1.5 flex items-start text-xs text-sky-600">
+                          <i class="pi pi-check-circle mr-1.5 mt-0.5 text-xs"></i>
+                          Ubicación seleccionada
+                        </p>
+                      }
+                    }
+                  </div>
+
+                  <!-- Summary -->
+                  @if (store.isStep3Valid()) {
+                    <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4">
+                      <div class="flex items-start gap-3">
+                        <i class="pi pi-check-circle mt-0.5 text-lg text-sky-600"></i>
+                        <div class="flex-1">
+                          <p class="text-sm font-medium text-sky-900">
+                            Ubicación completa
+                          </p>
+                          <p class="mt-1 text-xs text-sky-700">
+                            El equipo estará registrado en esta ubicación
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                </div>
+              }
+
+              <!-- STEP 4: Especificaciones -->
+              @if (store.currentStep() === 4) {
+                <div class="space-y-4">
+
+                  <!-- Tipo Específico -->
+                  <div class="space-y-2">
+                    <label for="equipmentType" class="block text-sm font-medium text-gray-700">
+                      {{ getEquipmentTypeSelectLabel() }}
+                      <span class="text-red-500">*</span>
+                    </label>
+
+                    @if (store.isLoadingTypes()) {
+                      <div class="flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3">
+                        <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+                        <span class="ml-2 text-sm text-gray-500">Cargando tipos...</span>
+                      </div>
+                    } @else {
+                      <select
+                        id="equipmentType"
+                        [value]="store.formData().equipmentTypeId || ''"
+                        (change)="onEquipmentTypeChange($any($event.target).value)"
+                        [disabled]="store.isSubmitting()"
+                        class="block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                        [ngClass]="{
+                          'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().equipmentTypeId,
+                          'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().equipmentTypeId
+                        }">
+                        <option value="">{{ getEquipmentTypeSelectPlaceholder() }}</option>
+                        @for (type of store.availableEquipmentTypes(); track type.id) {
+                          <option [value]="type.id">{{ type.name }}</option>
+                        }
+                      </select>
+
+                      @if (store.validationErrors().equipmentTypeId) {
+                        <p class="mt-1.5 flex items-start text-xs text-red-600">
+                          <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                          {{ store.validationErrors().equipmentTypeId }}
+                        </p>
+                      } @else if (store.formData().equipmentTypeId) {
+                        <p class="mt-1.5 flex items-start text-xs text-sky-600">
+                          <i class="pi pi-check-circle mr-1.5 mt-0.5 text-xs"></i>
+                          Tipo seleccionado
+                        </p>
+                      }
+                    }
+                  </div>
+
+                  <!-- Protocolo de Comunicación -->
+                  <div class="space-y-2">
+                    <label for="protocol" class="block text-sm font-medium text-gray-700">
+                      Protocolo de Comunicación
+                      <span class="text-gray-400 text-xs ml-1">(Opcional)</span>
+                    </label>
+
+                    @if (store.isLoadingProtocols()) {
+                      <div class="flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3">
+                        <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+                        <span class="ml-2 text-sm text-gray-500">Cargando protocolos...</span>
+                      </div>
+                    } @else {
+                      <select
+                        id="protocol"
+                        [value]="store.formData().communicationProtocolId || ''"
+                        (change)="onCommunicationProtocolChange($any($event.target).value)"
+                        [disabled]="store.isSubmitting()"
+                        class="block w-full rounded-lg border border-gray-300 py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500">
+                        <option value="">Sin protocolo</option>
+                        @for (protocol of store.communicationProtocols(); track protocol.id) {
+                          <option [value]="protocol.id">{{ protocol.name }}</option>
+                        }
+                      </select>
+
+                      <p class="text-xs text-gray-500">
+                        <i class="pi pi-info-circle mr-1"></i>
+                        Puedes dejarlo vacío si no aplica
+                      </p>
+                    }
+                  </div>
+
+                  <!-- Estado -->
+                  <div class="space-y-2">
+                    <label for="status" class="block text-sm font-medium text-gray-700">
+                      Estado
+                      <span class="text-red-500">*</span>
+                    </label>
+
+                    <select
+                      id="status"
+                      [value]="store.formData().status"
+                      (change)="onStatusChange($any($event.target).value)"
+                      [disabled]="store.isSubmitting()"
+                      class="block w-full rounded-lg border border-gray-300 py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500">
+                      <option [value]="EquipmentStatusEnum.OPERATIVE">
+                        {{ getEquipmentStatusLabel(EquipmentStatusEnum.OPERATIVE) }}
+                      </option>
+                      <option [value]="EquipmentStatusEnum.STAND_BY">
+                        {{ getEquipmentStatusLabel(EquipmentStatusEnum.STAND_BY) }}
+                      </option>
+                      <option [value]="EquipmentStatusEnum.INOPERATIVE">
+                        {{ getEquipmentStatusLabel(EquipmentStatusEnum.INOPERATIVE) }}
+                      </option>
+                      <option [value]="EquipmentStatusEnum.RETIRED">
+                        {{ getEquipmentStatusLabel(EquipmentStatusEnum.RETIRED) }}
+                      </option>
+                    </select>
+
+                    <!-- Status Preview -->
+                    <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                      <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                            [ngClass]="{
+                              'bg-green-100 text-green-700': store.formData().status === EquipmentStatusEnum.OPERATIVE,
+                              'bg-yellow-100 text-yellow-700': store.formData().status === EquipmentStatusEnum.STAND_BY,
+                              'bg-red-100 text-red-700': store.formData().status === EquipmentStatusEnum.INOPERATIVE,
+                              'bg-gray-100 text-gray-700': store.formData().status === EquipmentStatusEnum.RETIRED
+                            }">
+                        <span class="h-1.5 w-1.5 rounded-full"
+                              [ngClass]="{
+                                'bg-green-500': store.formData().status === EquipmentStatusEnum.OPERATIVE,
+                                'bg-yellow-500': store.formData().status === EquipmentStatusEnum.STAND_BY,
+                                'bg-red-500': store.formData().status === EquipmentStatusEnum.INOPERATIVE,
+                                'bg-gray-500': store.formData().status === EquipmentStatusEnum.RETIRED
+                              }"></span>
+                        {{ getEquipmentStatusLabel(store.formData().status) }}
+                      </span>
+                      <span class="text-xs text-gray-600">← Vista previa del estado</span>
+                    </div>
+                  </div>
+
+                  <!-- Summary -->
+                  @if (store.isStep4Valid()) {
+                    <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4">
+                      <div class="flex items-start gap-3">
+                        <i class="pi pi-check-circle mt-0.5 text-lg text-sky-600"></i>
+                        <div class="flex-1">
+                          <p class="text-sm font-medium text-sky-900">
+                            Especificaciones completadas
+                          </p>
+                          <p class="mt-1 text-xs text-sky-700">
+                            Todo listo para {{ store.isEditing() ? 'actualizar' : 'crear' }} el equipo
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                </div>
+              }
+
+            </div>
+
+            <!-- Step Actions -->
+            <div class="border-t border-gray-200 p-4">
+              <div class="flex items-center justify-between gap-3">
+
+                <!-- Previous Button -->
+                <button
+                  pRipple
+                  type="button"
+                  (click)="onPrevious()"
+                  [disabled]="store.currentStep() === 1 || store.isSubmitting()"
+                  class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                  <i class="pi pi-arrow-left text-sm"></i>
+                  <span>Anterior</span>
+                </button>
+
+                <!-- Next / Submit Button -->
+                @if (store.currentStep() < store.totalSteps()) {
+                  <button
+                    pRipple
+                    type="button"
+                    (click)="onNext()"
+                    [disabled]="!store.canGoNext() || store.isSubmitting()"
+                    class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+                    <span>Siguiente</span>
+                    <i class="pi pi-arrow-right text-sm"></i>
+                  </button>
+                } @else {
+                  <button
+                    pRipple
+                    type="button"
+                    (click)="onSubmit()"
+                    [disabled]="!store.canSubmit()"
+                    class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+                    @if (store.isSubmitting()) {
+                      <i class="pi pi-spinner pi-spin text-sm"></i>
+                      <span>{{ store.isEditing() ? 'Actualizando...' : 'Creando...' }}</span>
+                    } @else {
+                      <i class="pi pi-check text-sm"></i>
+                      <span>{{ store.isEditing() ? 'Actualizar' : 'Crear' }} {{ getTypeLabel() }}</span>
+                    }
+                  </button>
+                }
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Modal de Confirmación de Cambio de Tipo -->
+<app-confirmation-modal
+  [show]="showTypeChangeModal()"
+  [title]="'¿Cambiar tipo de equipo?'"
+  [message]="'Estás a punto de cambiar el tipo de equipo de:'"
+  [itemName]="getEquipmentTypeLabel(store.formData().type) + ' → ' + (pendingTypeChange() ? getEquipmentTypeLabel(pendingTypeChange()!) : '')"
+  [warningText]="'Esto cambiará el equipo completamente. Asegúrate de que esta acción es correcta.'"
+  [confirmText]="'Sí, cambiar tipo'"
+  [isLoading]="false"
+  (onConfirm)="confirmTypeChange()"
+  (onCancel)="closeTypeChangeModal()">
+</app-confirmation-modal>
