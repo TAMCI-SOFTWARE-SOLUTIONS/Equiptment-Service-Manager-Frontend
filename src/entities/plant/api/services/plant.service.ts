@@ -102,7 +102,7 @@ export class PlantService extends BaseService {
     const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
     const options = {...this.httpOptions, params};
     return this.http.get<PlantResponse[]>(
-      `${this.resourcePath()}/batchGet`,
+      `${this.resourcePath()}/:batchGet`,
       options
     ).pipe(
       map((plants: PlantResponse[]) =>
