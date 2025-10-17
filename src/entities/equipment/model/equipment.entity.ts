@@ -15,6 +15,7 @@ export interface EquipmentEntity {
   status: EquipmentStatusEnum;
 
   // Location IDs
+  clientId: string;
   plantId: string;
   areaId: string;
   locationId: string;
@@ -42,6 +43,7 @@ export interface EquipmentEntity {
 export function cabinetToEquipment(cabinet: CabinetEntity): EquipmentEntity {
   return {
     id: cabinet.id,
+    clientId: cabinet.clientId,
     type: EquipmentTypeEnum.CABINET,
     tag: cabinet.tag,
     status: cabinet.status as unknown as EquipmentStatusEnum,
@@ -64,6 +66,7 @@ export function cabinetToEquipment(cabinet: CabinetEntity): EquipmentEntity {
 export function panelToEquipment(panel: PanelEntity): EquipmentEntity {
   return {
     id: panel.id,
+    clientId: panel.clientId,
     type: EquipmentTypeEnum.PANEL,
     tag: panel.tag,
     status: panel.status as unknown as EquipmentStatusEnum,
