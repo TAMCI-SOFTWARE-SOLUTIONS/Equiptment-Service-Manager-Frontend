@@ -29,15 +29,20 @@ export interface EquipmentFormData {
   areaId: string;
   locationId: string;
   communicationProtocolId: string | null;
-  equipmentTypeId: string | null; // cabinetTypeId or panelTypeId
+  equipmentTypeId: string | null;
   status: EquipmentStatusEnum;
 }
 
 export interface EquipmentFormState {
+  // Stepper
+  currentStep: number;
+  totalSteps: number;
+  completedSteps: Set<number>;
+
   // Form data
   formData: EquipmentFormData;
 
-  // Dropdown options (loaded on demand)
+  // Dropdown options
   clients: ClientEntity[];
   plants: PlantEntity[];
   areas: AreaEntity[];
@@ -59,7 +64,7 @@ export interface EquipmentFormState {
   // Edit mode
   equipmentId: string | null;
   isEditing: boolean;
-  originalType: EquipmentTypeEnum | null; // Para detectar cambios de tipo
+  originalType: EquipmentTypeEnum | null;
 
   // Validation
   validationErrors: {
@@ -75,8 +80,11 @@ export interface EquipmentFormState {
 }
 
 const initialState: EquipmentFormState = {
+  currentStep: 1,
+  totalSteps: 4,
+  completedSteps: new Set<number>(),
   formData: {
-    type: EquipmentTypeEnum.CABINET, // Default type
+    type: EquipmentTypeEnum.CABINET,
     tag: '',
     clientId: '',
     plantId: '',
@@ -84,7 +92,7 @@ const initialState: EquipmentFormState = {
     locationId: '',
     communicationProtocolId: null,
     equipmentTypeId: null,
-    status: EquipmentStatusEnum.OPERATIVE // Default status
+    status: EquipmentStatusEnum.OPERATIVE
   },
   clients: [],
   plants: [],
@@ -113,24 +121,76 @@ export const EquipmentFormStore = signalStore(
 
   withComputed((state) => ({
     /**
-     * Indica si el formulario es válido
+     * Validación del Step 1: Tipo de equipo
      */
-    isFormValid: computed(() => {
-      const data = state.formData();
-      const errors = state.validationErrors();
-
-      return data.tag.trim().length > 0 &&
-        data.clientId.length > 0 &&
-        data.plantId.length > 0 &&
-        data.areaId.length > 0 &&
-        data.locationId.length > 0 &&
-        data.equipmentTypeId !== null &&
-        data.equipmentTypeId.length > 0 &&
-        Object.keys(errors).length === 0;
+    isStep1Valid: computed(() => {
+      return true; // Siempre hay un tipo seleccionado por defecto
     }),
 
     /**
-     * Indica si puede enviar el formulario
+     * Validación del Step 2: Tag
+     */
+    isStep2Valid: computed(() => {
+      const tag = state.formData().tag;
+      return tag.trim().length > 0 && !state.validationErrors().tag;
+    }),
+
+    /**
+     * Validación del Step 3: Ubicación
+     */
+    isStep3Valid: computed(() => {
+      const data = state.formData();
+      const errors = state.validationErrors();
+
+      return data.clientId.length > 0 &&
+        data.plantId.length > 0 &&
+        data.areaId.length > 0 &&
+        data.locationId.length > 0 &&
+        !errors.clientId &&
+        !errors.plantId &&
+        !errors.areaId &&
+        !errors.locationId;
+    }),
+
+    /**
+     * Validación del Step 4: Especificaciones
+     */
+    isStep4Valid: computed(() => {
+      const data = state.formData();
+      const errors = state.validationErrors();
+
+      return data.equipmentTypeId !== null &&
+        data.equipmentTypeId.length > 0 &&
+        !errors.equipmentTypeId;
+    }),
+
+    /**
+     * Puede avanzar al siguiente step
+     */
+    canGoNext: computed(() => {
+      const currentStep = state.currentStep();
+
+      switch (currentStep) {
+        case 1:
+          return true; // Step 1: siempre puede avanzar
+        case 2:
+          return state.formData().tag.trim().length > 0;
+        case 3:
+          const data = state.formData();
+          return data.clientId.length > 0 &&
+            data.plantId.length > 0 &&
+            data.areaId.length > 0 &&
+            data.locationId.length > 0;
+        case 4:
+          return state.formData().equipmentTypeId !== null &&
+            state.formData().equipmentTypeId!.length > 0;
+        default:
+          return false;
+      }
+    }),
+
+    /**
+     * Puede enviar el formulario (todos los steps completados)
      */
     canSubmit: computed(() => {
       const data = state.formData();
@@ -159,13 +219,6 @@ export const EquipmentFormStore = signalStore(
     }),
 
     /**
-     * Texto del botón submit
-     */
-    submitButtonText: computed(() =>
-      state.isEditing() ? 'Actualizar' : 'Crear'
-    ),
-
-    /**
      * Tipos de equipo según el tipo seleccionado
      */
     availableEquipmentTypes: computed(() => {
@@ -176,12 +229,49 @@ export const EquipmentFormStore = signalStore(
     }),
 
     /**
-     * Indica si cambió el tipo de equipo (solo en modo edición)
+     * Indica si cambió el tipo (solo en edición)
      */
     hasTypeChanged: computed(() => {
       const originalType = state.originalType();
       const currentType = state.formData().type;
       return state.isEditing() && originalType !== null && originalType !== currentType;
+    }),
+
+    /**
+     * Progreso del formulario (%)
+     */
+    progress: computed(() => {
+      return (state.currentStep() / state.totalSteps()) * 100;
+    }),
+
+    /**
+     * Título del step actual
+     */
+    currentStepTitle: computed(() => {
+      const step = state.currentStep();
+      const titles: Record<number, string> = {
+        1: 'Tipo de Equipo',
+        2: 'Identificación',
+        3: 'Ubicación',
+        4: 'Especificaciones'
+      };
+      return titles[step] || '';
+    }),
+
+    /**
+     * Descripción del step actual
+     */
+    currentStepDescription: computed(() => {
+      const step = state.currentStep();
+      const type = state.formData().type === EquipmentTypeEnum.CABINET ? 'gabinete' : 'panel';
+
+      const descriptions: Record<number, string> = {
+        1: 'Selecciona si es un gabinete o panel',
+        2: `Ingresa el identificador único del ${type}`,
+        3: `Indica dónde se encuentra el ${type}`,
+        4: `Define las características técnicas del ${type}`
+      };
+      return descriptions[step] || '';
     })
   })),
 
@@ -197,7 +287,7 @@ export const EquipmentFormStore = signalStore(
 
     return {
       /**
-       * Inicializar para crear nuevo equipo
+       * Inicializar para crear
        */
       async initializeForCreate(type: EquipmentTypeEnum = EquipmentTypeEnum.CABINET): Promise<void> {
         patchState(store, {
@@ -209,7 +299,7 @@ export const EquipmentFormStore = signalStore(
           isEditing: false
         });
 
-        // Cargar clientes y tipos
+        // Cargar datos iniciales necesarios
         await Promise.all([
           this.loadClients(),
           this.loadEquipmentTypes(type),
@@ -218,7 +308,7 @@ export const EquipmentFormStore = signalStore(
       },
 
       /**
-       * Inicializar para editar equipo existente
+       * Inicializar para editar
        */
       async initializeForEdit(equipmentId: string, type: EquipmentTypeEnum): Promise<void> {
         patchState(store, {
@@ -226,11 +316,13 @@ export const EquipmentFormStore = signalStore(
           error: null,
           equipmentId,
           isEditing: true,
-          originalType: type
+          originalType: type,
+          currentStep: 1,
+          totalSteps: 4,
+          completedSteps: new Set([1, 2, 3, 4]) // Todos completados en edición
         });
 
         try {
-          // Cargar el equipo
           let equipment: CabinetEntity | PanelEntity;
 
           if (type === EquipmentTypeEnum.CABINET) {
@@ -239,28 +331,21 @@ export const EquipmentFormStore = signalStore(
             equipment = await firstValueFrom(panelService.getById(equipmentId));
           }
 
-          // Cargar clientes, tipos y protocolos
           await Promise.all([
             this.loadClients(),
             this.loadEquipmentTypes(type),
             this.loadCommunicationProtocols()
           ]);
 
-          // ✅ Cargar plantas del cliente (ahora sí tenemos clientId)
           await this.loadPlants(equipment.clientId);
-
-          // Cargar áreas de la planta
           await this.loadAreas(equipment.plantId);
-
-          // Cargar ubicaciones del área
           await this.loadLocations(equipment.areaId);
 
-          // Setear datos del formulario
           patchState(store, {
             formData: {
               type,
               tag: equipment.tag,
-              clientId: equipment.clientId, // ✅ Ahora viene del backend
+              clientId: equipment.clientId,
               plantId: equipment.plantId,
               areaId: equipment.areaId,
               locationId: equipment.locationId,
@@ -274,9 +359,6 @@ export const EquipmentFormStore = signalStore(
             error: null
           });
 
-          // Validar después de cargar
-          this.validateTag(equipment.tag);
-
         } catch (error: any) {
           console.error('❌ Error loading equipment:', error);
           patchState(store, {
@@ -286,9 +368,55 @@ export const EquipmentFormStore = signalStore(
         }
       },
 
+      // ==================== STEPPER NAVIGATION ====================
+
       /**
-       * Cargar clientes
+       * Ir al siguiente step
        */
+      goToNextStep(): void {
+        const currentStep = store.currentStep();
+        const totalSteps = store.totalSteps();
+
+        if (currentStep < totalSteps && store.canGoNext()) {
+          // Marcar step actual como completado
+          const completed = new Set(store.completedSteps());
+          completed.add(currentStep);
+
+          patchState(store, {
+            currentStep: currentStep + 1,
+            completedSteps: completed
+          });
+        }
+      },
+
+      /**
+       * Ir al step anterior
+       */
+      goToPreviousStep(): void {
+        const currentStep = store.currentStep();
+
+        if (currentStep > 1) {
+          patchState(store, {
+            currentStep: currentStep - 1
+          });
+        }
+      },
+
+      /**
+       * Ir a un step específico
+       */
+      goToStep(step: number): void {
+        const totalSteps = store.totalSteps();
+
+        if (step >= 1 && step <= totalSteps) {
+          patchState(store, {
+            currentStep: step
+          });
+        }
+      },
+
+      // ==================== DATA LOADING ====================
+
       async loadClients(): Promise<void> {
         patchState(store, { isLoadingClients: true });
 
@@ -306,9 +434,6 @@ export const EquipmentFormStore = signalStore(
         }
       },
 
-      /**
-       * Cargar plantas de un cliente
-       */
       async loadPlants(clientId: string): Promise<void> {
         if (!clientId) {
           patchState(store, { plants: [] });
@@ -336,9 +461,6 @@ export const EquipmentFormStore = signalStore(
         }
       },
 
-      /**
-       * Cargar áreas de una planta
-       */
       async loadAreas(plantId: string): Promise<void> {
         if (!plantId) {
           patchState(store, { areas: [] });
@@ -366,9 +488,6 @@ export const EquipmentFormStore = signalStore(
         }
       },
 
-      /**
-       * Cargar ubicaciones de un área
-       */
       async loadLocations(areaId: string): Promise<void> {
         if (!areaId) {
           patchState(store, { locations: [] });
@@ -396,9 +515,6 @@ export const EquipmentFormStore = signalStore(
         }
       },
 
-      /**
-       * Cargar tipos de equipo según el tipo
-       */
       async loadEquipmentTypes(type: EquipmentTypeEnum): Promise<void> {
         patchState(store, { isLoadingTypes: true });
 
@@ -423,9 +539,6 @@ export const EquipmentFormStore = signalStore(
         }
       },
 
-      /**
-       * Cargar protocolos de comunicación
-       */
       async loadCommunicationProtocols(): Promise<void> {
         patchState(store, { isLoadingProtocols: true });
 
@@ -445,25 +558,20 @@ export const EquipmentFormStore = signalStore(
         }
       },
 
-      /**
-       * Cambiar tipo de equipo
-       */
+      // ==================== SETTERS ====================
+
       async setType(type: EquipmentTypeEnum): Promise<void> {
         patchState(store, (state) => ({
           formData: {
             ...state.formData,
             type,
-            equipmentTypeId: null // Reset equipment type when changing
+            equipmentTypeId: null
           }
         }));
 
-        // Cargar los tipos correspondientes
         await this.loadEquipmentTypes(type);
       },
 
-      /**
-       * Setters de campos
-       */
       setTag(tag: string): void {
         patchState(store, (state) => ({
           formData: { ...state.formData, tag }
@@ -554,9 +662,8 @@ export const EquipmentFormStore = signalStore(
         }));
       },
 
-      /**
-       * Validaciones
-       */
+      // ==================== VALIDATIONS ====================
+
       validateTag(tag: string): void {
         const errors = { ...store.validationErrors() };
 
@@ -629,11 +736,9 @@ export const EquipmentFormStore = signalStore(
         patchState(store, { validationErrors: errors });
       },
 
-      /**
-       * Submit del formulario
-       */
+      // ==================== SUBMIT ====================
+
       async submit(): Promise<CabinetEntity | PanelEntity | null> {
-        // Validar todo
         this.validateTag(store.formData().tag);
         this.validateClient(store.formData().clientId);
         this.validatePlant(store.formData().plantId);
@@ -658,14 +763,14 @@ export const EquipmentFormStore = signalStore(
             const cabinetData: CabinetEntity = {
               id: store.equipmentId() || '',
               tag: formData.tag.trim(),
-              clientId: formData.clientId,        // ✅ Agregado
+              clientId: formData.clientId,
               plantId: formData.plantId,
               areaId: formData.areaId,
               locationId: formData.locationId,
               communicationProtocolId: formData.communicationProtocolId,
-              communicationProtocol: '', // Backend lo llena
+              communicationProtocol: '',
               cabinetTypeId: formData.equipmentTypeId,
-              cabinetType: '', // Backend lo llena
+              cabinetType: '',
               status: formData.status as any,
               createdAt: new Date(),
               updatedAt: null,
@@ -681,14 +786,14 @@ export const EquipmentFormStore = signalStore(
             const panelData: PanelEntity = {
               id: store.equipmentId() || '',
               tag: formData.tag.trim(),
-              clientId: formData.clientId,        // ✅ Agregado
+              clientId: formData.clientId,
               plantId: formData.plantId,
               areaId: formData.areaId,
               locationId: formData.locationId,
               communicationProtocolId: formData.communicationProtocolId,
-              communicationProtocol: '', // Backend lo llena
+              communicationProtocol: '',
               panelTypeId: formData.equipmentTypeId,
-              panelType: '', // Backend lo llena
+              panelType: '',
               status: formData.status as any,
               createdAt: new Date(),
               updatedAt: null,
@@ -724,16 +829,10 @@ export const EquipmentFormStore = signalStore(
         }
       },
 
-      /**
-       * Limpiar error
-       */
       clearError(): void {
         patchState(store, { error: null });
       },
 
-      /**
-       * Reset del store
-       */
       reset(): void {
         patchState(store, initialState);
       }
