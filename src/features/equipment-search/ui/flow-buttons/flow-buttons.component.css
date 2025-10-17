@@ -1,7 +1,0 @@
-.group-btn{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    column-gap: 32px;
-    margin-top: auto;
-}
