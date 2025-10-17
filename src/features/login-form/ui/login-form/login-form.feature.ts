@@ -17,17 +17,17 @@ export class LoginFormFeature {
   readonly showPassword = signal(false);
 
   readonly loginForm: FormGroup = this.fb.group({
-    username: ['', [Validators.required, Validators.minLength(3)]],
+    email: ['', [Validators.required, Validators.email, Validators.minLength(3)]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
-  get username() { return this.loginForm.get('username')!; }
+  get email() { return this.loginForm.get('email')!; }
   get password() { return this.loginForm.get('password')!; }
 
   onSubmit(): void {
     if (this.loginForm.valid) {
       const credentials: SignInCredentials = {
-        username: this.username.value.trim(),
+        email: this.email.value.trim(),
         password: this.password.value
       };
       this.authStore.signIn(credentials);
