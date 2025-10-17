@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 import { BaseService } from '../../../../shared/api';
 import { PlantEntity } from '../../model';
@@ -11,6 +11,7 @@ import {UpdatePlantRequestFromEntityMapper} from '../mappers/update-plant-reques
 import {UpdatePlantRequest} from '../types/update-plant-request.type';
 import {AreaEntity} from '../../../area/model';
 import {AreaEntityFromResponseMapper, AreaResponseDto} from '../../../area/api';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -87,6 +88,26 @@ export class PlantService extends BaseService {
       this.httpOptions
     ).pipe(
       map((areas: AreaResponseDto[]) => areas.map(area => AreaEntityFromResponseMapper.fromDtoToEntity(area))),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+  /**
+   * GET /api/v1/plants/batchGet
+   * Get all plants by IDs
+   * @param ids
+   */
+  getAllByIds(ids: string[]): Observable<PlantEntity[]> {
+    if (!ids || ids.length === 0) {return of([]);}
+    const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
+    const options = {...this.httpOptions, params};
+    return this.http.get<PlantResponse[]>(
+      `${this.resourcePath()}/batchGet`,
+      options
+    ).pipe(
+      map((plants: PlantResponse[]) =>
+        plants.map(plant => PlantEntityFromResponseMapper.fromDtoToEntity(plant))
+      ),
       retry(2),
       catchError(this.handleError)
     );

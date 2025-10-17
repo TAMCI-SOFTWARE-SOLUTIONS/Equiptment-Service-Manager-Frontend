@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BaseService} from '../../../shared/api';
-import {catchError, map, Observable, retry} from 'rxjs';
+import {catchError, map, Observable, of, retry} from 'rxjs';
 import {AreaEntity} from '../model';
 import {AreaResponseDto} from './area-response.dto';
 import {AreaEntityFromResponseMapper} from './area-entity-from-response.mapper';
@@ -8,6 +8,7 @@ import {CreateAreaRequestFromEntityMapper} from './create-area-request-from-enti
 import {CreateAreaRequest} from './create-area-request.type';
 import {UpdateAreaRequestFromEntityMapper} from './update-area-request-from-entity.mapper';
 import {UpdateAreaRequest} from './update-area-request.type';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -47,6 +48,22 @@ export class AreaService extends BaseService {
    */
   public getAllByClientId(clientId: string): Observable<AreaEntity[]> {
     return this.http.get<AreaResponseDto[]>(`${this.resourcePath()}?clientId=${clientId}`, this.httpOptions).pipe(
+      map((areas: AreaResponseDto[]) => areas.map(area => AreaEntityFromResponseMapper.fromDtoToEntity(area))),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * GET /api/v1/areas/batchGet
+   * Get all areas by IDs
+   * @param ids
+   */
+  getAllByIds(ids: string[]): Observable<AreaEntity[]> {
+    if (!ids || ids.length === 0) {return of([]);}
+    const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
+    const options = { ...this.httpOptions, params };
+    return this.http.get<AreaResponseDto[]>(`${this.resourcePath()}/batchGet`, options).pipe(
       map((areas: AreaResponseDto[]) => areas.map(area => AreaEntityFromResponseMapper.fromDtoToEntity(area))),
       retry(2),
       catchError(this.handleError)

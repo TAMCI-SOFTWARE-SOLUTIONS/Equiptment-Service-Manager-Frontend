@@ -1,12 +1,13 @@
 import {BaseService} from '../../../shared/api';
 import {Injectable} from '@angular/core';
-import {catchError, map, Observable, retry} from 'rxjs';
+import {catchError, map, Observable, retry, of} from 'rxjs';
 import {ClientEntity} from '../model';
 import {ClientEntityFromResponseMapper} from './client-entity-from-response.mapper';
 import {CreateClientRequest} from './create-client-request.type';
 import {CreateClientRequestFromEntityMapper} from './create-client-request-from-entity.mapper';
 import {ClientResponse} from './client-response.type';
 import {UpdateClientRequestFromEntityMapper} from './update-client-request-from-entity.mapper';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -52,6 +53,17 @@ export class ClientService extends BaseService {
 
   getAll(): Observable<ClientEntity[]> {
     return this.http.get<ClientResponse[]>(`${this.resourcePath()}`, this.httpOptions).pipe(
+      map((clients: ClientResponse[]) => clients.map(client => ClientEntityFromResponseMapper.fromDtoToEntity(client))),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  getAllByIds(ids: string[]): Observable<ClientEntity[]> {
+    if (!ids || ids.length === 0) {return of([]);}
+    const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
+    const options = { ...this.httpOptions, params };
+    return this.http.get<ClientResponse[]>(`${this.resourcePath()}/batchGet`, options).pipe(
       map((clients: ClientResponse[]) => clients.map(client => ClientEntityFromResponseMapper.fromDtoToEntity(client))),
       retry(2),
       catchError(this.handleError)

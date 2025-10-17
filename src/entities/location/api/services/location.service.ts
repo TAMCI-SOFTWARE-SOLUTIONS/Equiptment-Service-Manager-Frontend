@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 import { BaseService } from '../../../../shared/api';
 import { LocationEntity } from '../../model';
@@ -9,6 +9,7 @@ import { LocationEntityFromResponseMapper } from '../mappers/location-entity-fro
 import { CreateLocationRequestFromEntityMapper } from '../mappers/create-location-request-from-entity.mapper';
 import {UpdateLocationRequestFromEntityMapper} from '../mappers/update-location-request-from-entity.mapper';
 import {UpdateLocationRequest} from '../types/update-location-request.type';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -69,6 +70,27 @@ export class LocationService extends BaseService {
     ).pipe(
       map((responses: LocationResponse[]) =>
         responses.map(r => LocationEntityFromResponseMapper.fromDtoToEntity(r))
+      ),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * GET /api/v1/locations/batchGet
+   * Get all locations by IDs
+   * @param ids
+   */
+  getAllByIds(ids: string[]): Observable<LocationEntity[]> {
+    if (!ids || ids.length === 0) {return of([]);}
+    const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
+    const options = {...this.httpOptions, params};
+    return this.http.get<LocationResponse[]>(
+      `${this.resourcePath()}/batchGet`,
+      options
+    ).pipe(
+      map((locations: LocationResponse[]) =>
+        locations.map(location => LocationEntityFromResponseMapper.fromDtoToEntity(location))
       ),
       retry(2),
       catchError(this.handleError)
