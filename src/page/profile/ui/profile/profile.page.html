@@ -1,75 +1,34 @@
 <div class="flex h-full flex-col bg-gray-50">
 
   <!-- Header -->
-  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-6 lg:px-8">
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
     <div class="mx-auto max-w-5xl">
 
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex-1">
-          <h1 class="text-2xl font-bold text-gray-900 lg:text-3xl">
+      <div class="flex items-center justify-between">
+        <!-- Title -->
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
             @if (store.isEditMode()) {
               Editar Perfil
             } @else {
               Mi Perfil
             }
           </h1>
-          <p class="mt-1 text-sm text-gray-600">
-            @if (store.isEditMode()) {
-              Actualiza tu información personal
-            } @else {
-              Visualiza y gestiona tu información personal
-            }
-          </p>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Action Button (View mode only) -->
         @if (!store.isEditMode()) {
           <button
             pRipple
             type="button"
             (click)="toggleEditMode()"
             [disabled]="store.isLoading()"
-            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
-            <i class="pi pi-pencil text-base"></i>
-            <span class="hidden sm:inline">Editar Perfil</span>
+            class="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300">
+            <i class="pi pi-pencil"></i>
+            <span class="hidden sm:inline">Editar</span>
           </button>
-        } @else {
-          <div class="flex gap-3">
-            <button
-              pRipple
-              type="button"
-              (click)="onCancel()"
-              [disabled]="store.isSaving()"
-              class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
-              <i class="pi pi-times text-base"></i>
-              <span>Cancelar</span>
-            </button>
-
-            <button
-              pRipple
-              type="button"
-              (click)="onSave()"
-              [disabled]="!store.canSave()"
-              class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
-              @if (store.isSaving() || store.uploadingPhoto()) {
-                <i class="pi pi-spinner pi-spin text-base"></i>
-                <span>Guardando...</span>
-              } @else {
-                <i class="pi pi-check text-base"></i>
-                <span>Guardar</span>
-              }
-            </button>
-          </div>
         }
       </div>
-
-      <!-- Changes indicator -->
-      @if (store.isEditMode() && store.hasChanges()) {
-        <div class="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2 text-sm">
-          <i class="pi pi-exclamation-triangle text-amber-600"></i>
-          <span class="text-amber-900">Tienes cambios sin guardar</span>
-        </div>
-      }
 
     </div>
   </header>
@@ -104,7 +63,7 @@
               pRipple
               type="button"
               (click)="loadProfile()"
-              class="mt-6 flex items-center gap-2 rounded-lg bg-sky-500 px-6 py-3 font-semibold text-white hover:bg-sky-600">
+              class="mt-6 inline-flex items-center gap-2 rounded-lg bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-sky-600">
               <i class="pi pi-refresh"></i>
               <span>Reintentar</span>
             </button>
@@ -127,26 +86,33 @@
 
   <!-- Footer (Only in edit mode) -->
   @if (store.isEditMode()) {
-    <footer class="shrink-0 border-t border-gray-200 bg-white px-4 py-4 lg:px-8">
-      <div class="mx-auto flex max-w-5xl items-center justify-between gap-4">
+    <footer class="shrink-0 border-t border-gray-200 bg-white px-4 py-3 lg:px-8">
+      <div class="mx-auto flex max-w-5xl items-center justify-between gap-3">
 
-        <div class="text-sm text-gray-600">
+        <!-- Changes indicator (Hidden on mobile) -->
+        <div class="hidden text-sm text-gray-600 sm:block">
           @if (store.hasChanges()) {
-            <i class="pi pi-info-circle mr-1 text-amber-600"></i>
-            <span>Recuerda guardar tus cambios</span>
+            <div class="flex items-center gap-1.5 text-amber-600">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>Cambios sin guardar</span>
+            </div>
           } @else {
-            <span>Sin cambios pendientes</span>
+            <div class="flex items-center gap-1.5">
+              <i class="pi pi-check-circle text-green-600"></i>
+              <span>Sin cambios</span>
+            </div>
           }
         </div>
 
-        <div class="flex gap-3">
+        <!-- Action Buttons -->
+        <div class="flex flex-1 justify-end gap-2 sm:flex-initial">
           <button
             pRipple
             type="button"
             (click)="onCancel()"
             [disabled]="store.isSaving()"
-            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
-            <i class="pi pi-times text-base"></i>
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-times"></i>
             <span>Cancelar</span>
           </button>
 
@@ -155,13 +121,13 @@
             type="button"
             (click)="onSave()"
             [disabled]="!store.canSave()"
-            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            class="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300">
             @if (store.isSaving() || store.uploadingPhoto()) {
-              <i class="pi pi-spinner pi-spin text-base"></i>
+              <i class="pi pi-spinner pi-spin"></i>
               <span>Guardando...</span>
             } @else {
-              <i class="pi pi-check text-base"></i>
-              <span>Guardar Cambios</span>
+              <i class="pi pi-check"></i>
+              <span>Guardar</span>
             }
           </button>
         </div>
