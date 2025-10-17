@@ -6,7 +6,7 @@ export class AuthenticatedUserFromResponseMapper {
   static fromDtoToEntity(dto: AuthenticatedUserResponse): UserEntity {
     return {
       id: dto.id ?? '',
-      username: dto.username ?? '',
+      email: dto.email ?? '',
       password: '',
       accountStatus: UserStatusFromResponseMapper.mapStringToAccountStatus(dto.status ?? ''),
       failedLoginAttempts: dto.failedLoginAttempts ?? 0,
