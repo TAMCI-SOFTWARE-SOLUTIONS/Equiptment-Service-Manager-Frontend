@@ -5,7 +5,7 @@ import { ProjectsStore } from '../../model/projects.store';
 import { ProjectStatusEnum } from '../../../../entities/project/model/project-status.enum';
 import { Ripple } from 'primeng/ripple';
 import { FormsModule } from '@angular/forms';
-import {ProjectBanner} from '../../../../app/page/projects/ui/projects/project-banner/project-banner';
+import {ProjectBanner} from '../project-banner/project-banner';
 
 @Component({
   selector: 'app-projects',
