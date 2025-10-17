@@ -63,7 +63,7 @@ export class AreaService extends BaseService {
     if (!ids || ids.length === 0) {return of([]);}
     const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
     const options = { ...this.httpOptions, params };
-    return this.http.get<AreaResponseDto[]>(`${this.resourcePath()}/batchGet`, options).pipe(
+    return this.http.get<AreaResponseDto[]>(`${this.resourcePath()}/:batchGet`, options).pipe(
       map((areas: AreaResponseDto[]) => areas.map(area => AreaEntityFromResponseMapper.fromDtoToEntity(area))),
       retry(2),
       catchError(this.handleError)

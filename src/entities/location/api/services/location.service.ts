@@ -86,7 +86,7 @@ export class LocationService extends BaseService {
     const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
     const options = {...this.httpOptions, params};
     return this.http.get<LocationResponse[]>(
-      `${this.resourcePath()}/batchGet`,
+      `${this.resourcePath()}/:batchGet`,
       options
     ).pipe(
       map((locations: LocationResponse[]) =>
