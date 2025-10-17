@@ -183,7 +183,7 @@
         </div>
 
         <!-- Configuración Específica por Tipo -->
-        @if (formStore.formData().selectedType === 'CABINET') {
+        @if (formStore.formData().selectedType === EquipmentTypeEnum.CABINET) {
           <div class="rounded-xl border border-gray-200 bg-white p-6">
             <h2 class="mb-6 text-lg font-semibold text-gray-900">
               Configuración de Cabinet
@@ -213,7 +213,7 @@
           </div>
         }
 
-        @if (formStore.formData().selectedType === 'PANEL') {
+        @if (formStore.formData().selectedType === EquipmentTypeEnum.PANEL) {
           <div class="rounded-xl border border-gray-200 bg-white p-6">
             <h2 class="mb-6 text-lg font-semibold text-gray-900">
               Configuración de Panel

@@ -1,9 +1,9 @@
 import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import {ClientService} from '../../../entities/client/api';
+import { ClientService } from '../../../entities/client/api';
+import { ClientEntity } from '../../../entities/client/model';
+import { firstValueFrom } from 'rxjs';
 import {FileService} from '../../../entities/file/api/file.service';
-import {ClientEntity} from '../../../entities/client/model';
-import {firstValueFrom} from 'rxjs';
 
 export interface ClientFormData {
   name: string;
@@ -13,21 +13,22 @@ export interface ClientFormData {
 
 export interface ClientFormState {
   formData: ClientFormData;
+  existingLogoFileId: string | null;
+  existingBannerFileId: string | null;
   logoPreview: string | null;
   bannerPreview: string | null;
+  isLoading: boolean;
   isSubmitting: boolean;
   isUploadingLogo: boolean;
   isUploadingBanner: boolean;
   error: string | null;
+  clientId: string | null;
+  isEditing: boolean;
   validationErrors: {
     name?: string;
-    logo?: string;
-    banner?: string;
+    logoFile?: string;
+    bannerFile?: string;
   };
-  editMode: boolean;
-  clientId: string | null;
-  originalLogoFileId: string | null;
-  originalBannerFileId: string | null;
 }
 
 const initialState: ClientFormState = {
@@ -36,17 +37,18 @@ const initialState: ClientFormState = {
     logoFile: null,
     bannerFile: null
   },
+  existingLogoFileId: null,
+  existingBannerFileId: null,
   logoPreview: null,
   bannerPreview: null,
+  isLoading: false,
   isSubmitting: false,
   isUploadingLogo: false,
   isUploadingBanner: false,
   error: null,
-  validationErrors: {},
-  editMode: false,
   clientId: null,
-  originalLogoFileId: null,
-  originalBannerFileId: null
+  isEditing: false,
+  validationErrors: {}
 };
 
 export const ClientFormStore = signalStore(
@@ -54,25 +56,35 @@ export const ClientFormStore = signalStore(
 
   withComputed((state) => ({
     isFormValid: computed(() => {
+      const data = state.formData();
       const errors = state.validationErrors();
-      return state.formData().name.trim().length >= 3 &&
+
+      return data.name.trim().length >= 3 &&
         Object.keys(errors).length === 0;
     }),
 
-    isLoading: computed(() =>
-      state.isSubmitting() ||
-      state.isUploadingLogo() ||
-      state.isUploadingBanner()
-    ),
-
     canSubmit: computed(() => {
+      const data = state.formData();
       const errors = state.validationErrors();
-      return state.formData().name.trim().length >= 3 &&
+
+      return data.name.trim().length >= 3 &&
         Object.keys(errors).length === 0 &&
         !state.isSubmitting() &&
         !state.isUploadingLogo() &&
         !state.isUploadingBanner();
-    })
+    }),
+
+    formTitle: computed(() =>
+      state.isEditing() ? 'Editar Cliente' : 'Nuevo Cliente'
+    ),
+
+    submitButtonText: computed(() =>
+      state.isEditing() ? 'Actualizar' : 'Crear'
+    ),
+
+    isUploading: computed(() =>
+      state.isUploadingLogo() || state.isUploadingBanner()
+    )
   })),
 
   withMethods((store) => {
@@ -80,21 +92,129 @@ export const ClientFormStore = signalStore(
     const fileService = inject(FileService);
 
     return {
-      /**
-       * Actualizar nombre del cliente
-       */
+      initializeForCreate(): void {
+        patchState(store, {
+          ...initialState,
+          isEditing: false
+        });
+      },
+
+      async initializeForEdit(clientId: string): Promise<void> {
+        patchState(store, {
+          isLoading: true,
+          error: null,
+          clientId,
+          isEditing: true
+        });
+
+        try {
+          const client = await firstValueFrom(clientService.getById(clientId));
+
+          if (client) {
+            patchState(store, {
+              formData: {
+                name: client.name,
+                logoFile: null,
+                bannerFile: null
+              },
+              existingLogoFileId: client.logoFileId,
+              existingBannerFileId: client.bannerFileId,
+              isLoading: false,
+              error: null
+            });
+
+            // Cargar previews de imágenes existentes
+            await this.loadExistingImages(client);
+          }
+
+        } catch (error: any) {
+          console.error('❌ Error loading client:', error);
+          patchState(store, {
+            isLoading: false,
+            error: error.message || 'Error al cargar el cliente'
+          });
+        }
+      },
+
+      async loadExistingImages(client: ClientEntity): Promise<void> {
+        try {
+          if (client.logoFileId) {
+            const logoUrl = await firstValueFrom(
+              fileService.viewFileAsUrl(client.logoFileId)
+            );
+            patchState(store, { logoPreview: logoUrl });
+          }
+
+          if (client.bannerFileId) {
+            const bannerUrl = await firstValueFrom(
+              fileService.viewFileAsUrl(client.bannerFileId)
+            );
+            patchState(store, { bannerPreview: bannerUrl });
+          }
+        } catch (error) {
+          console.warn('⚠️ Error loading existing images:', error);
+        }
+      },
+
       setName(name: string): void {
         patchState(store, (state) => ({
           formData: { ...state.formData, name }
         }));
-
-        // Validar nombre
         this.validateName(name);
       },
 
-      /**
-       * Validar nombre
-       */
+      setLogoFile(file: File | null): void {
+        if (!file) {
+          this.clearLogo();
+          return;
+        }
+
+        const validation = this.validateImageFile(file);
+        if (!validation.isValid) {
+          patchState(store, (state) => ({
+            validationErrors: { ...state.validationErrors, logoFile: validation.error }
+          }));
+          return;
+        }
+
+        patchState(store, (state) => {
+          const errors = { ...state.validationErrors };
+          delete errors.logoFile;
+          return {
+            formData: { ...state.formData, logoFile: file },
+            validationErrors: errors
+          };
+        });
+
+        this.generateLogoPreview(file);
+      },
+
+      setBannerFile(file: File | null): void {
+        if (!file) {
+          this.clearBanner();
+          return;
+        }
+
+        const validation = this.validateImageFile(file);
+        if (!validation.isValid) {
+          patchState(store, (state) => ({
+            validationErrors: { ...state.validationErrors, bannerFile: validation.error }
+          }));
+          return;
+        }
+
+        patchState(store, (state) => {
+          const errors = { ...state.validationErrors };
+          delete errors.bannerFile;
+          return {
+            formData: { ...state.formData, bannerFile: file },
+            validationErrors: errors
+          };
+        });
+
+        this.generateBannerPreview(file);
+      },
+
       validateName(name: string): void {
         const errors = { ...store.validationErrors() };
 
@@ -111,75 +231,7 @@ export const ClientFormStore = signalStore(
         patchState(store, { validationErrors: errors });
       },
 
-      /**
-       * Seleccionar archivo de logo
-       */
-      setLogoFile(file: File | null): void {
-        if (!file) {
-          this.clearLogo();
-          return;
-        }
-
-        // Validar archivo
-        const validation = this.validateImageFile(file, 'logo');
-        if (!validation.isValid) {
-          patchState(store, (state) => ({
-            validationErrors: { ...state.validationErrors, logo: validation.error }
-          }));
-          return;
-        }
-
-        // Limpiar error previo
-        patchState(store, (state) => {
-          const errors = { ...state.validationErrors };
-          delete errors.logo;
-          return {
-            formData: { ...state.formData, logoFile: file },
-            validationErrors: errors
-          };
-        });
-
-        // Generar preview
-        this.generatePreview(file, 'logo');
-      },
-
-      /**
-       * Seleccionar archivo de banner
-       */
-      setBannerFile(file: File | null): void {
-        if (!file) {
-          this.clearBanner();
-          return;
-        }
-
-        // Validar archivo
-        const validation = this.validateImageFile(file, 'banner');
-        if (!validation.isValid) {
-          patchState(store, (state) => ({
-            validationErrors: { ...state.validationErrors, banner: validation.error }
-          }));
-          return;
-        }
-
-        // Limpiar error previo
-        patchState(store, (state) => {
-          const errors = { ...state.validationErrors };
-          delete errors.banner;
-          return {
-            formData: { ...state.formData, bannerFile: file },
-            validationErrors: errors
-          };
-        });
-
-        // Generar preview
-        this.generatePreview(file, 'banner');
-      },
-
-      /**
-       * Validar archivo de imagen
-       */
-      validateImageFile(file: File, _: 'logo' | 'banner'): { isValid: boolean; error?: string } {
-        // Validar tipo
+      validateImageFile(file: File): { isValid: boolean; error?: string } {
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
           return {
@@ -188,7 +240,6 @@ export const ClientFormStore = signalStore(
           };
         }
 
-        // Validar tamaño (5MB máximo)
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (file.size > maxSize) {
           return {
@@ -200,102 +251,51 @@ export const ClientFormStore = signalStore(
         return { isValid: true };
       },
 
-      /**
-       * Generar preview de imagen
-       */
-      generatePreview(file: File, type: 'logo' | 'banner'): void {
+      generateLogoPreview(file: File): void {
         const reader = new FileReader();
-
         reader.onload = (e) => {
-          const preview = e.target?.result as string;
-
-          if (type === 'logo') {
-            patchState(store, { logoPreview: preview });
-          } else {
-            patchState(store, { bannerPreview: preview });
-          }
+          patchState(store, { logoPreview: e.target?.result as string });
         };
-
-        reader.onerror = () => {
-          console.error('Error al leer archivo');
-        };
-
         reader.readAsDataURL(file);
       },
 
-      /**
-       * Limpiar logo
-       */
-      clearLogo(): void {
-        // Revocar URL de preview si existe y es un blob URL
-        const currentPreview = store.logoPreview();
-        if (currentPreview && currentPreview.startsWith('blob:')) {
-          URL.revokeObjectURL(currentPreview);
-        }
+      generateBannerPreview(file: File): void {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          patchState(store, { bannerPreview: e.target?.result as string });
+        };
+        reader.readAsDataURL(file);
+      },
 
+      clearLogo(): void {
         patchState(store, (state) => {
           const errors = { ...state.validationErrors };
-          delete errors.logo;
+          delete errors.logoFile;
           return {
             formData: { ...state.formData, logoFile: null },
             logoPreview: null,
+            existingLogoFileId: null,
             validationErrors: errors
           };
         });
       },
 
-      /**
-       * Limpiar banner
-       */
       clearBanner(): void {
-        // Revocar URL de preview si existe y es un blob URL
-        const currentPreview = store.bannerPreview();
-        if (currentPreview && currentPreview.startsWith('blob:')) {
-          URL.revokeObjectURL(currentPreview);
-        }
-
         patchState(store, (state) => {
           const errors = { ...state.validationErrors };
-          delete errors.banner;
+          delete errors.bannerFile;
           return {
             formData: { ...state.formData, bannerFile: null },
             bannerPreview: null,
+            existingBannerFileId: null,
             validationErrors: errors
           };
         });
       },
 
-      /**
-       * Cargar datos del cliente para edición
-       */
-      async loadClientData(data: {
-        id: string;
-        name: string;
-        logoFileId: string | null;
-        bannerFileId: string | null;
-        logoUrl?: string;
-        bannerUrl?: string;
-      }): Promise<void> {
-        patchState(store, {
-          editMode: true,
-          clientId: data.id,
-          formData: {
-            name: data.name,
-            logoFile: null,
-            bannerFile: null
-          },
-          originalLogoFileId: data.logoFileId,
-          originalBannerFileId: data.bannerFileId,
-          logoPreview: data.logoUrl || null,
-          bannerPreview: data.bannerUrl || null
-        });
-      },
+      async submit(): Promise<ClientEntity | null> {
+        this.validateName(store.formData().name);
 
-      /**
-       * Subir cliente (con archivos)
-       */
-      async submitClient(): Promise<ClientEntity | null> {
-        // Validación final
         if (!store.canSubmit()) {
           return null;
         }
@@ -306,56 +306,60 @@ export const ClientFormStore = signalStore(
         });
 
         try {
-          let logoFileId: string | null = null;
-          let bannerFileId: string | null = null;
+          let logoFileId = store.existingLogoFileId();
+          let bannerFileId = store.existingBannerFileId();
 
-          // 1. Subir logo si existe
+          // Subir logo si hay uno nuevo
           if (store.formData().logoFile) {
             patchState(store, { isUploadingLogo: true });
-
-            const logoEntity = await firstValueFrom(fileService.upload(store.formData().logoFile!));
-
-            logoFileId = logoEntity!.id;
-
+            const logoEntity = await firstValueFrom(
+              fileService.upload(store.formData().logoFile!)
+            );
+            logoFileId = logoEntity.id;
             patchState(store, { isUploadingLogo: false });
           }
 
-          // 2. Subir banner si existe
+          // Subir banner si hay uno nuevo
           if (store.formData().bannerFile) {
             patchState(store, { isUploadingBanner: true });
-
-            const bannerEntity = await firstValueFrom(fileService.upload(store.formData().bannerFile!));
-
-            bannerFileId = bannerEntity!.id;
-
+            const bannerEntity = await firstValueFrom(
+              fileService.upload(store.formData().bannerFile!)
+            );
+            bannerFileId = bannerEntity.id;
             patchState(store, { isUploadingBanner: false });
           }
 
-          // 3. Crear ClientEntity completa
-          const newClientEntity: ClientEntity = {
-            id: '', // El backend genera el ID
+          const clientData: ClientEntity = {
+            id: store.clientId() || '',
             name: store.formData().name.trim(),
             logoFileId,
             bannerFileId
           };
 
-          // 4. Enviar al servicio
-          const createdClient = await firstValueFrom(clientService.create(newClientEntity));
+          let result: ClientEntity;
+
+          if (store.isEditing()) {
+            result = await firstValueFrom(
+              clientService.update(clientData)
+            );
+          } else {
+            result = await firstValueFrom(
+              clientService.create(clientData)
+            );
+          }
 
           patchState(store, {
             isSubmitting: false,
             error: null
           });
 
-          // Limpiar formulario
-          this.resetForm();
-
-          return createdClient!;
+          return result;
 
         } catch (error: any) {
-          console.error('❌ Error al crear cliente:', error);
+          console.error('❌ Error saving client:', error);
 
-          const errorMessage = error.message || 'Error al crear el cliente. Inténtalo de nuevo.';
+          const errorMessage = error.message ||
+            `Error al ${store.isEditing() ? 'actualizar' : 'crear'} el cliente`;
 
           patchState(store, {
             isSubmitting: false,
@@ -368,110 +372,18 @@ export const ClientFormStore = signalStore(
         }
       },
 
-      /**
-       * Actualizar cliente existente
-       */
-      async updateClient(clientId: string): Promise<ClientEntity | null> {
-        if (!store.canSubmit()) {
-          return null;
-        }
-
-        patchState(store, {
-          isSubmitting: true,
-          error: null
-        });
-
-        try {
-          let logoFileId = store.originalLogoFileId();
-          let bannerFileId = store.originalBannerFileId();
-
-          // 1. Subir nuevo logo si se seleccionó uno
-          if (store.formData().logoFile) {
-            patchState(store, { isUploadingLogo: true });
-
-            const logoEntity = await firstValueFrom(fileService.upload(store.formData().logoFile!));
-
-            logoFileId = logoEntity!.id;
-
-            patchState(store, { isUploadingLogo: false });
-          }
-
-          // 2. Si se eliminó el logo (preview null pero no hay nuevo archivo)
-          if (!store.logoPreview() && !store.formData().logoFile) {
-            logoFileId = null;
-          }
-
-          // 3. Subir nuevo banner si se seleccionó uno
-          if (store.formData().bannerFile) {
-            patchState(store, { isUploadingBanner: true });
-
-            const bannerEntity = await firstValueFrom(fileService.upload(store.formData().bannerFile!));
-
-            bannerFileId = bannerEntity!.id;
-
-            patchState(store, { isUploadingBanner: false });
-          }
-
-          // 4. Si se eliminó el banner (preview null pero no hay nuevo archivo)
-          if (!store.bannerPreview() && !store.formData().bannerFile) {
-            bannerFileId = null;
-          }
-
-          // 5. Crear ClientEntity completa con el ID existente
-          const updatedClientEntity: ClientEntity = {
-            id: clientId,
-            name: store.formData().name.trim(),
-            logoFileId,
-            bannerFileId
-          };
-
-          // 6. Enviar al servicio
-          const updatedClient = await firstValueFrom(clientService.update(updatedClientEntity));
-
-          patchState(store, {
-            isSubmitting: false,
-            error: null
-          });
-
-          this.resetForm();
-
-          return updatedClient!;
-
-        } catch (error: any) {
-          console.error('❌ Error al actualizar cliente:', error);
-
-          const errorMessage = error.message || 'Error al actualizar el cliente. Inténtalo de nuevo.';
-
-          patchState(store, {
-            isSubmitting: false,
-            isUploadingLogo: false,
-            isUploadingBanner: false,
-            error: errorMessage
-          });
-
-          return null;
-        }
-      },
-
-      /**
-       * Limpiar error
-       */
       clearError(): void {
         patchState(store, { error: null });
       },
 
-      /**
-       * Resetear formulario
-       */
-      resetForm(): void {
-        // Limpiar previews (solo blob URLs)
+      reset(): void {
         const logoPreview = store.logoPreview();
         const bannerPreview = store.bannerPreview();
 
-        if (logoPreview && logoPreview.startsWith('blob:')) {
+        if (logoPreview?.startsWith('blob:')) {
           URL.revokeObjectURL(logoPreview);
         }
-        if (bannerPreview && bannerPreview.startsWith('blob:')) {
+        if (bannerPreview?.startsWith('blob:')) {
           URL.revokeObjectURL(bannerPreview);
         }
 

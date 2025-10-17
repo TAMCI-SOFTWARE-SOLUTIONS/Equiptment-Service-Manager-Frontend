@@ -183,12 +183,68 @@ export const routes: Routes = [
       {
         path: 'clients/new',
         title: 'Nuevo Cliente',
-        loadComponent: () => import('../page/clients/ui/client-new/client-new.page').then(m => m.ClientNewPage)
+        loadComponent: () => import('../page/clients/ui/client-form/client-form.page').then(m => m.ClientFormPage)
       },
       {
         path: 'clients/:clientId/edit',
         title: 'Editar Cliente',
-        loadComponent: () => import('../page/clients/ui/client-edit/client-edit.page').then(m => m.ClientEditPage)
+        loadComponent: () => import('../page/clients/ui/client-form/client-form.page').then(m => m.ClientFormPage)
+      },
+      {
+        path: 'clients/:clientId',
+        title: 'Detalle Cliente',
+        loadComponent: () => import('../page/clients/ui/client-detail/client-detail.page').then(m => m.ClientDetailPage)
+      },
+
+      // ==================== PLANTS ====================
+      {
+        path: 'clients/:clientId/plants/new',
+        title: 'Nueva Planta',
+        loadComponent: () => import('../page/plants/ui/plant-form/plant-form.page').then(m => m.PlantFormPage)
+      },
+      {
+        path: 'clients/:clientId/plants/:plantId/edit',
+        title: 'Editar Planta',
+        loadComponent: () => import('../page/plants/ui/plant-form/plant-form.page').then(m => m.PlantFormPage)
+      },
+      {
+        path: 'clients/:clientId/plants/:plantId',
+        title: 'Detalle Planta',
+        loadComponent: () => import('../page/plants/ui/plant-detail/plant-detail.page').then(m => m.PlantDetailPage)
+      },
+
+      // ==================== AREAS ====================
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/new',
+        title: 'Nueva Área',
+        loadComponent: () => import('../page/areas/ui/area-form/area-form.page').then(m => m.AreaFormPage)
+      },
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId/edit',
+        title: 'Editar Área',
+        loadComponent: () => import('../page/areas/ui/area-form/area-form.page').then(m => m.AreaFormPage)
+      },
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId',
+        title: 'Detalle Área',
+        loadComponent: () => import('../page/areas/ui/area-detail/area-detail.page').then(m => m.AreaDetailPage)
+      },
+
+      // ==================== LOCATIONS ====================
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId/locations/new',
+        title: 'Nueva Ubicación',
+        loadComponent: () => import('../page/locations/ui/location-form/location-form.page').then(m => m.LocationFormPage)
+      },
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId/locations/:locationId/edit',
+        title: 'Editar Ubicación',
+        loadComponent: () => import('../page/locations/ui/location-form/location-form.page').then(m => m.LocationFormPage)
+      },
+      {
+        path: 'clients/:clientId/plants/:plantId/areas/:areaId/locations/:locationId',
+        title: 'Detalle Ubicación',
+        loadComponent: () => import('../page/locations/ui/location-detail/location-detail.page').then(m => m.LocationDetailPage)
       },
 
       // ==================== ADMINISTRATION ====================

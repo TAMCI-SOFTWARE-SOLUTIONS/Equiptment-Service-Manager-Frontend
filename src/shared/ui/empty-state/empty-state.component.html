@@ -1,0 +1,22 @@
+<div class="flex flex-col items-center justify-center py-16 text-center">
+  <div class="mb-6 flex h-24 w-24 items-center justify-center rounded-full"
+       [class]="iconBgClass">
+    <i [class]="'pi ' + icon + ' text-5xl ' + iconColorClass"></i>
+  </div>
+  <h3 class="text-xl font-bold text-gray-900">
+    {{ title }}
+  </h3>
+  <p class="mt-2 max-w-md text-sm text-gray-600">
+    {{ description }}
+  </p>
+  @if (showButton) {
+    <button
+      pRipple
+      type="button"
+      (click)="onAction.emit()"
+      class="mt-6 flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
+      <i [class]="'pi ' + buttonIcon"></i>
+      {{ buttonText }}
+    </button>
+  }
+</div>

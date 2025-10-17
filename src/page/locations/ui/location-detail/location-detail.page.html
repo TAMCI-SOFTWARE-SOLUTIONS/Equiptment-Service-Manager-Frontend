@@ -1,0 +1,339 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+
+      <!-- Breadcrumb -->
+      <div class="mb-4">
+        <app-breadcrumb [items]="breadcrumbItems" />
+      </div>
+
+      <!-- Title & Actions -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <button
+            pRipple
+            type="button"
+            (click)="onBackToArea()"
+            [disabled]="store.isLoading()"
+            class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-arrow-left text-base"></i>
+          </button>
+
+          <div>
+            <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+              {{ store.location()?.name || 'Cargando...' }}
+            </h1>
+            <p class="mt-0.5 text-sm text-gray-600">
+              Información completa de la ubicación
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            pRipple
+            type="button"
+            (click)="onRefresh()"
+            [disabled]="store.isLoading()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (store.isLoading()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+            } @else {
+              <i class="pi pi-refresh text-base"></i>
+            }
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onEditLocation()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-pencil text-sm"></i>
+            <span class="hidden sm:inline">Editar</span>
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onDeleteLocationClick()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-trash text-sm"></i>
+            <span class="hidden sm:inline">Eliminar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Area -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error al cargar ubicación</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="space-y-6">
+          @for (i of [1,2,3]; track i) {
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="space-y-4">
+                <div class="h-6 w-1/3 animate-pulse rounded bg-gray-200"></div>
+                <div class="h-4 w-full animate-pulse rounded bg-gray-200"></div>
+                <div class="h-4 w-2/3 animate-pulse rounded bg-gray-200"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      @else if (store.location()) {
+        <div class="space-y-6">
+
+          <!-- Main Info Card -->
+          <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <!-- Header con gradiente -->
+            <div class="border-b border-gray-200 bg-gradient-to-r from-sky-50 to-cyan-50 p-6">
+              <div class="flex items-center gap-4">
+                <!-- Icon -->
+                <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 shadow-lg">
+                  <i class="pi pi-map-marker text-3xl text-white"></i>
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1">
+                  <h2 class="text-2xl font-bold text-gray-900">
+                    {{ store.location()!.name }}
+                  </h2>
+                  <p class="mt-1 font-mono text-sm text-gray-600">
+                    Código: {{ store.location()!.code }}
+                  </p>
+
+                  <!-- Full Path -->
+                  @if (store.fullPath()) {
+                    <div class="mt-3 flex items-center gap-2">
+                      <i class="pi pi-sitemap text-xs text-gray-400"></i>
+                      <p class="text-xs text-gray-500">
+                        {{ store.fullPath() }}
+                      </p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="grid gap-6 p-6 lg:grid-cols-2">
+
+              <!-- ID -->
+              <div class="flex items-start gap-3 rounded-lg bg-gray-50 p-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                  <i class="pi pi-id-card text-lg"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-700">ID de Ubicación</p>
+                  <p class="mt-1 break-all font-mono text-sm text-gray-900">
+                    {{ store.location()!.id }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Código -->
+              <div class="flex items-start gap-3 rounded-lg bg-gray-50 p-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                  <i class="pi pi-tag text-lg"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-700">Código</p>
+                  <p class="mt-1 font-mono text-sm text-gray-900">
+                    {{ store.location()!.code }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Nombre -->
+              <div class="flex items-start gap-3 rounded-lg bg-gray-50 p-4 lg:col-span-2">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                  <i class="pi pi-bookmark text-lg"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-700">Nombre Completo</p>
+                  <p class="mt-1 text-sm text-gray-900">
+                    {{ store.location()!.name }}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Area Info Card -->
+          @if (store.area()) {
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <h3 class="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <i class="pi pi-box text-sky-600"></i>
+                Información del Área
+              </h3>
+
+              <div class="space-y-4">
+                <!-- Área -->
+                <div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                    <i class="pi pi-box text-xl"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-600">Área</p>
+                    <p class="font-semibold text-gray-900">{{ store.area()!.name }}</p>
+                    <p class="text-xs font-mono text-gray-500">{{ store.area()!.code }}</p>
+                  </div>
+                  <button
+                    pRipple
+                    type="button"
+                    (click)="onBackToArea()"
+                    class="flex items-center gap-1.5 rounded-lg border border-sky-500 bg-white px-3 py-1.5 text-xs font-medium text-sky-600 transition-all hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+                    <span>Ver área</span>
+                    <i class="pi pi-arrow-right text-xs"></i>
+                  </button>
+                </div>
+
+                <!-- Tipos de equipo permitidos -->
+                @if (store.allowedEquipmentTypesLabels().length > 0) {
+                  <div class="rounded-lg border border-gray-200 p-4">
+                    <p class="mb-2 text-sm font-medium text-gray-700">
+                      Tipos de Equipo Permitidos en esta Área
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                      @for (label of store.allowedEquipmentTypesLabels(); track label) {
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1 text-sm font-medium text-sky-700">
+                          <i class="pi pi-check-circle text-xs"></i>
+                          {{ label }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Hierarchy Context Card -->
+          <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h3 class="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <i class="pi pi-sitemap text-sky-600"></i>
+              Jerarquía Completa
+            </h3>
+
+            <div class="space-y-3">
+              <!-- Cliente -->
+              @if (store.client()) {
+                <div class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-700">
+                    <i class="pi pi-building text-lg"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-600">Cliente</p>
+                    <p class="font-semibold text-gray-900">{{ store.client()!.name }}</p>
+                  </div>
+                  <i class="pi pi-chevron-right text-gray-400"></i>
+                </div>
+              }
+
+              <!-- Planta -->
+              @if (store.plant()) {
+                <div class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                    <i class="pi pi-building text-lg"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-600">Planta</p>
+                    <p class="font-semibold text-gray-900">{{ store.plant()!.name }}</p>
+                  </div>
+                  <i class="pi pi-chevron-right text-gray-400"></i>
+                </div>
+              }
+
+              <!-- Área -->
+              @if (store.area()) {
+                <div class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                    <i class="pi pi-box text-lg"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-600">Área</p>
+                    <p class="font-semibold text-gray-900">{{ store.area()!.name }}</p>
+                    <p class="text-xs font-mono text-gray-500">{{ store.area()!.code }}</p>
+                  </div>
+                  <i class="pi pi-chevron-right text-gray-400"></i>
+                </div>
+              }
+
+              <!-- Ubicación (actual) -->
+              @if (store.location()) {
+                <div class="flex items-center gap-3 rounded-lg border-2 border-sky-500 bg-sky-50 p-3">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500 text-white">
+                    <i class="pi pi-map-marker text-lg"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs font-medium text-sky-700">Ubicación Actual</p>
+                    <p class="font-bold text-sky-900">{{ store.location()!.name }}</p>
+                    <p class="text-xs font-mono text-sky-700">{{ store.location()!.code }}</p>
+                  </div>
+                  <i class="pi pi-check-circle text-xl text-sky-600"></i>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Info Card -->
+          <div class="rounded-xl border border-sky-200 bg-sky-50 p-4">
+            <div class="flex gap-3">
+              <div class="shrink-0">
+                <i class="pi pi-info-circle text-lg text-sky-600"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-sky-900">
+                  Acerca de esta Ubicación
+                </h3>
+                <p class="mt-1 text-sm text-sky-700">
+                  Las ubicaciones son los puntos finales donde se instalan físicamente los equipos. Cada ubicación pertenece a un área específica y puede alojar los tipos de equipos permitidos por esa área.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </main>
+
+</div>
+
+<app-confirmation-modal
+  [show]="showDeleteModal()"
+  [title]="'¿Eliminar ubicación?'"
+  [message]="'Estás a punto de eliminar la ubicación:'"
+  [itemName]="store.location()?.name + ' (' + store.location()?.code + ')'"
+  [warningText]="'Esta acción no se puede deshacer.'"
+  [confirmText]="'Sí, eliminar'"
+  [isLoading]="isDeleting()"
+  (onConfirm)="confirmDeleteLocation()"
+  (onCancel)="closeDeleteModal()">
+</app-confirmation-modal>

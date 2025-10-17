@@ -1,4 +1,4 @@
 export enum EquipmentTypeEnum {
-  CABINET = 'CABINET',
-  PANEL = 'PANEL',
+  CABINET = 'cabinet',
+  PANEL = 'panel',
 }

@@ -1,0 +1,60 @@
+<article class="group flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-sky-300 hover:bg-sky-50/30 hover:shadow-sm">
+
+  <!-- Icon -->
+  <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700 transition-colors group-hover:bg-sky-200">
+    <i class="pi pi-box text-lg"></i>
+  </div>
+
+  <!-- Info -->
+  <div class="min-w-0 flex-1">
+    <h3 class="truncate text-base font-semibold text-gray-900 transition-colors group-hover:text-sky-700">
+      {{ area.name }}
+    </h3>
+    <div class="mt-0.5 flex items-center gap-2">
+      <p class="text-xs font-mono text-gray-500">
+        {{ area.code }}
+      </p>
+      @if (area.allowedEquipmentTypes.length > 0) {
+        <span class="text-xs text-gray-400">•</span>
+        <div class="flex gap-1">
+          @for (type of area.allowedEquipmentTypes; track type) {
+            <span class="rounded bg-sky-100 px-1.5 py-0.5 text-xs font-medium text-sky-700">
+                  {{ getEquipmentLabel(type) }}
+                </span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex shrink-0 items-center gap-2">
+    <button
+      pRipple
+      type="button"
+      (click)="onView.emit(); $event.stopPropagation()"
+      class="flex items-center gap-1.5 rounded-lg border border-sky-500 bg-white px-3 py-1.5 text-xs font-medium text-sky-600 transition-all hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+      <i class="pi pi-arrow-right text-xs"></i>
+      <span class="hidden sm:inline">Ver ubicaciones</span>
+    </button>
+
+    <button
+      pRipple
+      type="button"
+      (click)="onEdit.emit(); $event.stopPropagation()"
+      title="Editar"
+      class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+      <i class="pi pi-pencil text-xs"></i>
+    </button>
+
+    <button
+      pRipple
+      type="button"
+      (click)="onDelete.emit(); $event.stopPropagation()"
+      title="Eliminar"
+      class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
+      <i class="pi pi-trash text-xs"></i>
+    </button>
+  </div>
+
+</article>

@@ -1,0 +1,202 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Breadcrumb -->
+      <div class="mb-4">
+        <app-breadcrumb [items]="breadcrumbItems" />
+      </div>
+
+      <!-- Title & Actions -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <button
+            pRipple
+            type="button"
+            (click)="onBackToPlant()"
+            [disabled]="store.isLoading()"
+            class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-arrow-left text-base"></i>
+          </button>
+
+          <div>
+            <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+              {{ store.area()?.name || 'Cargando...' }}
+            </h1>
+            <p class="mt-0.5 text-sm text-gray-600">
+              Gestiona las ubicaciones de esta área
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            pRipple
+            type="button"
+            (click)="onRefresh()"
+            [disabled]="store.isLoading()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (store.isLoading()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+            } @else {
+              <i class="pi pi-refresh text-base"></i>
+            }
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onEditArea()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-pencil text-sm"></i>
+            <span class="hidden sm:inline">Editar Área</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Area -->
+  <main class="flex-1 overflow-auto px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Area Info Card -->
+      @if (store.area() && !store.isLoadingArea()) {
+        <div class="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div class="flex items-start gap-4">
+            <!-- Icon -->
+            <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 shadow-lg">
+              <i class="pi pi-box text-2xl text-white"></i>
+            </div>
+
+            <!-- Info -->
+            <div class="flex-1">
+              <h2 class="text-2xl font-bold text-gray-900">
+                {{ store.area()!.name }}
+              </h2>
+              <p class="mt-1 text-sm font-mono text-gray-500">
+                {{ store.area()!.code }}
+              </p>
+
+              @if (store.area()!.allowedEquipmentTypes.length > 0) {
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="text-sm font-medium text-gray-700">Tipos de equipo permitidos:</span>
+                  @for (type of store.area()!.allowedEquipmentTypes; track type) {
+                    <span class="rounded-lg bg-sky-100 px-3 py-1 text-sm font-medium text-sky-700">
+                      {{ getEquipmentLabel(type) }}
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-base text-red-600"></i>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-red-800">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-xs"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Locations Section -->
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="mb-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h2 class="text-lg font-semibold text-gray-900">
+              Ubicaciones
+            </h2>
+            @if (store.hasLocations() && !store.isLoadingLocations()) {
+              <span class="flex h-6 items-center rounded-full bg-gray-100 px-2.5 text-xs font-semibold text-gray-700">
+                {{ store.locationsCount() }}
+              </span>
+            }
+          </div>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onCreateLocation()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            <i class="pi pi-plus text-sm"></i>
+            <span>Nueva Ubicación</span>
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        @if (store.isLoadingLocations()) {
+          <div class="grid gap-2 lg:grid-cols-2">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4">
+                <div class="h-10 w-10 animate-pulse rounded-lg bg-gray-200"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="h-4 w-1/3 animate-pulse rounded bg-gray-200"></div>
+                  <div class="h-3 w-1/4 animate-pulse rounded bg-gray-200"></div>
+                </div>
+                <div class="flex gap-2">
+                  <div class="h-8 w-20 animate-pulse rounded-lg bg-gray-200"></div>
+                  <div class="h-8 w-8 animate-pulse rounded-lg bg-gray-200"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @else if (store.hasLocations()) {
+          <div class="grid gap-2 lg:grid-cols-2">
+            @for (location of store.locations(); track location.id) {
+              <app-location-card
+                [location]="location"
+                (onView)="onViewLocation(location)"
+                (onEdit)="onEditLocation(location)"
+                (onDelete)="onDeleteLocationClick(location)">
+              </app-location-card>
+            }
+          </div>
+        }
+
+        @else if (!store.isLoadingLocations()) {
+          <app-empty-state
+            icon="pi-map-marker"
+            iconBgClass="bg-gradient-to-br from-sky-100 to-cyan-100"
+            iconColorClass="text-sky-600"
+            title="No hay ubicaciones registradas"
+            description="Comienza agregando la primera ubicación para esta área."
+            buttonText="Crear Primera Ubicación"
+            buttonIcon="pi-plus"
+            (onAction)="onCreateLocation()">
+          </app-empty-state>
+        }
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal
+  [show]="showDeleteModal()"
+  [title]="'¿Eliminar ubicación?'"
+  [message]="'Estás a punto de eliminar la ubicación:'"
+  [itemName]="locationToDelete()?.name + ' (' + locationToDelete()?.code + ')'"
+  [warningText]="'Esta acción no se puede deshacer.'"
+  [confirmText]="'Sí, eliminar'"
+  [isLoading]="isDeleting()"
+  (onConfirm)="confirmDeleteLocation()"
+  (onCancel)="closeDeleteModal()">
+</app-confirmation-modal>

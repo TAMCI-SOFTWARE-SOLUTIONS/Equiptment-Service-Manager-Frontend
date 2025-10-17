@@ -1,0 +1,219 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Breadcrumb -->
+      <div class="mb-4">
+        <app-breadcrumb [items]="breadcrumbItems" />
+      </div>
+
+      <!-- Title & Actions -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <button
+            pRipple
+            type="button"
+            (click)="onBackToClients()"
+            [disabled]="store.isLoading()"
+            class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-arrow-left text-base"></i>
+          </button>
+
+          <div>
+            <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+              {{ store.client()?.name || 'Cargando...' }}
+            </h1>
+            <p class="mt-0.5 text-sm text-gray-600">
+              Gestiona las plantas de este cliente
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            pRipple
+            type="button"
+            (click)="onRefresh()"
+            [disabled]="store.isLoading()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (store.isLoading()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+            } @else {
+              <i class="pi pi-refresh text-base"></i>
+            }
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onEditClient()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-pencil text-sm"></i>
+            <span class="hidden sm:inline">Editar Cliente</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Area -->
+  <main class="flex-1 overflow-auto px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Client Info Card -->
+      @if (store.client() && !store.isLoadingClient()) {
+        <div class="mb-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+
+          <!-- Banner -->
+          <div class="relative h-32 overflow-hidden bg-gradient-to-br from-sky-100 to-cyan-100">
+            @if (store.clientBannerUrl()) {
+              <img
+                [src]="store.clientBannerUrl()!"
+                [alt]="'Banner de ' + store.client()!.name"
+                class="h-full w-full object-cover">
+            } @else {
+              <div class="flex h-full items-center justify-center">
+                <i class="pi pi-image text-4xl text-sky-300"></i>
+              </div>
+            }
+            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+          </div>
+
+          <!-- Content -->
+          <div class="p-6">
+            <div class="flex items-center gap-4">
+              <!-- Logo -->
+              <div class="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg ring-2 ring-gray-100">
+                @if (store.clientLogoUrl()) {
+                  <img
+                    [src]="store.clientLogoUrl()!"
+                    [alt]="'Logo de ' + store.client()!.name"
+                    class="h-full w-full object-cover">
+                } @else {
+                  <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-400 to-cyan-500">
+                    <span class="text-2xl font-bold text-white">
+                      {{ store.client()!.name.charAt(0).toUpperCase() }}
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <!-- Info -->
+              <div class="flex-1">
+                <h2 class="text-2xl font-bold text-gray-900">
+                  {{ store.client()!.name }}
+                </h2>
+                <p class="mt-1 text-sm font-mono text-gray-500">
+                  ID: {{ store.client()!.id }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-base text-red-600"></i>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-red-800">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-xs"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Plants Section -->
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="mb-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h2 class="text-lg font-semibold text-gray-900">
+              Plantas
+            </h2>
+            @if (store.hasPlants() && !store.isLoadingPlants()) {
+              <span class="flex h-6 items-center rounded-full bg-gray-100 px-2.5 text-xs font-semibold text-gray-700">
+                {{ store.plantsCount() }}
+              </span>
+            }
+          </div>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onCreatePlant()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            <i class="pi pi-plus text-sm"></i>
+            <span>Nueva Planta</span>
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        @if (store.isLoadingPlants()) {
+          <div class="grid gap-2 lg:grid-cols-2">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4">
+                <div class="h-10 w-10 animate-pulse rounded-lg bg-gray-200"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="h-4 w-1/3 animate-pulse rounded bg-gray-200"></div>
+                  <div class="h-3 w-1/4 animate-pulse rounded bg-gray-200"></div>
+                </div>
+                <div class="flex gap-2">
+                  <div class="h-8 w-20 animate-pulse rounded-lg bg-gray-200"></div>
+                  <div class="h-8 w-8 animate-pulse rounded-lg bg-gray-200"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+        @else if (store.hasPlants()) {
+          <div class="grid gap-2 lg:grid-cols-2">
+            @for (plant of store.plants(); track plant.id) {
+              <app-plant-card
+                [plant]="plant"
+                (onView)="onViewPlant(plant)"
+                (onEdit)="onEditPlant(plant)"
+                (onDelete)="onDeletePlantClick(plant)">
+              </app-plant-card>
+            }
+          </div>
+        }
+        @else if (!store.isLoadingPlants()) {
+          <app-empty-state
+            icon="pi-building"
+            iconBgClass="bg-gradient-to-br from-sky-100 to-cyan-100"
+            iconColorClass="text-sky-600"
+            title="No hay plantas registradas"
+            description="Comienza agregando la primera planta para este cliente."
+            buttonText="Crear Primera Planta"
+            buttonIcon="pi-plus"
+            (onAction)="onCreatePlant()">
+          </app-empty-state>
+        }
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal
+  [show]="showDeleteModal()"
+  [title]="'¿Eliminar planta?'"
+  [message]="'Estás a punto de eliminar la planta:'"
+  [itemName]="plantToDelete()?.name"
+  [warningText]="'Esta acción eliminará también todas las áreas y ubicaciones asociadas. No se puede deshacer.'"
+  [confirmText]="'Sí, eliminar'"
+  [isLoading]="isDeleting()"
+  (onConfirm)="confirmDeletePlant()"
+  (onCancel)="closeDeleteModal()">
+</app-confirmation-modal>
