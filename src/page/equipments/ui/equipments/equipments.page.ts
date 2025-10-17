@@ -1,102 +1,132 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { EquipmentsStore } from '../../model/equipments.store';
-import { EquipmentTypeEnum } from '../../../../shared/model';
-import { Ripple } from 'primeng/ripple';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Ripple } from 'primeng/ripple';
+import {EquipmentCardComponent} from '../equipment-card/equipment-card.component';
+import {EquipmentFiltersAsideComponent} from '../equipment-filters-aside/equipment-filters-aside.component';
+import {ConfirmationModalComponent} from '../../../../shared/ui/confirmation-modal/confirmation-modal.component';
+import {EmptyStateComponent} from '../../../../shared/ui/empty-state/empty-state.component';
+import {EquipmentsStore} from '../../model/equipments.store';
+import {EquipmentEntity} from '../../../../entities/equipment/model/equipment.entity';
+import {EquipmentTypeEnum, getEquipmentTypeLabel} from '../../../../entities/equipment/model/equipment-type.enum';
+import {EquipmentStatusEnum, getEquipmentStatusLabel} from '../../../../entities/equipment/model/equipment-status.enum';
 
 @Component({
   selector: 'app-equipments',
-  imports: [CommonModule, Ripple, FormsModule],
   standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    EquipmentCardComponent,
+    EquipmentFiltersAsideComponent,
+    ConfirmationModalComponent,
+    EmptyStateComponent,
+    Ripple
+  ],
   templateUrl: './equipments.page.html'
 })
-export class EquipmentsPage implements OnInit, OnDestroy {
+export class EquipmentsPage implements OnInit {
   readonly store = inject(EquipmentsStore);
   private readonly router = inject(Router);
 
-  // UI state - SOLO estado de UI
-  readonly searchQuery = signal('');
+  // UI State
+  readonly showFiltersAside = signal(false);
+  readonly showDeleteModal = signal(false);
+  readonly equipmentToDelete = signal<EquipmentEntity | null>(null);
+  readonly isDeleting = signal(false);
 
-  // Computed - Equipos filtrados
-  readonly filteredEquipments = computed(() => {
-    return this.store.filteredEquipments();
-  });
+  // Expose enums to template
+  readonly EquipmentTypeEnum = EquipmentTypeEnum;
+  readonly EquipmentStatusEnum = EquipmentStatusEnum;
 
   ngOnInit(): void {
-    this.loadEquipments();
+    this.store.loadEquipments();
   }
 
-  ngOnDestroy(): void {
-    // Cleanup si es necesario
+  // ==================== TYPE FILTER (PILLS) ====================
+
+  onTypeFilterChange(filter: 'all' | 'cabinet' | 'panel'): void {
+    this.store.setTypeFilter(filter);
   }
 
-  loadEquipments(): void {
-    this.store.loadAllData();
+  isTypeFilterActive(filter: 'all' | 'cabinet' | 'panel'): boolean {
+    return this.store.filters().typeFilter === filter;
   }
 
-  onEquipmentSelect(equipmentId: string): void {
-    this.store.selectEquipment(equipmentId);
-    this.router.navigate(['/equipments', equipmentId]).then(() => {});
+  // ==================== FILTERS ====================
+
+  onOpenFilters(): void {
+    this.showFiltersAside.set(true);
   }
 
-  onCreateEquipment(): void {
-    this.router.navigate(['/equipments/new']).then(() => {});
-  }
-
-  onEditEquipment(equipmentId: string, event: Event): void {
-    event.stopPropagation();
-    this.router.navigate(['/equipments', equipmentId, 'edit']).then(() => {});
-  }
-
-  onRefresh(): void {
-    this.searchQuery.set('');
-    this.store.clearFilters();
-    this.store.loadAllData();
+  onCloseFilters(): void {
+    this.showFiltersAside.set(false);
   }
 
   onSearchChange(value: string): void {
-    this.searchQuery.set(value);
     this.store.setSearchQuery(value);
   }
 
   clearSearch(): void {
-    this.searchQuery.set('');
     this.store.setSearchQuery('');
   }
 
-  onEquipmentTypeFilterChange(equipmentType: EquipmentTypeEnum | null): void {
-    this.store.setEquipmentTypeFilter(equipmentType);
+  // ==================== ACTIONS ====================
+
+  onCreateNew(): void {
+    // TODO: Abrir modal o navegar a formulario
+    // Por ahora solo navegamos a una ruta genérica
+    this.router.navigate(['/equipments/new']);
   }
 
-  clearEquipmentTypeFilter(): void {
-    this.store.setEquipmentTypeFilter(null);
+  onViewEquipment(equipment: EquipmentEntity): void {
+    const type = equipment.type === EquipmentTypeEnum.CABINET ? 'cabinet' : 'panel';
+    this.router.navigate(['/equipments', type, equipment.id]);
   }
 
-  getStatusClass(status: string): string {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
-      case 'maintenance':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'error':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  onEditEquipment(equipment: EquipmentEntity): void {
+    const type = equipment.type === EquipmentTypeEnum.CABINET ? 'cabinet' : 'panel';
+    this.router.navigate(['/equipments', type, equipment.id, 'edit']);
+  }
+
+  onDeleteClick(equipment: EquipmentEntity): void {
+    this.equipmentToDelete.set(equipment);
+    this.showDeleteModal.set(true);
+  }
+
+  async confirmDelete(): Promise<void> {
+    const equipment = this.equipmentToDelete();
+    if (!equipment) return;
+
+    this.isDeleting.set(true);
+
+    const success = await this.store.deleteEquipment(equipment);
+
+    if (success) {
+      this.closeDeleteModal();
     }
+
+    this.isDeleting.set(false);
   }
 
-  getEquipmentTypeIcon(type: EquipmentTypeEnum): string {
-    switch (type) {
-      case EquipmentTypeEnum.CABINET:
-        return 'pi-box';
-      case EquipmentTypeEnum.PANEL:
-        return 'pi-desktop';
-      default:
-        return 'pi-cog';
-    }
+  closeDeleteModal(): void {
+    this.showDeleteModal.set(false);
+    this.equipmentToDelete.set(null);
+    this.isDeleting.set(false);
+  }
+
+  onRefresh(): void {
+    this.store.loadEquipments();
+  }
+
+  // ==================== HELPERS ====================
+
+  getEquipmentTypeLabel = getEquipmentTypeLabel;
+  getEquipmentStatusLabel = getEquipmentStatusLabel;
+
+  getDeleteModalMessage(equipment: EquipmentEntity): string {
+    const typeLabel = getEquipmentTypeLabel(equipment.type);
+    return `${typeLabel}: ${equipment.tag}`;
   }
 }
