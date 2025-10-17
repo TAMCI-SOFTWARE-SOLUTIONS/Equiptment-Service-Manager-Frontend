@@ -77,18 +77,23 @@ export class SidebarComponent {
       route: '/equipments'
     },
     {
-      label: 'Tipos de Equipo',
+      label: 'Configuración',
       icon: 'pi-cog',
       children: [
         {
-          label: 'Tipo de Panel',
+          label: 'Tipos de Panel',
           icon: 'pi-th-large',
           route: '/panel-types'
         },
         {
-          label: 'Tipo de Gabinete',
+          label: 'Tipos de Gabinete',
           icon: 'pi-server',
           route: '/cabinet-types'
+        },
+        {
+          label: 'Protocolos de Comunicación',
+          icon: 'pi-wifi',
+          route: '/communication-protocols'
         }
       ]
     },
