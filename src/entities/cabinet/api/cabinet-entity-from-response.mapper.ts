@@ -6,6 +6,7 @@ export class CabinetEntityFromResponseMapper {
   static fromDtoToEntity(dto: CabinetResponseDto): CabinetEntity {
     return {
       id: dto.id ?? '',
+      clientId: dto.clientId ?? '',
       plantId: dto.plantId ?? '',
       tag: dto.tag ?? '',
       areaId: dto.areaId ?? '',

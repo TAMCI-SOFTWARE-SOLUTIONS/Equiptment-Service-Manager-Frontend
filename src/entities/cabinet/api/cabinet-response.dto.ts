@@ -1,5 +1,6 @@
 export interface CabinetResponseDto {
   id: string | null;
+  clientId: string | null;
   plantId: string | null;
   tag: string | null;
   areaId: string | null;

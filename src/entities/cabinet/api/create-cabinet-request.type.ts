@@ -1,4 +1,5 @@
 export interface CreateCabinetRequest {
+  clientId: string | null;
   plantId: string | null;
   tag: string | null;
   areaId: string | null;

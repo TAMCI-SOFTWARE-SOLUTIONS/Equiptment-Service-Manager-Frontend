@@ -1,10 +1,5 @@
-/**
- * Request DTO for creating a new panel
- * Corresponds to: CreatePanelResource.java
- *
- * @see CreatePanelResource.java in backend
- */
 export interface CreatePanelRequest {
+  clientId: string | null;
   plantId: string | null;
   tag: string | null;
   areaId: string | null;

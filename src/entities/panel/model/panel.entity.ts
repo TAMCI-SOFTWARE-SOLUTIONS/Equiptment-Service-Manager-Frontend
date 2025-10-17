@@ -2,6 +2,7 @@ import {PanelStatusEnum} from './panel-status.enum';
 
 export interface PanelEntity {
   id: string;
+  clientId: string;
   plantId: string;
   tag: string;
   areaId: string;

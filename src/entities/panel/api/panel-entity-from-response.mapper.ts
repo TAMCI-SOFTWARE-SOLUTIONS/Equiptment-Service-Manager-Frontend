@@ -6,6 +6,7 @@ export class PanelEntityFromResponseMapper {
   static fromDtoToEntity(dto: PanelResponseDto): PanelEntity {
     return {
       id: dto.id ?? '',
+      clientId: dto.clientId ?? '',
       plantId: dto.plantId ?? '',
       tag: dto.tag ?? '',
       areaId: dto.areaId ?? '',

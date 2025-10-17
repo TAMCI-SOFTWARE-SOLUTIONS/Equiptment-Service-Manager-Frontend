@@ -2,6 +2,7 @@ import {CabinetStatusEnum} from './cabinet-status.enum';
 
 export interface CabinetEntity {
   id: string;
+  clientId: string;
   plantId: string;
   tag: string;
   areaId: string;
