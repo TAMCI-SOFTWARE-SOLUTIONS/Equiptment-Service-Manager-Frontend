@@ -97,16 +97,6 @@ export const routes: Routes = [
         title: 'Equipos',
         loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentsPage)
       },
-      {
-        path: 'equipments/:equipmentId',
-        title: 'Detalle Equipo',
-        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentNewPage)
-      },
-      {
-        path: 'equipments/new',
-        title: 'Nuevo Equipo',
-        loadComponent: () => import('../page/equipments/ui').then(m => m.EquipmentNewPage)
-      },
 
       // ==================== EQUIPMENT TYPES ====================
       {
