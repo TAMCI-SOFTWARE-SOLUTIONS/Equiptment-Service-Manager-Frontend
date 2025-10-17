@@ -1,0 +1,206 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Title & Progress -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex-1">
+          <h1 class="text-2xl font-bold text-gray-900 lg:text-3xl">
+            Crear Nuevo Servicio
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Paso {{ store.currentStep() }} de {{ store.totalSteps() }}: {{ getStepTitle(store.currentStep()) }}
+          </p>
+        </div>
+
+        <!-- Cancel Button -->
+        <button
+          pRipple
+          type="button"
+          (click)="onCancel()"
+          [disabled]="store.isSubmitting()"
+          class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+          <i class="pi pi-times text-base"></i>
+        </button>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mt-4 h-2 overflow-hidden rounded-full bg-gray-200">
+        <div
+          class="h-full bg-gradient-to-r from-sky-500 to-cyan-500 transition-all duration-500 ease-out"
+          [style.width.%]="store.progress()">
+        </div>
+      </div>
+
+      <!-- Stepper (Desktop) -->
+      <div class="mt-6 hidden items-center justify-center gap-4 lg:flex">
+        @for (step of [1, 2, 3]; track step) {
+          <div class="flex items-center">
+
+            <!-- Step Circle -->
+            <button
+              type="button"
+              (click)="goToStep(step)"
+              [disabled]="!canAccessStep(step)"
+              class="group flex items-center gap-3 transition-all disabled:cursor-not-allowed">
+
+              <div class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all"
+                   [class.bg-sky-500]="store.currentStep() === step"
+                   [class.text-white]="store.currentStep() === step"
+                   [class.shadow-lg]="store.currentStep() === step"
+                  [class.bg-sky-100]="store.currentStep() !== step && isStepCompleted(step)"
+                  [class.text-sky-600]="store.currentStep() !== step && isStepCompleted(step)"
+                  [class.bg-gray-100]="store.currentStep() !== step && !isStepCompleted(step)"
+                  [class.text-gray-400]="store.currentStep() !== step && !isStepCompleted(step)"
+                  [class.group-hover:bg-gray-200]="canAccessStep(step) && store.currentStep() !== step">
+
+              @if (isStepCompleted(step)) {
+                <i class="pi pi-check text-lg font-bold"></i>
+              } @else {
+                <i class="text-lg pi" [ngClass]="getStepIcon(step)"></i>
+              }
+          </div>
+
+          <div class="hidden text-left xl:block">
+            <p class="text-xs font-medium uppercase tracking-wider"
+               [class.text-sky-600]="store.currentStep() === step"
+               [class.text-gray-900]="store.currentStep() !== step && isStepCompleted(step)"
+               [class.text-gray-500]="store.currentStep() !== step && !isStepCompleted(step)">
+              Paso {{ step }}
+            </p>
+            <p class="text-sm font-semibold"
+               [class.text-sky-900]="store.currentStep() === step"
+               [class.text-gray-900]="store.currentStep() !== step && isStepCompleted(step)"
+               [class.text-gray-600]="store.currentStep() !== step && !isStepCompleted(step)">
+              {{ getStepTitle(step) }}
+            </p>
+          </div>
+          </button>
+
+          <!-- Connector Line -->
+          @if (step < 3) {
+            <div class="mx-4 h-0.5 w-16 transition-colors xl:w-24"
+                 [class.bg-sky-500]="isStepCompleted(step)"
+                 [class.bg-gray-200]="!isStepCompleted(step)">
+            </div>
+          }
+          </div>
+        }
+      </div>
+
+      <!-- Stepper Pills (Mobile) -->
+      <div class="mt-4 flex items-center justify-center gap-2 lg:hidden">
+        @for (step of [1, 2, 3]; track step) {
+          <button
+            type="button"
+            (click)="goToStep(step)"
+            [disabled]="!canAccessStep(step)"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all disabled:cursor-not-allowed"
+            [class.bg-sky-500]="store.currentStep() === step"
+            [class.text-white]="store.currentStep() === step"
+            [class.shadow-lg]="store.currentStep() === step"
+            [class.bg-sky-100]="store.currentStep() !== step && isStepCompleted(step)"
+            [class.text-sky-600]="store.currentStep() !== step && isStepCompleted(step)"
+            [class.bg-gray-100]="store.currentStep() !== step && !isStepCompleted(step)"
+            [class.text-gray-400]="store.currentStep() !== step && !isStepCompleted(step)">
+
+          @if (isStepCompleted(step)) {
+            <i class="pi pi-check text-sm font-bold"></i>
+          } @else {
+            <span class="text-sm font-semibold">{{ step }}</span>
+          }
+          </button>
+        }
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Step Content -->
+      <div class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+        @switch (store.currentStep()) {
+          @case (1) {
+            <app-step1-service-type />
+          }
+          @case (2) {
+            <app-step2-equipment />
+          }
+          @case (3) {
+            <app-step3-confirmation />
+          }
+        }
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer Actions -->
+  <footer class="shrink-0 border-t border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4">
+
+      <!-- Previous Button -->
+      <button
+        pRipple
+        type="button"
+        (click)="onPrevious()"
+        [disabled]="!store.canGoBack() || store.isSubmitting()"
+        class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+        <i class="pi pi-arrow-left text-base"></i>
+        <span>Anterior</span>
+      </button>
+
+      <!-- Next / Submit Button -->
+      @if (store.currentStep() < store.totalSteps()) {
+        <button
+          pRipple
+          type="button"
+          (click)="onNext()"
+          [disabled]="!store.canGoNext() || store.isSubmitting()"
+          class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+          <span>Siguiente</span>
+          <i class="pi pi-arrow-right text-base"></i>
+        </button>
+      } @else {
+        <button
+          pRipple
+          type="button"
+          (click)="onSubmit()"
+          [disabled]="!store.canSubmit()"
+          class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+          @if (store.isSubmitting()) {
+            <i class="pi pi-spinner pi-spin text-base"></i>
+            <span>Creando Servicio...</span>
+          } @else {
+            <i class="pi pi-check text-base"></i>
+            <span>Crear Servicio</span>
+          }
+        </button>
+      }
+
+    </div>
+  </footer>
+
+</div>
