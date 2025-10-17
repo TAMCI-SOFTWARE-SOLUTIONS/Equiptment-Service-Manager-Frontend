@@ -4,5 +4,7 @@ export interface UpdateProfileRequest {
   secondSurname: string | null;
   photoFileId: string | null;
   gender: string | null;
+  identityDocumentType: string | null;
+  identityDocumentNumber: string | null;
   email: string | null;
 }
