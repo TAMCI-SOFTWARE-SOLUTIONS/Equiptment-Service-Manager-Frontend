@@ -1,5 +1,5 @@
 export interface SignUpRequest {
-  username: string | null;
+  email: string | null;
   password: string | null;
   roles: string[] | null;
 }

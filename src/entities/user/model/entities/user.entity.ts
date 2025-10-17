@@ -3,7 +3,7 @@ import {RoleEntity} from '../../../role/model';
 
 export interface UserEntity {
   id: string;
-  username: string;
+  email: string;
   password: string;
   accountStatus: AccountStatusEnum;
   failedLoginAttempts: number;
