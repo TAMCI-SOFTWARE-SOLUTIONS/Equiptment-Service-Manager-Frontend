@@ -247,6 +247,13 @@ export const routes: Routes = [
         loadComponent: () => import('../page/locations/ui/location-detail/location-detail.page').then(m => m.LocationDetailPage)
       },
 
+      // ==================== COMMUNICATION PROTOCOLS ====================
+      {
+        path: 'communication-protocols',
+        title: 'Protocolos de Comunicación',
+        loadComponent: () => import('../page/communication-protocols/ui/communication-protocols/communication-protocols.page').then(m => m.CommunicationProtocolsPage)
+      },
+
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
       {
