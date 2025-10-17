@@ -1,6 +1,6 @@
 import {Component, computed, inject, OnInit, signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProfileStore } from '../../../../shared/stores';
+import { MyProfileStore } from '../../../../shared/stores';
 import { AuthStore } from '../../../../shared/stores';
 import { Avatar } from 'primeng/avatar';
 import { Card } from 'primeng/card';
@@ -17,7 +17,7 @@ import {PrimeTemplate} from 'primeng/api';
   styleUrl: './profile.page.css'
 })
 export class ProfilePage implements OnInit {
-  readonly profileStore = inject(ProfileStore);
+  readonly profileStore = inject(MyProfileStore);
   readonly authStore = inject(AuthStore);
 
   // Loading state for profile data

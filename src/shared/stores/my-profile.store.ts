@@ -21,7 +21,7 @@ const initialState: ProfileState = {
   error: null
 };
 
-export const ProfileStore = signalStore(
+export const MyProfileStore = signalStore(
   { providedIn: 'root' },
   withState<ProfileState>(initialState),
 
@@ -70,7 +70,7 @@ export const ProfileStore = signalStore(
        */
       async loadProfile(userId: string): Promise<void> {
         if (!userId) {
-          console.warn('⚠️ ProfileStore - No se puede cargar perfil sin userId');
+          console.warn('⚠️ MyProfileStore - No se puede cargar perfil sin userId');
           patchState(store, {
             profile: null,
             profileImageUrl: null,
@@ -106,11 +106,11 @@ export const ProfileStore = signalStore(
           if (profile.photoFileId && profile.photoFileId.trim() !== '') {
             await methods.loadProfileImage(profile.photoFileId);
           } else {
-            console.log('ℹ️ ProfileStore - No hay photoFileId, imagen nula');
+            console.log('ℹ️ MyProfileStore - No hay photoFileId, imagen nula');
             patchState(store, { profileImageUrl: null });
           }
         } catch (error: any) {
-          console.error('❌ ProfileStore - Error al cargar perfil:', error);
+          console.error('❌ MyProfileStore - Error al cargar perfil:', error);
           patchState(store, {
             profile: null,
             profileImageUrl: null,
@@ -125,7 +125,7 @@ export const ProfileStore = signalStore(
        */
       async loadProfileImage(photoFileId: string): Promise<void> {
         if (!photoFileId || photoFileId.trim() === '') {
-          console.log('ℹ️ ProfileStore - photoFileId vacío, imagen nula');
+          console.log('ℹ️ MyProfileStore - photoFileId vacío, imagen nula');
           patchState(store, { profileImageUrl: null });
           return;
         }
@@ -145,11 +145,11 @@ export const ProfileStore = signalStore(
             };
             eventBus.emit(EventNames.PROFILE_IMAGE_UPDATED, payload);
           } else {
-            console.warn('⚠️ ProfileStore - viewFileAsUrl retornó null/undefined');
+            console.warn('⚠️ MyProfileStore - viewFileAsUrl retornó null/undefined');
             patchState(store, { profileImageUrl: null });
           }
         } catch (error: any) {
-          console.warn('⚠️ ProfileStore - Error al cargar imagen del perfil:', error.message);
+          console.warn('⚠️ MyProfileStore - Error al cargar imagen del perfil:', error.message);
           patchState(store, { profileImageUrl: null });
         }
       },
@@ -158,7 +158,7 @@ export const ProfileStore = signalStore(
        * Actualizar perfil completo (perfil + imagen)
        */
       async refreshProfile(userId: string): Promise<void> {
-        console.log('🔄 ProfileStore - Refrescando perfil completo');
+        console.log('🔄 MyProfileStore - Refrescando perfil completo');
         await methods.loadProfile(userId);
       },
 
@@ -166,7 +166,7 @@ export const ProfileStore = signalStore(
        * Actualizar solo la imagen del perfil
        */
       async refreshProfileImage(): Promise<void> {
-        console.log('🔄 ProfileStore - Refrescando solo imagen del perfil');
+        console.log('🔄 MyProfileStore - Refrescando solo imagen del perfil');
         const profile = store.profile();
         if (profile?.photoFileId && profile.photoFileId.trim() !== '') {
           await methods.loadProfileImage(profile.photoFileId);
@@ -179,7 +179,7 @@ export const ProfileStore = signalStore(
        * Limpiar estado del perfil (útil para logout)
        */
       clearProfile(): void {
-        console.log('🧹 ProfileStore - Limpiando perfil');
+        console.log('🧹 MyProfileStore - Limpiando perfil');
 
         patchState(store, {
           profile: null,
@@ -207,7 +207,7 @@ export const ProfileStore = signalStore(
        * Actualizar perfil completo
        */
       async updateProfile(profileId: string, updates: ProfileEntity): Promise<void> {
-        console.log('🔄 ProfileStore - Actualizando perfil:', profileId);
+        console.log('🔄 MyProfileStore - Actualizando perfil:', profileId);
 
         patchState(store, {
           isLoading: true,
@@ -238,9 +238,9 @@ export const ProfileStore = signalStore(
             await methods.loadProfileImage(updates.photoFileId);
           }
 
-          console.log('✅ ProfileStore - Perfil actualizado exitosamente');
+          console.log('✅ MyProfileStore - Perfil actualizado exitosamente');
         } catch (error: any) {
-          console.error('❌ ProfileStore - Error al actualizar perfil:', error);
+          console.error('❌ MyProfileStore - Error al actualizar perfil:', error);
           patchState(store, {
             isLoading: false,
             error: error.message || 'Error al actualizar el perfil'
@@ -252,7 +252,7 @@ export const ProfileStore = signalStore(
        * Eliminar perfil
        */
       async deleteProfile(profileId: string): Promise<void> {
-        console.log('🗑️ ProfileStore - Eliminando perfil:', profileId);
+        console.log('🗑️ MyProfileStore - Eliminando perfil:', profileId);
 
         patchState(store, {
           isLoading: true,
@@ -276,9 +276,9 @@ export const ProfileStore = signalStore(
             error: null
           });
 
-          console.log('✅ ProfileStore - Perfil eliminado exitosamente');
+          console.log('✅ MyProfileStore - Perfil eliminado exitosamente');
         } catch (error: any) {
-          console.error('❌ ProfileStore - Error al eliminar perfil:', error);
+          console.error('❌ MyProfileStore - Error al eliminar perfil:', error);
           patchState(store, {
             isLoading: false,
             error: error.message || 'Error al eliminar el perfil'
@@ -292,7 +292,7 @@ export const ProfileStore = signalStore(
        * Ya que el store se inicializa automáticamente escuchando eventos
        */
       initialize(userId: string): void {
-        console.log('🚀 ProfileStore - Initialize llamado manualmente con userId:', userId);
+        console.log('🚀 MyProfileStore - Initialize llamado manualmente con userId:', userId);
         if (userId) {
           methods.loadProfile(userId).then(() => {});
         } else {
