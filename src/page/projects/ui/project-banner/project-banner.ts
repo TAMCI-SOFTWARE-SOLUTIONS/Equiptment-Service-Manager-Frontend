@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {FileService} from '../../../../../../entities/file/api/file.service';
-import {ProjectWithClient} from '../../../../../../page/projects/model/projects.store';
+import {FileService} from '../../../../entities/file/api/file.service';
+import {ProjectWithClient} from '../../model/projects.store';
 
 @Component({
   selector: 'app-project-banner',

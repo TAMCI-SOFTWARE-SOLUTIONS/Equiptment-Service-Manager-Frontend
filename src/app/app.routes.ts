@@ -44,6 +44,11 @@ export const routes: Routes = [
         path: 'services',
         children: [
           {
+            path: 'new',
+            title: 'Crear Servicio',
+            loadComponent: () => import('../page/new-service/ui/create-service/create-service.page').then(m => m.CreateServicePage)
+          },
+          {
             path: 'active',
             title: 'Servicios Activos',
             loadComponent: () => import('../page/services/ui').then(m => m.ServicesActivePage)
@@ -57,36 +62,6 @@ export const routes: Routes = [
             path: ':serviceId',
             title: 'Detalle de Servicio',
             loadComponent: () => import('../page/services/ui').then(m => m.ServiceDetailPage)
-          }
-        ]
-      },
-
-      // Create new service flow (3 steps)
-      {
-        path: 'services/new',
-        children: [
-          {
-            path: '',
-            redirectTo: 'type',
-            pathMatch: 'full'
-          },
-          {
-            // Step 1: Select service type (Maintenance, Inspection, Observation)
-            path: 'type',
-            title: 'Tipo de Servicio',
-            loadComponent: () => import('../page/new-service/ui').then(m => m.SelectServiceTypePage)
-          },
-          {
-            // Step 2: Select equipment
-            path: 'equipment',
-            title: 'Seleccionar Equipo',
-            loadComponent: () => import('../page/new-service/ui').then(m => m.SelectEquipmentPage)
-          },
-          {
-            // Step 3: Confirm and assign supervisor
-            path: 'confirm',
-            title: 'Confirmar Servicio',
-            loadComponent: () => import('../page/new-service/ui').then(m => m.ConfirmServicePage)
           }
         ]
       },

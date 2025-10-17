@@ -51,7 +51,7 @@ export class SidebarComponent {
         {
           label: 'Crear Nuevo',
           icon: 'pi-plus-circle',
-          route: '/services/new/type'
+          route: '/services/new'
         },
         {
           label: 'Historial',
