@@ -34,18 +34,16 @@ export class EquipmentFormPage implements OnInit, OnDestroy {
   readonly EquipmentStatusEnum = EquipmentStatusEnum;
 
   ngOnInit(): void {
-    const equipmentType = this.route.snapshot.paramMap.get('type'); // 'cabinet' or 'panel'
+    const equipmentType = this.route.snapshot.paramMap.get('type');
     const equipmentId = this.route.snapshot.paramMap.get('id');
 
     if (equipmentId && equipmentId !== 'new') {
-      // Modo edición
       const type = equipmentType === 'panel'
         ? EquipmentTypeEnum.PANEL
         : EquipmentTypeEnum.CABINET;
 
       this.store.initializeForEdit(equipmentId, type);
     } else {
-      // Modo creación
       const type = equipmentType === 'panel'
         ? EquipmentTypeEnum.PANEL
         : EquipmentTypeEnum.CABINET;
@@ -58,15 +56,33 @@ export class EquipmentFormPage implements OnInit, OnDestroy {
     this.store.reset();
   }
 
+  // ==================== STEPPER NAVIGATION ====================
+
+  onNext(): void {
+    this.store.goToNextStep();
+  }
+
+  onPrevious(): void {
+    this.store.goToPreviousStep();
+  }
+
+  onGoToStep(step: number): void {
+    // Solo permitir ir a steps ya visitados o el siguiente inmediato
+    const currentStep = this.store.currentStep();
+    const completedSteps = this.store.completedSteps();
+
+    if (step <= currentStep || completedSteps.has(step - 1)) {
+      this.store.goToStep(step);
+    }
+  }
+
   // ==================== TYPE CHANGE ====================
 
   onTypeChange(newType: EquipmentTypeEnum): void {
-    // Si está en modo edición y cambió el tipo, mostrar advertencia
     if (this.store.isEditing() && this.store.formData().type !== newType) {
       this.pendingTypeChange.set(newType);
       this.showTypeChangeModal.set(true);
     } else {
-      // Modo creación, cambiar directamente
       this.store.setType(newType);
     }
   }
@@ -125,13 +141,13 @@ export class EquipmentFormPage implements OnInit, OnDestroy {
 
     if (result) {
       const type = this.store.formData().type === EquipmentTypeEnum.CABINET ? 'cabinet' : 'panel';
-      this.router.navigate(['/equipments', type, result.id]);
+      this.router.navigate(['/equipments', type, result.id]).then();
     }
   }
 
   onCancel(): void {
     this.store.reset();
-    this.router.navigate(['/equipments']);
+    this.router.navigate(['/equipments']).then();
   }
 
   // ==================== HELPERS ====================
@@ -139,9 +155,6 @@ export class EquipmentFormPage implements OnInit, OnDestroy {
   getEquipmentTypeLabel = getEquipmentTypeLabel;
   getEquipmentStatusLabel = getEquipmentStatusLabel;
 
-  /**
-   * Labels dinámicos según el tipo seleccionado
-   */
   getTypeLabel(): string {
     return this.store.formData().type === EquipmentTypeEnum.CABINET ? 'Gabinete' : 'Panel';
   }
@@ -158,11 +171,46 @@ export class EquipmentFormPage implements OnInit, OnDestroy {
     return `Selecciona tipo de ${this.getTypeLabel().toLowerCase()}`;
   }
 
-  getCommunicationProtocolLabel(): string {
-    return 'Protocolo de Comunicación';
+  // ==================== STEPPER HELPERS ====================
+
+  isStepCompleted(step: number): boolean {
+    return this.store.completedSteps().has(step);
   }
 
-  getStatusLabel(): string {
-    return 'Estado';
+  isStepActive(step: number): boolean {
+    return this.store.currentStep() === step;
+  }
+
+  canAccessStep(step: number): boolean {
+    const currentStep = this.store.currentStep();
+    const completedSteps = this.store.completedSteps();
+
+    // En modo edición, todos los steps son accesibles
+    if (this.store.isEditing()) {
+      return true;
+    }
+
+    // En modo creación, solo puede acceder a steps completados o el actual
+    return step <= currentStep || completedSteps.has(step - 1);
+  }
+
+  getStepIcon(step: number): string {
+    const icons: Record<number, string> = {
+      1: 'pi-box',
+      2: 'pi-tag',
+      3: 'pi-map-marker',
+      4: 'pi-cog'
+    };
+    return icons[step] || 'pi-circle';
+  }
+
+  getStepTitle(step: number): string {
+    const titles: Record<number, string> = {
+      1: 'Tipo',
+      2: 'Identificación',
+      3: 'Ubicación',
+      4: 'Especificaciones'
+    };
+    return titles[step] || '';
   }
 }
