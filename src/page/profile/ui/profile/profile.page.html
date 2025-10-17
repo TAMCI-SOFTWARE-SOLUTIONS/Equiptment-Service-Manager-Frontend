@@ -1,283 +1,176 @@
-<div class="min-h-screen bg-gray-50 py-8">
-  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+<div class="flex h-full flex-col bg-gray-50">
 
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="heading-h1-bold-desktop text-neutral-900">Mi Perfil</h1>
-      <p class="paragraph-medium-regular text-neutral-600 mt-2">
-        Gestiona tu información personal y configuración de cuenta
-      </p>
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex-1">
+          <h1 class="text-2xl font-bold text-gray-900 lg:text-3xl">
+            @if (store.isEditMode()) {
+              Editar Perfil
+            } @else {
+              Mi Perfil
+            }
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            @if (store.isEditMode()) {
+              Actualiza tu información personal
+            } @else {
+              Visualiza y gestiona tu información personal
+            }
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        @if (!store.isEditMode()) {
+          <button
+            pRipple
+            type="button"
+            (click)="toggleEditMode()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            <i class="pi pi-pencil text-base"></i>
+            <span class="hidden sm:inline">Editar Perfil</span>
+          </button>
+        } @else {
+          <div class="flex gap-3">
+            <button
+              pRipple
+              type="button"
+              (click)="onCancel()"
+              [disabled]="store.isSaving()"
+              class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+              <i class="pi pi-times text-base"></i>
+              <span>Cancelar</span>
+            </button>
+
+            <button
+              pRipple
+              type="button"
+              (click)="onSave()"
+              [disabled]="!store.canSave()"
+              class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+              @if (store.isSaving() || store.uploadingPhoto()) {
+                <i class="pi pi-spinner pi-spin text-base"></i>
+                <span>Guardando...</span>
+              } @else {
+                <i class="pi pi-check text-base"></i>
+                <span>Guardar</span>
+              }
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Changes indicator -->
+      @if (store.isEditMode() && store.hasChanges()) {
+        <div class="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2 text-sm">
+          <i class="pi pi-exclamation-triangle text-amber-600"></i>
+          <span class="text-amber-900">Tienes cambios sin guardar</span>
+        </div>
+      }
+
     </div>
+  </header>
 
-    <!-- Loading State -->
-    @if (isLoading()) {
-      <div class="space-y-6">
-        <!-- Profile Card Skeleton -->
-        <p-card class="shadow-sm">
-          <ng-template pTemplate="content">
-            <div class="flex items-start gap-6">
-              <p-skeleton shape="circle" size="4rem"></p-skeleton>
-              <div class="flex-1 space-y-4">
-                <div class="space-y-2">
-                  <p-skeleton width="12rem" height="1.5rem"></p-skeleton>
-                  <p-skeleton width="8rem" height="1rem"></p-skeleton>
-                </div>
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <p-skeleton width="100%" height="1.5rem"></p-skeleton>
-                  <p-skeleton width="100%" height="1.5rem"></p-skeleton>
-                </div>
-              </div>
-            </div>
-          </ng-template>
-        </p-card>
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-5xl">
 
-        <!-- Details Card Skeleton -->
-        <p-card class="shadow-sm">
-          <ng-template pTemplate="header">
-            <p-skeleton width="8rem" height="1.25rem"></p-skeleton>
-          </ng-template>
-          <ng-template pTemplate="content">
-            <div class="space-y-4">
-              <p-skeleton width="100%" height="1.5rem"></p-skeleton>
-              <p-skeleton width="100%" height="1.5rem"></p-skeleton>
-              <p-skeleton width="100%" height="1.5rem"></p-skeleton>
-              <p-skeleton width="100%" height="1.5rem"></p-skeleton>
-            </div>
-          </ng-template>
-        </p-card>
-      </div>
-    }
-
-    <!-- Error State -->
-    @if (hasError() && !isLoading()) {
-      <p-card class="shadow-sm border-red-200 bg-red-50">
-        <ng-template pTemplate="content">
-          <div class="flex items-center gap-4">
-            <i class="pi pi-exclamation-triangle text-red-600 text-2xl"></i>
-            <div class="flex-1">
-              <h3 class="font-semibold text-red-900 mb-1">Error al cargar el perfil</h3>
-              <p class="text-red-700 text-sm">{{ errorMessage() }}</p>
-            </div>
-            <p-button
-              label="Reintentar"
-              icon="pi pi-refresh"
-              [loading]="isLoading()"
-              (onClick)="onRefreshProfile()"
-              styleClass="p-button-sm p-button-outlined">
-            </p-button>
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="flex min-h-[400px] items-center justify-center">
+          <div class="text-center">
+            <i class="pi pi-spinner pi-spin text-5xl text-sky-500"></i>
+            <p class="mt-4 text-sm text-gray-600">Cargando perfil...</p>
           </div>
-        </ng-template>
-      </p-card>
-    }
+        </div>
+      }
 
-    <!-- Profile Content -->
-    @if (profile() && !isLoading() && !hasError()) {
-      <div class="space-y-6">
-
-        <!-- Profile Overview Card -->
-        <p-card class="shadow-sm">
-          <ng-template pTemplate="content">
-            <div class="flex items-start gap-6">
-              <!-- Avatar Section -->
-              <div class="flex-shrink-0">
-                @if (profileImageUrl()) {
-                  <p-avatar
-                    image="{{profileImageUrl()}}"
-                    shape="circle"
-                    size="large"
-                    class="h-16 w-16">
-                  </p-avatar>
-                } @else {
-                  <p-avatar
-                    [label]="userInitials()"
-                    shape="circle"
-                    size="large"
-                    class="h-16 w-16"
-                    [style]="{'background-color': 'var(--primary-200-main)', 'color': 'white', 'font-weight': '600', 'font-size': '1.5rem'}">
-                  </p-avatar>
-                }
-              </div>
-
-              <!-- Profile Info -->
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between">
-                  <div class="min-w-0 flex-1">
-                    <h2 class="heading-h2-semibold-desktop text-neutral-900 truncate">
-                    {{ fullName() || 'Usuario' }}
-                  </h2>
-                    <p class="paragraph-medium-regular text-neutral-600 mt-1">
-                      {{ profile()?.email }}
-                    </p>
-                    <div class="flex items-center gap-2 mt-2">
-                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                        {{'Usuario' }}
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Edit Button -->
-                  <p-button
-                    label="Editar Perfil"
-                    icon="pi pi-pencil"
-                    (onClick)="onEditProfile()"
-                    styleClass="p-button-sm p-button-outlined">
-                  </p-button>
-                </div>
-              </div>
+      @else if (store.error() && !store.profile()) {
+        <div class="flex min-h-[400px] items-center justify-center">
+          <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+              <i class="pi pi-exclamation-triangle text-2xl text-red-600"></i>
             </div>
-          </ng-template>
-        </p-card>
-
-        <!-- Profile Details Card -->
-        <p-card header="Información Personal" class="shadow-sm">
-          <ng-template pTemplate="content">
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-              <!-- Personal Information -->
-              <div class="space-y-4">
-                <h3 class="font-semibold text-neutral-900 mb-3">Datos Personales</h3>
-
-                <div class="space-y-3">
-                  <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">
-                      Nombres
-                    </label>
-                    <p class="paragraph-medium-regular text-neutral-900 bg-gray-50 px-3 py-2 rounded-lg">
-                      {{ profile()?.names || 'No especificado' }}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">
-                      Primer Apellido
-                    </label>
-                    <p class="paragraph-medium-regular text-neutral-900 bg-gray-50 px-3 py-2 rounded-lg">
-                      {{ profile()?.firstSurname || 'No especificado' }}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">
-                      Segundo Apellido
-                    </label>
-                    <p class="paragraph-medium-regular text-neutral-900 bg-gray-50 px-3 py-2 rounded-lg">
-                      {{ profile()?.secondSurname || 'No especificado' }}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">
-                      Género
-                    </label>
-                    <p class="paragraph-medium-regular text-neutral-900 bg-gray-50 px-3 py-2 rounded-lg">
-                      {{ profile()?.gender === GenderEnum.MALE ? 'Masculino' : profile()?.gender === GenderEnum.FEMALE ? 'Femenino' : 'No especificado' }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Account Information -->
-              <div class="space-y-4">
-                <h3 class="font-semibold text-neutral-900 mb-3">Información de Cuenta</h3>
-
-                <div class="space-y-3">
-                  <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">
-                      ID de Usuario
-                    </label>
-                    <p class="paragraph-small-regular text-neutral-600 bg-gray-50 px-3 py-2 rounded-lg font-mono">
-                      {{ profile()?.userId }}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">
-                      ID de Perfil
-                    </label>
-                    <p class="paragraph-small-regular text-neutral-600 bg-gray-50 px-3 py-2 rounded-lg font-mono">
-                      {{ profile()?.id }}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">
-                      Correo Electrónico
-                    </label>
-                    <p class="paragraph-medium-regular text-neutral-900 bg-gray-50 px-3 py-2 rounded-lg">
-                      {{ profile()?.email }}
-                    </p>
-                  </div>
-
-                  @if (profile()?.photoFileId) {
-                    <div>
-                      <label class="block text-sm font-medium text-neutral-700 mb-1">
-                        Foto de Perfil
-                      </label>
-                      <p class="paragraph-small-regular text-neutral-600 bg-gray-50 px-3 py-2 rounded-lg">
-                        Archivo cargado (ID: {{ profile()?.photoFileId }})
-                      </p>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-          </ng-template>
-        </p-card>
-
-        <!-- Actions Card -->
-        <p-card header="Acciones" class="shadow-sm">
-          <ng-template pTemplate="content">
-            <div class="flex flex-wrap gap-3">
-              <p-button
-                label="Actualizar Información"
-                icon="pi pi-refresh"
-                [loading]="isLoading()"
-                (onClick)="onRefreshProfile()"
-                styleClass="p-button-outlined">
-              </p-button>
-
-              <p-button
-                label="Cambiar Foto de Perfil"
-                icon="pi pi-camera"
-                (onClick)="onEditProfile()"
-                styleClass="p-button-outlined">
-              </p-button>
-
-              <p-button
-                label="Configuración de Cuenta"
-                icon="pi pi-cog"
-                (onClick)="onEditProfile()"
-                styleClass="p-button-outlined">
-              </p-button>
-            </div>
-          </ng-template>
-        </p-card>
-      </div>
-    }
-
-    <!-- Empty State (No Profile) -->
-    @if (!profile() && !isLoading() && !hasError()) {
-      <p-card class="shadow-sm">
-        <ng-template pTemplate="content">
-          <div class="text-center py-8">
-            <i class="pi pi-user text-6xl text-gray-300 mb-4"></i>
-            <h3 class="heading-h3-semibold-desktop text-neutral-900 mb-2">
-              Perfil no encontrado
+            <h3 class="mt-4 text-lg font-semibold text-gray-900">
+              Error al cargar el perfil
             </h3>
-            <p class="paragraph-medium-regular text-neutral-600 mb-6">
-              No se pudo cargar la información del perfil. Esto puede deberse a un problema de conexión o permisos.
+            <p class="mt-2 text-sm text-gray-600">
+              {{ store.error() }}
             </p>
-            <p-button
-              label="Cargar Perfil"
-              icon="pi pi-refresh"
-              [loading]="isLoading()"
-              (onClick)="onRefreshProfile()"
-              styleClass="p-button-primary">
-            </p-button>
+            <button
+              pRipple
+              type="button"
+              (click)="loadProfile()"
+              class="mt-6 flex items-center gap-2 rounded-lg bg-sky-500 px-6 py-3 font-semibold text-white hover:bg-sky-600">
+              <i class="pi pi-refresh"></i>
+              <span>Reintentar</span>
+            </button>
           </div>
-        </ng-template>
-      </p-card>
-    }
+        </div>
+      }
 
-  </div>
+      @else if (store.profile()) {
+        <div class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          @if (store.isEditMode()) {
+            <app-profile-form />
+          } @else {
+            <app-profile-view />
+          }
+        </div>
+      }
+
+    </div>
+  </main>
+
+  <!-- Footer (Only in edit mode) -->
+  @if (store.isEditMode()) {
+    <footer class="shrink-0 border-t border-gray-200 bg-white px-4 py-4 lg:px-8">
+      <div class="mx-auto flex max-w-5xl items-center justify-between gap-4">
+
+        <div class="text-sm text-gray-600">
+          @if (store.hasChanges()) {
+            <i class="pi pi-info-circle mr-1 text-amber-600"></i>
+            <span>Recuerda guardar tus cambios</span>
+          } @else {
+            <span>Sin cambios pendientes</span>
+          }
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            pRipple
+            type="button"
+            (click)="onCancel()"
+            [disabled]="store.isSaving()"
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-times text-base"></i>
+            <span>Cancelar</span>
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onSave()"
+            [disabled]="!store.canSave()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            @if (store.isSaving() || store.uploadingPhoto()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+              <span>Guardando...</span>
+            } @else {
+              <i class="pi pi-check text-base"></i>
+              <span>Guardar Cambios</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </footer>
+  }
+
 </div>
+
+<!-- Toast for notifications -->
+<p-toast position="top-right" />
