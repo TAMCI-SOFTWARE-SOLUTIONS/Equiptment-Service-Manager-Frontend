@@ -7,7 +7,9 @@ export class EquipmentPowerDistributionAssignmentEntityFromResponseMapper {
       id: dto.id ?? '',
       equipmentId: dto.equipmentId ?? '',
       powerDistributionPanelId: dto.powerDistributionPanelId ?? '',
-      circuitAssignments: dto.circuitAssignments ?? [],
+      circuitAssignments: dto.circuitAssignments
+        ? dto.circuitAssignments.map((ca: any) => ca.circuitNumber || ca)
+        : []
     };
   }
 }
