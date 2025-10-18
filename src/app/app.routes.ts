@@ -249,6 +249,28 @@ export const routes: Routes = [
         loadComponent: () => import('../page/communication-protocols/ui/communication-protocols/communication-protocols.page').then(m => m.CommunicationProtocolsPage)
       },
 
+      // ==================== POWER DISTRIBUTIONS PANELS ====================
+      {
+        path: 'power-distribution-panels',
+        children: [
+          {
+            path: '',
+            title: 'Paneles de Distribución Eléctrica',
+            loadComponent: () => import('../page/power-distribution-panels/ui/power-distribution-panels/power-distribution-panels.page').then(m => m.PowerDistributionPanelsPage)
+          },
+          {
+            path: 'new',
+            title: 'Nuevo Panel de Distribución Eléctrica',
+            loadComponent: () => import('../page/power-distribution-panels/ui/power-distribution-panel-form/power-distribution-panel-form.page').then(m => m.PowerDistributionPanelFormPage)
+          },
+          {
+            path: ':id/edit',
+            title: 'Editar Panel de Distribución Eléctrica',
+            loadComponent: () => import('../page/power-distribution-panels/ui/power-distribution-panel-form/power-distribution-panel-form.page').then(m => m.PowerDistributionPanelFormPage)
+          }
+        ]
+      },
+
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
       {
