@@ -7,6 +7,10 @@ import { PowerDistributionPanelResponse } from '../types/power-distribution-pane
 import { CreatePowerDistributionPanelRequest } from '../types/create-power-distribution-panel-request.type';
 import { PowerDistributionPanelEntityFromResponseMapper } from '../mappers/power-distribution-panel-entity-from-response.mapper';
 import { CreatePowerDistributionPanelRequestFromEntityMapper } from '../mappers/create-power-distribution-panel-request-from-entity.mapper';
+import {
+  UpdatePowerDistributionPanelRequestFromEntityMapper
+} from '../mappers/update-power-distribution-panel-request-from-entity.mapper';
+import {UpdatePowerDistributionPanelRequest} from '../types/update-power-distribution-panel-request.type';
 
 @Injectable({
   providedIn: 'root'
@@ -93,8 +97,8 @@ export class PowerDistributionPanelService extends BaseService {
    * Update existing power distribution panel
    */
   update(entity: PowerDistributionPanelEntity): Observable<PowerDistributionPanelEntity> {
-    const request: CreatePowerDistributionPanelRequest =
-      CreatePowerDistributionPanelRequestFromEntityMapper.fromEntityToDto(entity);
+    const request: UpdatePowerDistributionPanelRequest =
+      UpdatePowerDistributionPanelRequestFromEntityMapper.fromEntityToDto(entity);
     return this.http.put<PowerDistributionPanelResponse>(
       `${this.resourcePath()}/${entity.id}`,
       request,
