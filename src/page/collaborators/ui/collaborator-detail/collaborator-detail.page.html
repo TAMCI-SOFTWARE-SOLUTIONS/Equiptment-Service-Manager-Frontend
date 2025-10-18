@@ -1,0 +1,363 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Back Button & Actions -->
+      <div class="mb-4 flex items-center justify-between gap-4">
+        <button
+          pRipple
+          type="button"
+          (click)="onBack()"
+          class="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+          <i class="pi pi-arrow-left text-sm"></i>
+          <span>Volver a Colaboradores</span>
+        </button>
+
+        @if (store.hasProfile() && !store.isLoading()) {
+          <div class="flex items-center gap-2">
+            <button
+              pRipple
+              type="button"
+              (click)="onRefresh()"
+              [disabled]="store.isLoading()"
+              class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+              @if (store.isLoading()) {
+                <i class="pi pi-spinner pi-spin text-base"></i>
+              } @else {
+                <i class="pi pi-refresh text-base"></i>
+              }
+            </button>
+
+            <!-- Botón Editar (Principal) -->
+            <button
+              pRipple
+              type="button"
+              (click)="onEdit()"
+              class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+              <i class="pi pi-pencil text-sm"></i>
+              <span class="hidden sm:inline">Editar</span>
+            </button>
+
+            <!-- Menú "Más acciones" -->
+            <button
+              #moreActionsBtn
+              pRipple
+              type="button"
+              (click)="toggleActionsMenu($event, moreActionsMenu)"
+              class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+              <span class="hidden sm:inline">Más acciones</span>
+              <span class="sm:hidden">Acciones</span>
+              <i class="pi pi-chevron-down text-xs"></i>
+            </button>
+
+            <p-menu
+              #moreActionsMenu
+              [model]="moreActionsItems"
+              [popup]="true"
+              appendTo="body">
+            </p-menu>
+          </div>
+        }
+      </div>
+
+      <!-- Title & Status -->
+      @if (store.hasProfile() && !store.isLoading()) {
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-start gap-4">
+            <!-- Avatar o Foto -->
+            @if (store.isLoadingPhoto()) {
+              <div class="h-16 w-16 animate-pulse rounded-full bg-gray-200"></div>
+            } @else if (store.photoUrl()) {
+              <img
+                [src]="store.photoUrl()"
+                [alt]="store.fullName()"
+                class="h-16 w-16 rounded-full object-cover ring-4 ring-sky-100">
+            } @else {
+              <div
+                class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br text-white ring-4 ring-sky-100"
+                [ngClass]="getAvatarGradient()">
+                <span class="text-2xl font-bold">
+                  {{ store.initials() }}
+                </span>
+              </div>
+            }
+
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900">
+                {{ store.fullName() }}
+              </h1>
+              <p class="mt-1 text-sm text-gray-600">
+                {{ store.genderLabel() }}
+              </p>
+              <div class="mt-2 flex flex-wrap items-center gap-2">
+                <!-- Badge: Tiene Usuario -->
+                @if (store.hasUser()) {
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                    <i class="pi pi-check-circle text-xs"></i>
+                    Con cuenta de usuario
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                    <i class="pi pi-exclamation-circle text-xs"></i>
+                    Sin cuenta de usuario
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="grid gap-6 lg:grid-cols-2">
+          @for (i of [1,2,3]; track i) {
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="space-y-4">
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200"></div>
+                <div class="space-y-3">
+                  <div class="h-3 w-full animate-pulse rounded bg-gray-200"></div>
+                  <div class="h-3 w-4/5 animate-pulse rounded bg-gray-200"></div>
+                  <div class="h-3 w-3/5 animate-pulse rounded bg-gray-200"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      @else if (store.hasProfile()) {
+        <div class="grid gap-6 lg:grid-cols-2">
+
+          <!-- Card: Información Personal -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-user text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Información Personal
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <dl class="space-y-4">
+                <!-- Nombres -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Nombres
+                  </dt>
+                  <dd class="mt-1 text-base font-semibold text-gray-900">
+                    {{ store.profile()!.names }}
+                  </dd>
+                </div>
+
+                <!-- Apellidos -->
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Apellido Paterno
+                    </dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ store.profile()!.firstSurname }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Apellido Materno
+                    </dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ store.profile()!.secondSurname }}
+                    </dd>
+                  </div>
+                </div>
+
+                <!-- Género -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Género
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900">
+                    {{ store.genderLabel() }}
+                  </dd>
+                </div>
+
+                <!-- Documento -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Documento de Identidad
+                  </dt>
+                  <dd class="mt-1">
+                    <p class="text-sm font-medium text-gray-900">
+                      {{ store.documentTypeLabel() }}
+                    </p>
+                    <p class="mt-0.5 font-mono text-sm text-gray-700">
+                      {{ store.profile()!.identityDocumentNumber }}
+                    </p>
+                  </dd>
+                </div>
+
+                <!-- Email -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Email
+                  </dt>
+                  <dd class="mt-1">
+                    <a
+                      [href]="'mailto:' + store.profile()!.email"
+                      class="text-sm font-medium text-sky-600 hover:text-sky-700 hover:underline">
+                      {{ store.profile()!.email }}
+                    </a>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <!-- Card: Cuenta de Usuario -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-id-card text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Cuenta de Usuario
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              @if (store.hasUser()) {
+                <!-- Tiene usuario -->
+                <div class="space-y-4">
+                  <div class="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
+                    <i class="pi pi-check-circle mt-0.5 text-lg text-green-600"></i>
+                    <div class="flex-1">
+                      <p class="font-medium text-green-900">
+                        Usuario Activo
+                      </p>
+                      <p class="mt-1 text-sm text-green-700">
+                        Este colaborador tiene una cuenta de usuario activa en el sistema.
+                      </p>
+                    </div>
+                  </div>
+
+                  <dl class="space-y-3">
+                    <div>
+                      <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Nombre de Usuario
+                      </dt>
+                      <dd class="mt-1 font-mono text-sm text-gray-900">
+                        {{ store.profile()!.email }}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              } @else {
+                <!-- No tiene usuario -->
+                <div class="space-y-4">
+                  <div class="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <i class="pi pi-exclamation-triangle mt-0.5 text-lg text-amber-600"></i>
+                    <div class="flex-1">
+                      <p class="font-medium text-amber-900">
+                        Sin Cuenta de Usuario
+                      </p>
+                      <p class="mt-1 text-sm text-amber-700">
+                        Este colaborador aún no tiene una cuenta de usuario en el sistema.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <p class="text-sm text-gray-700">
+                      Para que este colaborador pueda acceder al sistema, necesitas generar una cuenta de usuario.
+                    </p>
+
+                    <button
+                      pRipple
+                      type="button"
+                      (click)="onGenerateUser()"
+                      disabled
+                      class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+                      <i class="pi pi-user-plus text-sm"></i>
+                      <span>Generar Usuario</span>
+                    </button>
+
+                    <p class="mt-3 text-xs text-gray-500">
+                      <i class="pi pi-info-circle mr-1"></i>
+                      🚧 Función en desarrollo. Próximamente disponible.
+                    </p>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Card: Información del Sistema -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-cog text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Información del Sistema
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <dl class="space-y-4">
+                <!-- Registro en el sistema -->
+                <div class="rounded-lg border border-sky-200 bg-sky-50 p-4">
+                  <div class="flex items-start gap-2">
+                    <i class="pi pi-info-circle mt-0.5 text-sm text-sky-600"></i>
+                    <div class="flex-1">
+                      <p class="text-xs font-medium text-sky-900">
+                        Colaborador Registrado
+                      </p>
+                      <p class="mt-1 text-xs text-sky-700">
+                        Este perfil está activo en el sistema.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </main>
+
+</div>
