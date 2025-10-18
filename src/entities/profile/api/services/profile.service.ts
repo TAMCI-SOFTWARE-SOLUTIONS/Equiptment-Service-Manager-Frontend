@@ -49,6 +49,20 @@ export class ProfileService extends BaseService {
     );
   }
 
+  getAll(): Observable<ProfileEntity[]> {
+    return this.http.get<ProfileResponse[]>(
+      `${this.resourcePath()}`,
+      this.httpOptions
+    ).pipe(
+      map((response: ProfileResponse[]) =>
+        response.map(
+          (profile: ProfileResponse) =>
+            ProfileEntityFromResponseMapper.fromDtoToEntity(profile)
+        )
+      )
+    )
+  }
+
   getByUserId(userId: string): Observable<ProfileEntity> {
     return this.http.get<ProfileResponse>(
       `${this.resourcePath()}/user/${userId}`,
