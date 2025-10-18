@@ -1,0 +1,131 @@
+<p-drawer
+  [visible]="visible()"
+  (visibleChange)="visibleChange.emit($event)"
+  position="right"
+  [style]="{ width: '100%', maxWidth: '400px' }"
+  [modal]="true">
+
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+        <i class="pi pi-filter text-lg text-sky-600"></i>
+      </div>
+      <div class="flex-1">
+        <h2 class="text-lg font-semibold text-gray-900">
+          Filtros
+        </h2>
+        @if (hasActiveFilters) {
+          <p class="text-xs text-gray-600">
+            {{ activeFiltersCount }} {{ activeFiltersCount === 1 ? 'filtro activo' : 'filtros activos' }}
+          </p>
+        }
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="space-y-6">
+
+    <!-- Estado del Proyecto -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Estado del Proyecto
+      </label>
+      <p-select
+        [(ngModel)]="localStatus"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Todos los estados"
+        [showClear]="true"
+        [style]="{ width: '100%' }"
+        class="w-full">
+      </p-select>
+    </div>
+
+    <!-- Cliente -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Cliente
+      </label>
+      @if (isLoadingClients()) {
+        <div class="flex h-12 items-center justify-center rounded-lg border border-gray-300 bg-gray-50">
+          <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+        </div>
+      } @else {
+        <p-select
+          [(ngModel)]="localClientId"
+          [options]="clientOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Todos los clientes"
+          [showClear]="true"
+          [filter]="true"
+          filterPlaceholder="Buscar cliente..."
+          [style]="{ width: '100%' }"
+          class="w-full">
+        </p-select>
+      }
+    </div>
+
+    <!-- Tipo de Equipo -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Tipo de Equipo Permitido
+      </label>
+      <p-select
+        [(ngModel)]="localEquipmentType"
+        [options]="equipmentTypeOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Todos los tipos"
+        [showClear]="true"
+        [style]="{ width: '100%' }"
+        class="w-full">
+
+        <ng-template let-option pTemplate="item">
+          <div class="flex items-center gap-2">
+            <span class="text-base">{{ option.icon }}</span>
+            <span class="text-sm">{{ option.label }}</span>
+          </div>
+        </ng-template>
+      </p-select>
+    </div>
+
+    <!-- Info -->
+    @if (!hasActiveFilters) {
+      <div class="rounded-lg border border-sky-200 bg-sky-50 p-4">
+        <div class="flex items-start gap-2">
+          <i class="pi pi-info-circle mt-0.5 text-sm text-sky-600"></i>
+          <p class="text-xs text-sky-700">
+            Selecciona uno o más filtros para refinar los resultados de búsqueda.
+          </p>
+        </div>
+      </div>
+    }
+
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex items-center gap-3">
+      <button
+        pRipple
+        type="button"
+        (click)="onClearFilters()"
+        [disabled]="!hasActiveFilters"
+        class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+        <i class="pi pi-times mr-2 text-sm"></i>
+        Limpiar
+      </button>
+
+      <button
+        pRipple
+        type="button"
+        (click)="onApplyFilters()"
+        class="flex-1 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+        <i class="pi pi-check mr-2 text-sm"></i>
+        Aplicar
+      </button>
+    </div>
+  </ng-template>
+
+</p-drawer>
