@@ -4,7 +4,7 @@ import {EquipmentTypeEnum} from '../../../shared/model';
 export class EquipmentTypeMapper {
   static fromStringToEnum(equipmentType: string): EquipmentTypeEnum {
     const validTypes = Object.values(EquipmentTypeEnum) as string[];
-    const normalizedType = equipmentType?.toLowerCase();
+    const normalizedType = equipmentType?.toUpperCase();
 
     if (validTypes.includes(normalizedType)) {
       return normalizedType as EquipmentTypeEnum;
