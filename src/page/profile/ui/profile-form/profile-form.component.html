@@ -1,0 +1,276 @@
+<div class="space-y-6">
+
+  <!-- Photo Upload Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-col items-center sm:flex-row sm:items-start sm:gap-6">
+
+      <!-- Current/Preview Photo -->
+      <div class="mb-4 sm:mb-0">
+        @if (store.selectedFile()) {
+          <img
+            [src]="store.selectedFile() | filePreview"
+            alt="Preview"
+            class="h-32 w-32 rounded-full border-4 border-sky-500 object-cover shadow-lg">
+        } @else if (store.photoUrl()) {
+          <img
+            [src]="store.photoUrl()!"
+            [alt]="store.fullName()"
+            class="h-32 w-32 rounded-full border-4 border-white object-cover shadow-lg">
+        } @else {
+          <div class="flex h-32 w-32 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-sky-400 to-cyan-500 text-4xl font-bold text-white shadow-lg">
+            {{ store.initials() }}
+          </div>
+        }
+      </div>
+
+      <!-- Upload Controls -->
+      <div class="flex-1 text-center sm:text-left">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Foto de Perfil
+        </h3>
+        <p class="mt-1 text-sm text-gray-600">
+          JPG, PNG o GIF. Máximo 5MB.
+        </p>
+
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+          <input
+            id="photoInput"
+            type="file"
+            accept="image/*"
+            (change)="onPhotoSelected($event)"
+            class="hidden">
+
+          <button
+            type="button"
+            (click)="triggerFileInput()"
+            class="flex items-center justify-center gap-2 rounded-lg border border-sky-500 bg-white px-4 py-2 text-sm font-medium text-sky-600 transition-all hover:bg-sky-50">
+            <i class="pi pi-upload"></i>
+            <span>{{ store.selectedFile() ? 'Cambiar' : 'Subir' }} Foto</span>
+          </button>
+
+          @if (store.selectedFile()) {
+            <button
+              type="button"
+              (click)="store.removeSelectedPhoto()"
+              class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
+              <i class="pi pi-times"></i>
+              <span>Cancelar</span>
+            </button>
+          }
+        </div>
+
+        @if (store.selectedFile()) {
+          <p class="mt-2 text-sm text-green-600">
+            <i class="pi pi-check-circle mr-1"></i>
+            Nueva foto seleccionada: {{ store.selectedFile()!.name }}
+          </p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Fields -->
+  <div class="grid gap-6 lg:grid-cols-2">
+
+    <!-- Card: Personal Information -->
+    <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div class="border-b border-gray-100 p-6">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+            <i class="pi pi-user text-lg text-sky-600"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">
+            Información Personal
+          </h3>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <div class="space-y-4">
+
+          <!-- Nombres -->
+          <div>
+            <label for="names" class="block text-sm font-medium text-gray-700">
+              Nombres
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="names"
+              type="text"
+              [value]="store.formData().names"
+              (input)="store.setNames($any($event.target).value)"
+              placeholder="Ej: Juan Carlos"
+              class="mt-1 block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:outline-none focus:ring-2"
+              [ngClass]="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().names,
+                'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().names
+              }">
+
+            @if (store.validationErrors().names) {
+              <p class="mt-1.5 flex items-start text-xs text-red-600">
+                <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                {{ store.validationErrors().names }}
+              </p>
+            }
+          </div>
+
+          <!-- Primer Apellido -->
+          <div>
+            <label for="firstSurname" class="block text-sm font-medium text-gray-700">
+              Primer Apellido
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="firstSurname"
+              type="text"
+              [value]="store.formData().firstSurname"
+              (input)="store.setFirstSurname($any($event.target).value)"
+              placeholder="Ej: Pérez"
+              class="mt-1 block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:outline-none focus:ring-2"
+              [ngClass]="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().firstSurname,
+                'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().firstSurname
+              }">
+
+            @if (store.validationErrors().firstSurname) {
+              <p class="mt-1.5 flex items-start text-xs text-red-600">
+                <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                {{ store.validationErrors().firstSurname }}
+              </p>
+            }
+          </div>
+
+          <!-- Segundo Apellido -->
+          <div>
+            <label for="secondSurname" class="block text-sm font-medium text-gray-700">
+              Segundo Apellido
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="secondSurname"
+              type="text"
+              [value]="store.formData().secondSurname"
+              (input)="store.setSecondSurname($any($event.target).value)"
+              placeholder="Ej: García"
+              class="mt-1 block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:outline-none focus:ring-2"
+              [ngClass]="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().secondSurname,
+                'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().secondSurname
+              }">
+
+            @if (store.validationErrors().secondSurname) {
+              <p class="mt-1.5 flex items-start text-xs text-red-600">
+                <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                {{ store.validationErrors().secondSurname }}
+              </p>
+            }
+          </div>
+
+          <!-- Género -->
+          <div>
+            <label for="gender" class="block text-sm font-medium text-gray-700">
+              Género
+              <span class="text-red-500">*</span>
+            </label>
+            <select
+              id="gender"
+              [value]="store.formData().gender"
+              (change)="store.setGender($any($event.target).value)"
+              class="mt-1 block w-full rounded-lg border border-gray-300 py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+              @for (option of genderOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Card: Document Information -->
+    <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div class="border-b border-gray-100 p-6">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+            <i class="pi pi-id-card text-lg text-sky-600"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">
+            Documento de Identidad
+          </h3>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <div class="space-y-4">
+
+          <!-- Tipo de Documento -->
+          <div>
+            <label for="docType" class="block text-sm font-medium text-gray-700">
+              Tipo de Documento
+              <span class="text-red-500">*</span>
+            </label>
+            <select
+              id="docType"
+              [value]="store.formData().identityDocumentType"
+              (change)="store.setIdentityDocumentType($any($event.target).value)"
+              class="mt-1 block w-full rounded-lg border border-gray-300 py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+              @for (option of documentTypeOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Número de Documento -->
+          <div>
+            <label for="docNumber" class="block text-sm font-medium text-gray-700">
+              Número de Documento
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="docNumber"
+              type="text"
+              [value]="store.formData().identityDocumentNumber"
+              (input)="store.setIdentityDocumentNumber($any($event.target).value)"
+              [placeholder]="getDocumentPlaceholder()"
+              class="mt-1 block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:outline-none focus:ring-2"
+              [ngClass]="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().identityDocumentNumber,
+                'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().identityDocumentNumber
+              }">
+
+            @if (store.validationErrors().identityDocumentNumber) {
+              <p class="mt-1.5 flex items-start text-xs text-red-600">
+                <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                {{ store.validationErrors().identityDocumentNumber }}
+              </p>
+            } @else {
+              <p class="mt-1.5 text-xs text-gray-500">
+                <i class="pi pi-info-circle mr-1"></i>
+                {{ getDocumentHint() }}
+              </p>
+            }
+          </div>
+
+          <!-- Email (readonly) -->
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">
+              Correo Electrónico
+            </label>
+            <div class="mt-1 flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-3.5 py-2.5">
+              <i class="pi pi-envelope text-gray-400"></i>
+              <span class="text-sm text-gray-600">{{ store.formData().email }}</span>
+              <span class="ml-auto rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600">Solo lectura</span>
+            </div>
+            <p class="mt-1.5 text-xs text-gray-500">
+              <i class="pi pi-lock mr-1"></i>
+              El correo electrónico no se puede modificar por el momento
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

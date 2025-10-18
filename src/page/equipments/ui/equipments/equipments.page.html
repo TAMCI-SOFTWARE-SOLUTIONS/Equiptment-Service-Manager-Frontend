@@ -1,0 +1,413 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Title & Actions -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            Equipos
+          </h1>
+          @if (store.hasEquipments() && !store.isLoading()) {
+            <span class="flex h-6 items-center rounded-full bg-gray-100 px-2.5 text-xs font-semibold text-gray-700">
+              {{ store.filteredEquipments().length }}
+            </span>
+          }
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            pRipple
+            type="button"
+            (click)="onRefresh()"
+            [disabled]="store.isLoading()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (store.isLoading()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+            } @else {
+              <i class="pi pi-refresh text-base"></i>
+            }
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onCreateNew()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            <i class="pi pi-plus text-sm"></i>
+            <span>Nuevo Equipo</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filters (Desktop) -->
+      @if (store.hasEquipments() && !store.isLoading()) {
+        <div class="mt-4 hidden items-center gap-3 lg:flex">
+          <!-- Search -->
+          <div class="relative flex-1 max-w-md">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <i class="pi pi-search text-sm text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              [value]="store.filters().searchQuery"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Buscar por tag..."
+              class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+
+            @if (store.filters().searchQuery) {
+              <button
+                type="button"
+                (click)="clearSearch()"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                <i class="pi pi-times text-xs"></i>
+              </button>
+            }
+          </div>
+
+          <!-- Plant Filter -->
+          <select
+            [value]="store.filters().plantId || ''"
+            (change)="store.setPlantFilter($any($event.target).value || null)"
+            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+            <option value="">Todas las plantas</option>
+            @for (plant of store.uniquePlants(); track plant.id) {
+              <option [value]="plant.id">{{ plant.name }}</option>
+            }
+          </select>
+
+          <!-- Status Filter -->
+          <select
+            [value]="store.filters().statusFilter || ''"
+            (change)="store.setStatusFilter($any($event.target).value || null)"
+            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+            <option value="">Todos los estados</option>
+            <option [value]="EquipmentStatusEnum.OPERATIVE">{{ getEquipmentStatusLabel(EquipmentStatusEnum.OPERATIVE) }}</option>
+            <option [value]="EquipmentStatusEnum.STAND_BY">{{ getEquipmentStatusLabel(EquipmentStatusEnum.STAND_BY) }}</option>
+            <option [value]="EquipmentStatusEnum.INOPERATIVE">{{ getEquipmentStatusLabel(EquipmentStatusEnum.INOPERATIVE) }}</option>
+            <option [value]="EquipmentStatusEnum.RETIRED">{{ getEquipmentStatusLabel(EquipmentStatusEnum.RETIRED) }}</option>
+          </select>
+        </div>
+
+        <!-- Search (Mobile) -->
+        <div class="mt-4 flex items-center gap-2 lg:hidden">
+          <div class="relative flex-1">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <i class="pi pi-search text-sm text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              [value]="store.filters().searchQuery"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Buscar..."
+              class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+
+            @if (store.filters().searchQuery) {
+              <button
+                type="button"
+                (click)="clearSearch()"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                <i class="pi pi-times text-xs"></i>
+              </button>
+            }
+          </div>
+
+          <!-- Filters Button (Mobile) -->
+          <button
+            pRipple
+            type="button"
+            (click)="onOpenFilters()"
+            class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50">
+            <i class="pi pi-filter text-base"></i>
+            @if (store.hasActiveFilters()) {
+              <span class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-[10px] font-bold text-white">
+                !
+              </span>
+            }
+          </button>
+        </div>
+      }
+
+      <!-- Type Pills -->
+      @if (store.hasEquipments() && !store.isLoading()) {
+        <div class="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
+          <button
+            pRipple
+            type="button"
+            (click)="onTypeFilterChange('all')"
+            [class.bg-sky-500]="isTypeFilterActive('all')"
+            [class.text-white]="isTypeFilterActive('all')"
+            [class.shadow-lg]="isTypeFilterActive('all')"
+          [class.bg-gray-100]="!isTypeFilterActive('all')"
+          [class.text-gray-700]="!isTypeFilterActive('all')"
+          class="flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all hover:shadow-md">
+          <span>Todos</span>
+          <span class="opacity-75">{{ store.totalCount() }}</span>
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onTypeFilterChange('cabinet')"
+            [class.bg-sky-500]="isTypeFilterActive('cabinet')"
+            [class.text-white]="isTypeFilterActive('cabinet')"
+            [class.shadow-lg]="isTypeFilterActive('cabinet')"
+          [class.bg-gray-100]="!isTypeFilterActive('cabinet')"
+          [class.text-gray-700]="!isTypeFilterActive('cabinet')"
+          class="flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all hover:shadow-md">
+          <span>📦 Gabinetes</span>
+          <span class="opacity-75">{{ store.cabinetCount() }}</span>
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onTypeFilterChange('panel')"
+            [class.bg-sky-500]="isTypeFilterActive('panel')"
+            [class.text-white]="isTypeFilterActive('panel')"
+            [class.shadow-lg]="isTypeFilterActive('panel')"
+          [class.bg-gray-100]="!isTypeFilterActive('panel')"
+          [class.text-gray-700]="!isTypeFilterActive('panel')"
+          class="flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all hover:shadow-md">
+          <span>📋 Paneles</span>
+          <span class="opacity-75">{{ store.panelCount() }}</span>
+          </button>
+        </div>
+      }
+    </div>
+  </header>
+
+  <!-- Content Area -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          @for (i of [1,2,3,4,5,6,7,8]; track i) {
+            <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <div class="h-10 w-10 animate-pulse rounded-lg bg-gray-200"></div>
+                  <div class="h-4 flex-1 animate-pulse rounded bg-gray-200"></div>
+                </div>
+                <div class="h-3 w-2/3 animate-pulse rounded bg-gray-200"></div>
+                <div class="h-3 w-full animate-pulse rounded bg-gray-200"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      @else if (store.hasEquipments()) {
+        <div class="grid gap-4 sm:grid-cols-2 lg:hidden">
+          @for (equipment of store.filteredEquipments(); track equipment.id) {
+            <app-equipment-card
+              [equipment]="equipment"
+              (onView)="onViewEquipment($event)"
+              (onEdit)="onEditEquipment($event)"
+              (onDelete)="onDeleteClick($event)">
+            </app-equipment-card>
+          }
+        </div>
+
+        <!-- Equipment Table (Desktop) -->
+        <div class="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:block">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Tag</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Tipo</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Planta</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Ubicación</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Protocolo</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Estado</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Última Revisión</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-700">Acciones</th>
+              </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                @for (equipment of store.filteredEquipments(); track equipment.id) {
+                  <tr class="transition-colors hover:bg-gray-50">
+                    <!-- Tag -->
+                    <td class="px-4 py-4">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-900">{{ equipment.tag }}</span>
+                      </div>
+                    </td>
+
+                    <!-- Tipo -->
+                    <td class="px-4 py-4">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xl">{{ equipment.type === EquipmentTypeEnum.CABINET ? '📦' : '📋' }}</span>
+                        <div>
+                          <p class="text-sm font-medium text-gray-900">{{ equipment.equipmentTypeName }}</p>
+                          <p class="text-xs text-gray-500">{{ getEquipmentTypeLabel(equipment.type) }}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Planta -->
+                    <td class="px-4 py-4">
+                      <span class="text-sm text-gray-900">{{ equipment.plantName || 'N/A' }}</span>
+                    </td>
+
+                    <!-- Ubicación -->
+                    <td class="px-4 py-4">
+                      <div class="text-sm text-gray-900">
+                        <p>{{ equipment.areaName || 'N/A' }}</p>
+                        <p class="text-xs text-gray-500">{{ equipment.locationName || 'N/A' }}</p>
+                      </div>
+                    </td>
+
+                    <!-- Protocolo -->
+                    <td class="px-4 py-4">
+                      <span class="text-sm text-gray-900">{{ equipment.communicationProtocol || 'N/A' }}</span>
+                    </td>
+
+                    <!-- Estado -->
+                    <td class="px-4 py-4">
+                      <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                            [ngClass]="{
+                              'bg-green-50 text-green-700': equipment.status === EquipmentStatusEnum.OPERATIVE,
+                              'bg-yellow-50 text-yellow-700': equipment.status === EquipmentStatusEnum.STAND_BY,
+                              'bg-red-50 text-red-700': equipment.status === EquipmentStatusEnum.INOPERATIVE,
+                              'bg-gray-50 text-gray-700': equipment.status === EquipmentStatusEnum.RETIRED
+                            }">
+                        <span class="h-1.5 w-1.5 rounded-full"
+                              [ngClass]="{
+                                'bg-green-500': equipment.status === EquipmentStatusEnum.OPERATIVE,
+                                'bg-yellow-500': equipment.status === EquipmentStatusEnum.STAND_BY,
+                                'bg-red-500': equipment.status === EquipmentStatusEnum.INOPERATIVE,
+                                'bg-gray-500': equipment.status === EquipmentStatusEnum.RETIRED
+                              }"></span>
+                        {{ getEquipmentStatusLabel(equipment.status) }}
+                      </span>
+                    </td>
+
+                    <!-- Última Revisión -->
+                    <td class="px-4 py-4">
+                      @if (equipment.lastServiceAt) {
+                        <span class="text-sm text-gray-600">{{ equipment.lastServiceAt | date:'short' }}</span>
+                      } @else {
+                        <span class="text-sm text-gray-400">Sin registro</span>
+                      }
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="px-4 py-4">
+                      <div class="flex items-center justify-end gap-2">
+                        <button
+                          pRipple
+                          type="button"
+                          (click)="onViewEquipment(equipment)"
+                          title="Ver detalles"
+                          class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-600">
+                          <i class="pi pi-eye text-sm"></i>
+                        </button>
+
+                        <button
+                          pRipple
+                          type="button"
+                          (click)="onEditEquipment(equipment)"
+                          title="Editar"
+                          class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-600">
+                          <i class="pi pi-pencil text-sm"></i>
+                        </button>
+
+                        <button
+                          pRipple
+                          type="button"
+                          (click)="onDeleteClick(equipment)"
+                          title="Eliminar"
+                          class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600">
+                          <i class="pi pi-trash text-sm"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- No Results -->
+        @if (store.filteredEquipments().length === 0) {
+          <div class="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 text-center">
+            <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <i class="pi pi-search text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900">
+              No se encontraron equipos
+            </h3>
+            <p class="mt-1 text-sm text-gray-600">
+              Intenta ajustar los filtros o búsqueda
+            </p>
+            <button
+              pRipple
+              type="button"
+              (click)="store.clearFilters()"
+              class="mt-4 flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600">
+              <i class="pi pi-filter-slash text-sm"></i>
+              Limpiar filtros
+            </button>
+          </div>
+        }
+      }
+      @else if (!store.isLoading() && !store.hasEquipments()) {
+        <app-empty-state
+          icon="pi-box"
+          iconBgClass="bg-gradient-to-br from-sky-100 to-cyan-100"
+          iconColorClass="text-sky-600"
+          title="No hay equipos registrados"
+          description="Comienza agregando el primer equipo (gabinete o panel) al sistema."
+          buttonText="Crear Primer Equipo"
+          buttonIcon="pi-plus"
+          (onAction)="onCreateNew()">
+        </app-empty-state>
+      }
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Filters Aside (Mobile) -->
+<app-equipment-filters-aside
+  [show]="showFiltersAside()"
+  (onClose)="onCloseFilters()">
+</app-equipment-filters-aside>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal
+  [show]="showDeleteModal()"
+  [title]="'¿Eliminar equipo?'"
+  [message]="'Estás a punto de eliminar el equipo:'"
+  [itemName]="equipmentToDelete() ? getDeleteModalMessage(equipmentToDelete()!) : ''"
+  [warningText]="'Esta acción no se puede deshacer.'"
+  [confirmText]="'Sí, eliminar'"
+  [isLoading]="isDeleting()"
+  (onConfirm)="confirmDelete()"
+  (onCancel)="closeDeleteModal()">
+</app-confirmation-modal>

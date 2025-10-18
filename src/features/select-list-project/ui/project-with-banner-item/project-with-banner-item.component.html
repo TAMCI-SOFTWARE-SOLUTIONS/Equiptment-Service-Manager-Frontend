@@ -1,0 +1,22 @@
+<div class="project-card" (click)="onSelectProject()">
+  <div class="card-header">
+    @if (isLoading) {
+      <div class="image-loading">
+        <div class="loading-spinner"></div>
+      </div>
+    }
+    @else if (imageUrl) {
+      <img [src]="imageUrl" alt="Project Banner" class="card-image">
+    }
+    @else {
+      <div class="no-image">
+        <i class="pi pi-folder text-2xl text-gray-400"></i>
+      </div>
+    }
+  </div>
+  <div class="card-content">
+    <h3 class="card-title">{{ project.name }}</h3>
+    <p class="card-subtitle">{{ project.description }}</p>
+  </div>
+</div>
+

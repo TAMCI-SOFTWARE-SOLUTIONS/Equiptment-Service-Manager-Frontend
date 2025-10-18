@@ -1,0 +1,142 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+
+      <div class="flex items-center justify-between">
+        <!-- Title -->
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            @if (store.isEditMode()) {
+              Editar Perfil
+            } @else {
+              Mi Perfil
+            }
+          </h1>
+        </div>
+
+        <!-- Action Button (View mode only) -->
+        @if (!store.isEditMode()) {
+          <button
+            pRipple
+            type="button"
+            (click)="toggleEditMode()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300">
+            <i class="pi pi-pencil"></i>
+            <span class="hidden sm:inline">Editar</span>
+          </button>
+        }
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="flex min-h-[400px] items-center justify-center">
+          <div class="text-center">
+            <i class="pi pi-spinner pi-spin text-5xl text-sky-500"></i>
+            <p class="mt-4 text-sm text-gray-600">Cargando perfil...</p>
+          </div>
+        </div>
+      }
+
+      @else if (store.error() && !store.profile()) {
+        <div class="flex min-h-[400px] items-center justify-center">
+          <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+              <i class="pi pi-exclamation-triangle text-2xl text-red-600"></i>
+            </div>
+            <h3 class="mt-4 text-lg font-semibold text-gray-900">
+              Error al cargar el perfil
+            </h3>
+            <p class="mt-2 text-sm text-gray-600">
+              {{ store.error() }}
+            </p>
+            <button
+              pRipple
+              type="button"
+              (click)="loadProfile()"
+              class="mt-6 inline-flex items-center gap-2 rounded-lg bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-sky-600">
+              <i class="pi pi-refresh"></i>
+              <span>Reintentar</span>
+            </button>
+          </div>
+        </div>
+      }
+
+      @else if (store.profile()) {
+        <div class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          @if (store.isEditMode()) {
+            <app-profile-form />
+          } @else {
+            <app-profile-view />
+          }
+        </div>
+      }
+
+    </div>
+  </main>
+
+  <!-- Footer (Only in edit mode) -->
+  @if (store.isEditMode()) {
+    <footer class="shrink-0 border-t border-gray-200 bg-white px-4 py-3 lg:px-8">
+      <div class="mx-auto flex max-w-5xl items-center justify-between gap-3">
+
+        <!-- Changes indicator (Hidden on mobile) -->
+        <div class="hidden text-sm text-gray-600 sm:block">
+          @if (store.hasChanges()) {
+            <div class="flex items-center gap-1.5 text-amber-600">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>Cambios sin guardar</span>
+            </div>
+          } @else {
+            <div class="flex items-center gap-1.5">
+              <i class="pi pi-check-circle text-green-600"></i>
+              <span>Sin cambios</span>
+            </div>
+          }
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-1 justify-end gap-2 sm:flex-initial">
+          <button
+            pRipple
+            type="button"
+            (click)="onCancel()"
+            [disabled]="store.isSaving()"
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-times"></i>
+            <span>Cancelar</span>
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onSave()"
+            [disabled]="!store.canSave()"
+            class="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300">
+            @if (store.isSaving() || store.uploadingPhoto()) {
+              <i class="pi pi-spinner pi-spin"></i>
+              <span>Guardando...</span>
+            } @else {
+              <i class="pi pi-check"></i>
+              <span>Guardar</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </footer>
+  }
+
+</div>
+
+<!-- Toast for notifications -->
+<p-toast position="top-right" />

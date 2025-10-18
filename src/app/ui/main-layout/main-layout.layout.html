@@ -1,0 +1,14 @@
+<div class="flex h-screen w-full flex-col">
+  <!-- Topbar fijo -->
+  <app-topbar class="shrink-0" />
+
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Sidebar Desktop (siempre visible en pantallas grandes) -->
+    <app-sidebar class="hidden lg:block" />
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto bg-gray-50">
+      <router-outlet />
+    </main>
+  </div>
+</div>

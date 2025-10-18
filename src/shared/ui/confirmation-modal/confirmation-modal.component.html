@@ -1,0 +1,59 @@
+@if (show) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200"
+    (click)="onCancel.emit()">
+    <div
+      class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl animate-in zoom-in slide-in-from-bottom-4 duration-300"
+      (click)="$event.stopPropagation()">
+
+      <!-- Icon -->
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+        <i class="pi pi-exclamation-triangle text-2xl text-red-600"></i>
+      </div>
+
+      <!-- Content -->
+      <h3 class="text-xl font-bold text-gray-900">
+        {{ title }}
+      </h3>
+      <p class="mt-2 text-sm text-gray-600">
+        {{ message }}
+      </p>
+      @if (itemName) {
+        <p class="mt-2 text-sm">
+          <strong class="font-semibold text-gray-900">{{ itemName }}</strong>
+        </p>
+      }
+      <p class="mt-2 text-sm font-medium text-red-600">
+        {{ warningText }}
+      </p>
+
+      <!-- Actions -->
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button
+          pRipple
+          type="button"
+          (click)="onCancel.emit()"
+          [disabled]="isLoading"
+          class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+          Cancelar
+        </button>
+
+        <button
+          pRipple
+          type="button"
+          (click)="onConfirm.emit()"
+          [disabled]="isLoading"
+          class="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+          @if (isLoading) {
+            <i class="pi pi-spinner pi-spin text-sm"></i>
+            <span>Eliminando...</span>
+          } @else {
+            <i class="pi pi-trash text-sm"></i>
+            <span>{{ confirmText }}</span>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

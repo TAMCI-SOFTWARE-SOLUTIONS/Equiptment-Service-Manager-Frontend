@@ -1,0 +1,278 @@
+<div class="space-y-6">
+
+  <div class="text-center">
+    <h2 class="text-xl font-semibold text-gray-900">
+      Seleccionar Equipo
+    </h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Elige el equipo para el servicio de {{ store.serviceTypeLabel() }}
+    </p>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="flex items-center gap-3">
+    <!-- Search -->
+    <div class="relative flex-1">
+      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+        <i class="pi pi-search text-sm text-gray-400"></i>
+      </div>
+      <input
+        type="text"
+        [value]="store.searchTerm()"
+        (input)="onSearchChange($any($event.target).value)"
+        placeholder="Buscar por tag..."
+        class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+
+      @if (store.searchTerm()) {
+        <button
+          type="button"
+          (click)="clearSearch()"
+          class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+          <i class="pi pi-times text-xs"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Filters Button -->
+    <button
+      pRipple
+      type="button"
+      (click)="openFilters()"
+      class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
+      <i class="pi pi-filter text-sm"></i>
+      <span class="hidden sm:inline">Filtros</span>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (store.isLoadingEquipments()) {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div class="space-y-3">
+            <div class="h-4 w-24 animate-pulse rounded bg-gray-200"></div>
+            <div class="h-3 w-full animate-pulse rounded bg-gray-200"></div>
+            <div class="h-3 w-2/3 animate-pulse rounded bg-gray-200"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+  @else if (store.showCabinets()) {
+    @if (store.filteredCabinets().length > 0) {
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        @for (cabinet of store.filteredCabinets(); track cabinet.id) {
+          <article
+            (click)="selectCabinet(cabinet)"
+            class="group cursor-pointer rounded-lg border-2 bg-white p-4 shadow-sm transition-all hover:shadow-md"
+            [class.border-sky-500]="isEquipmentSelected(cabinet.id)"
+            [class.bg-sky-50]="isEquipmentSelected(cabinet.id)"
+            [class.border-gray-200]="!isEquipmentSelected(cabinet.id)">
+
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl">📦</span>
+                  <h3 class="font-semibold text-gray-900">
+                    {{ cabinet.tag }}
+                  </h3>
+                </div>
+
+                <p class="mt-2 text-xs text-gray-600">
+                  {{ cabinet.cabinetType }}
+                </p>
+
+                @if (cabinet.status) {
+                  <span class="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                        [ngClass]="{
+                          'bg-green-100 text-green-700': cabinet.status === 'OPERATIVE',
+                          'bg-yellow-100 text-yellow-700': cabinet.status === 'STAND_BY',
+                          'bg-red-100 text-red-700': cabinet.status === 'INOPERATIVE',
+                          'bg-gray-100 text-gray-700': cabinet.status === 'RETIRED'
+                        }">
+                    {{ cabinet.status }}
+                  </span>
+                }
+              </div>
+
+              @if (isEquipmentSelected(cabinet.id)) {
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-500">
+                  <i class="pi pi-check text-sm font-bold text-white"></i>
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 text-center">
+        <i class="pi pi-box mb-4 text-5xl text-gray-300"></i>
+        <h3 class="text-lg font-semibold text-gray-900">
+          No se encontraron gabinetes
+        </h3>
+        <p class="mt-2 text-sm text-gray-600">
+          Intenta ajustar los filtros de búsqueda
+        </p>
+        <button
+          pRipple
+          type="button"
+          (click)="clearFilters()"
+          class="mt-4 flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600">
+          <i class="pi pi-filter-slash text-sm"></i>
+          Limpiar filtros
+        </button>
+      </div>
+    }
+  }
+  @else if (store.showPanels()) {
+    @if (store.filteredPanels().length > 0) {
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        @for (panel of store.filteredPanels(); track panel.id) {
+          <article
+            (click)="selectPanel(panel)"
+            class="group cursor-pointer rounded-lg border-2 bg-white p-4 shadow-sm transition-all hover:shadow-md"
+            [class.border-sky-500]="isEquipmentSelected(panel.id)"
+            [class.bg-sky-50]="isEquipmentSelected(panel.id)"
+            [class.border-gray-200]="!isEquipmentSelected(panel.id)">
+
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl">📋</span>
+                  <h3 class="font-semibold text-gray-900">
+                    {{ panel.tag }}
+                  </h3>
+                </div>
+
+                <p class="mt-2 text-xs text-gray-600">
+                  {{ panel.panelType }}
+                </p>
+
+                @if (panel.status) {
+                  <span class="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                        [ngClass]="{
+                          'bg-green-100 text-green-700': panel.status === 'OPERATIVE',
+                          'bg-yellow-100 text-yellow-700': panel.status === 'STAND_BY',
+                          'bg-red-100 text-red-700': panel.status === 'INOPERATIVE',
+                          'bg-gray-100 text-gray-700': panel.status === 'RETIRED'
+                        }">
+                    {{ panel.status }}
+                  </span>
+                }
+              </div>
+
+              @if (isEquipmentSelected(panel.id)) {
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-500">
+                  <i class="pi pi-check text-sm font-bold text-white"></i>
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 text-center">
+        <i class="pi pi-th-large mb-4 text-5xl text-gray-300"></i>
+        <h3 class="text-lg font-semibold text-gray-900">
+          No se encontraron paneles
+        </h3>
+        <p class="mt-2 text-sm text-gray-600">
+          Intenta ajustar los filtros de búsqueda
+        </p>
+        <button
+          pRipple
+          type="button"
+          (click)="clearFilters()"
+          class="mt-4 flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600">
+          <i class="pi pi-filter-slash text-sm"></i>
+          Limpiar filtros
+        </button>
+      </div>
+    }
+  }
+
+</div>
+
+<!-- Filters Sidebar -->
+<p-drawer
+  [(visible)]="showFiltersSidebar"
+  [position]="'right'"
+  [style]="{width: '320px'}"
+  header="Filtros Avanzados">
+
+  <div class="space-y-6">
+
+    <!-- Áreas -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-700">
+        Áreas
+      </label>
+      <p-multiSelect
+        [options]="store.areas()"
+        [(ngModel)]="selectedAreas"
+        optionLabel="name"
+        placeholder="Selecciona áreas"
+        [maxSelectedLabels]="3"
+        display="chip"
+        [style]="{width: '100%'}">
+      </p-multiSelect>
+    </div>
+
+    <!-- Cabinet Types -->
+    @if (store.showCabinets()) {
+      <div>
+        <label class="mb-2 block text-sm font-medium text-gray-700">
+          Tipos de Gabinete
+        </label>
+        <p-multiSelect
+          [options]="store.cabinetTypes()"
+          [(ngModel)]="selectedCabinetTypes"
+          optionLabel="name"
+          placeholder="Selecciona tipos"
+          [maxSelectedLabels]="3"
+          display="chip"
+          [style]="{width: '100%'}">
+        </p-multiSelect>
+      </div>
+    }
+
+    <!-- Panel Types -->
+    @if (store.showPanels()) {
+      <div>
+        <label class="mb-2 block text-sm font-medium text-gray-700">
+          Tipos de Panel
+        </label>
+        <p-multiSelect
+          [options]="store.panelTypes()"
+          [(ngModel)]="selectedPanelTypes"
+          optionLabel="name"
+          placeholder="Selecciona tipos"
+          [maxSelectedLabels]="3"
+          display="chip"
+          [style]="{width: '100%'}">
+        </p-multiSelect>
+      </div>
+    }
+
+    <!-- Actions -->
+    <div class="flex gap-3 border-t border-gray-200 pt-6">
+      <button
+        pRipple
+        type="button"
+        (click)="clearFilters()"
+        class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <i class="pi pi-times mr-2"></i>
+        Limpiar
+      </button>
+      <button
+        pRipple
+        type="button"
+        (click)="applyFilters()"
+        class="flex-1 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600">
+        <i class="pi pi-check mr-2"></i>
+        Aplicar
+      </button>
+    </div>
+
+  </div>
+</p-drawer>

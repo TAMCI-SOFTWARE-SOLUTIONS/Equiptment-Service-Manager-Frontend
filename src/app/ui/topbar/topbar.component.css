@@ -1,0 +1,27 @@
+/* Animación suave para los dropdowns */
+nav div[class*="absolute"] {
+  animation: fadeInDown 0.2s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mejora el truncate en textos largos */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Smooth hover en los botones del topbar */
+button {
+  transition: all 0.2s ease;
+}

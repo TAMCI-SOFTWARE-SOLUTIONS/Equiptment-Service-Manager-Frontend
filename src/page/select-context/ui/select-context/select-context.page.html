@@ -1,0 +1,195 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-6xl">
+      <h1 class="text-2xl font-bold text-gray-900 lg:text-3xl">
+        Seleccionar Contexto
+      </h1>
+      <p class="mt-1 text-sm text-gray-600">
+        Elige el cliente y proyecto con el que deseas trabajar
+      </p>
+    </div>
+  </header>
+
+  <!-- Stepper Progress -->
+  <div class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-6xl">
+      <div class="flex items-center justify-center gap-4">
+
+        <!-- Step 1: Cliente -->
+        <div class="flex flex-1 items-center">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all"
+                 [class.bg-sky-500]="store.currentStep() === SelectContextStep.SELECT_CLIENT"
+                 [class.text-white]="store.currentStep() === SelectContextStep.SELECT_CLIENT"
+                 [class.bg-green-500]="store.currentStep() > SelectContextStep.SELECT_CLIENT"
+                 [class.text-white]="store.currentStep() > SelectContextStep.SELECT_CLIENT"
+                 [class.bg-gray-200]="store.currentStep() < SelectContextStep.SELECT_CLIENT"
+                 [class.text-gray-600]="store.currentStep() < SelectContextStep.SELECT_CLIENT">
+              @if (store.currentStep() > SelectContextStep.SELECT_CLIENT) {
+                <i class="pi pi-check text-lg font-bold"></i>
+              } @else {
+                <span class="font-semibold">1</span>
+              }
+            </div>
+            <div class="hidden sm:block">
+              <p class="text-sm font-semibold"
+                 [class.text-gray-900]="store.currentStep() >= SelectContextStep.SELECT_CLIENT"
+                 [class.text-gray-500]="store.currentStep() < SelectContextStep.SELECT_CLIENT">
+                Cliente
+              </p>
+              @if (store.selectedClient()) {
+                <p class="text-xs text-gray-600">
+                  {{ store.selectedClient()!.name }}
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- Connector Line -->
+          <div class="mx-4 h-0.5 flex-1 transition-all"
+               [class.bg-green-500]="store.currentStep() > SelectContextStep.SELECT_CLIENT"
+               [class.bg-gray-300]="store.currentStep() <= SelectContextStep.SELECT_CLIENT"></div>
+        </div>
+
+        <!-- Step 2: Proyecto -->
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all"
+               [class.bg-sky-500]="store.currentStep() === SelectContextStep.SELECT_PROJECT"
+               [class.text-white]="store.currentStep() === SelectContextStep.SELECT_PROJECT"
+               [class.bg-gray-200]="store.currentStep() < SelectContextStep.SELECT_PROJECT"
+               [class.text-gray-600]="store.currentStep() < SelectContextStep.SELECT_PROJECT">
+            <span class="font-semibold">2</span>
+          </div>
+          <div class="hidden sm:block">
+            <p class="text-sm font-semibold"
+               [class.text-gray-900]="store.currentStep() >= SelectContextStep.SELECT_PROJECT"
+               [class.text-gray-500]="store.currentStep() < SelectContextStep.SELECT_PROJECT">
+              Proyecto
+            </p>
+            @if (store.selectedProject()) {
+              <p class="text-xs text-gray-600">
+                {{ store.selectedProject()!.name }}
+              </p>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-6xl">
+
+      <!-- Error Messages -->
+      @if (store.hasError()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            @if (store.clientsError()) {
+              <p class="mt-1 text-sm text-red-700">{{ store.clientsError() }}</p>
+            }
+            @if (store.projectsError()) {
+              <p class="mt-1 text-sm text-red-700">{{ store.projectsError() }}</p>
+            }
+          </div>
+          <button
+            type="button"
+            (click)="store.clearErrors()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Step Content -->
+      @switch (store.currentStep()) {
+
+        <!-- Step 1: Select Client -->
+        @case (SelectContextStep.SELECT_CLIENT) {
+          <app-select-client-step />
+        }
+
+        <!-- Step 2: Select Project -->
+        @case (SelectContextStep.SELECT_PROJECT) {
+          <app-select-project-step />
+        }
+      }
+
+    </div>
+  </main>
+
+  <!-- Footer Actions -->
+  <footer class="shrink-0 border-t border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-4">
+
+      <!-- Left: Cancel -->
+      <button
+        pRipple
+        type="button"
+        (click)="onCancel()"
+        [disabled]="store.isLoading()"
+        class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+        <i class="pi pi-times text-base"></i>
+        <span class="hidden sm:inline">Cancelar</span>
+      </button>
+
+      <!-- Right: Navigation -->
+      <div class="flex gap-3">
+
+        <!-- Previous Button -->
+        @if (!store.isFirstStep()) {
+          <button
+            pRipple
+            type="button"
+            (click)="onPrevious()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <i class="pi pi-arrow-left text-base"></i>
+            <span>Anterior</span>
+          </button>
+        }
+
+        <!-- Next / Finish Button -->
+        @if (store.isLastStep()) {
+          <button
+            pRipple
+            type="button"
+            (click)="onFinish()"
+            [disabled]="!store.canFinish()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            @if (store.isLoading()) {
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Cargando...</span>
+            } @else {
+              <span>Finalizar</span>
+              <i class="pi pi-check text-base"></i>
+            }
+          </button>
+        } @else {
+          <button
+            pRipple
+            type="button"
+            (click)="onNext()"
+            [disabled]="!store.canProceedToProjects()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            @if (store.isLoading()) {
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Cargando...</span>
+            } @else {
+              <span>Siguiente</span>
+              <i class="pi pi-arrow-right text-base"></i>
+            }
+          </button>
+        }
+
+      </div>
+
+    </div>
+  </footer>
+
+</div>

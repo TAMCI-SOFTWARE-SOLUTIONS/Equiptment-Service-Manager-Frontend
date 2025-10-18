@@ -1,0 +1,697 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Back Button & Actions -->
+      <div class="mb-4 flex items-center justify-between gap-4">
+        <button
+          pRipple
+          type="button"
+          (click)="onBack()"
+          class="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+          <i class="pi pi-arrow-left text-sm"></i>
+          <span>Volver a Equipos</span>
+        </button>
+
+        @if (store.hasEquipment() && !store.isLoading()) {
+          <div class="flex items-center gap-2">
+            <button
+              pRipple
+              type="button"
+              (click)="onRefresh()"
+              [disabled]="store.isLoading()"
+              class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+              @if (store.isLoading()) {
+                <i class="pi pi-spinner pi-spin text-base"></i>
+              } @else {
+                <i class="pi pi-refresh text-base"></i>
+              }
+            </button>
+
+            <button
+              pRipple
+              type="button"
+              (click)="onEdit()"
+              class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+              <i class="pi pi-pencil text-sm"></i>
+              <span class="hidden sm:inline">Editar</span>
+            </button>
+
+            <button
+              pRipple
+              type="button"
+              (click)="onDeleteClick()"
+              class="flex items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
+              <i class="pi pi-trash text-sm"></i>
+              <span class="hidden sm:inline">Eliminar</span>
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Title & Status -->
+      @if (store.hasEquipment() && !store.isLoading()) {
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-start gap-4">
+            <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-100 to-cyan-100">
+              <span class="text-3xl">{{ getEquipmentTypeEmoji(store.equipment()!.type) }}</span>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-2xl font-bold text-gray-900">
+                  {{ store.equipment()!.tag }}
+                </h1>
+              </div>
+
+              <p class="mt-1 text-sm text-gray-600">
+                {{ store.equipmentTypeLabel() }}
+                @if (store.equipment()!.equipmentTypeName) {
+                  • {{ store.equipment()!.equipmentTypeName }}
+                }
+              </p>
+
+              @if (store.fullLocation()) {
+                <p class="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+                  <i class="pi pi-map-marker text-xs"></i>
+                  {{ store.fullLocation() }}
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- Status Badge -->
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
+                  [ngClass]="getEquipmentStatusColor(store.equipment()!.status).bg + ' ' +
+                             getEquipmentStatusColor(store.equipment()!.status).text + ' ' +
+                             getEquipmentStatusColor(store.equipment()!.status).border + ' border-2'">
+              <span class="h-2 w-2 rounded-full"
+                    [ngClass]="getEquipmentStatusColor(store.equipment()!.status).indicator"></span>
+              {{ getEquipmentStatusLabel(store.equipment()!.status) }}
+            </span>
+          </div>
+        </div>
+      }
+
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="grid gap-6 lg:grid-cols-2">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="space-y-4">
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200"></div>
+                <div class="space-y-3">
+                  <div class="h-3 w-full animate-pulse rounded bg-gray-200"></div>
+                  <div class="h-3 w-4/5 animate-pulse rounded bg-gray-200"></div>
+                  <div class="h-3 w-3/5 animate-pulse rounded bg-gray-200"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      @else if (store.hasEquipment()) {
+        <div class="grid gap-6 lg:grid-cols-2">
+
+          <!-- Card: Información General -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-info-circle text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Información General
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <dl class="space-y-4">
+                <!-- Tag -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Tag
+                  </dt>
+                  <dd class="mt-1 text-base font-semibold text-gray-900">
+                    {{ store.equipment()!.tag }}
+                  </dd>
+                </div>
+
+                <!-- Tipo de Equipo -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Tipo de Equipo
+                  </dt>
+                  <dd class="mt-1 flex items-center gap-2 text-sm text-gray-900">
+                    <span class="text-xl">{{ getEquipmentTypeEmoji(store.equipment()!.type) }}</span>
+                    <span class="font-medium">{{ store.equipmentTypeLabel() }}</span>
+                  </dd>
+                </div>
+
+                <!-- Tipo Específico -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Panel' }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900">
+                    {{ store.equipment()!.equipmentTypeName || 'No especificado' }}
+                  </dd>
+                </div>
+
+                <!-- Estado -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Estado Actual
+                  </dt>
+                  <dd class="mt-1">
+                    <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium"
+                          [ngClass]="getEquipmentStatusColor(store.equipment()!.status).bg + ' ' +
+                                     getEquipmentStatusColor(store.equipment()!.status).text + ' ' +
+                                     getEquipmentStatusColor(store.equipment()!.status).border + ' border'">
+                      <span class="h-1.5 w-1.5 rounded-full"
+                            [ngClass]="getEquipmentStatusColor(store.equipment()!.status).indicator"></span>
+                      {{ getEquipmentStatusLabel(store.equipment()!.status) }}
+                    </span>
+                  </dd>
+                </div>
+
+                <!-- ID -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    ID del Sistema
+                  </dt>
+                  <dd class="mt-1 font-mono text-xs text-gray-600">
+                    {{ store.equipment()!.id }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <!-- Card: Ubicación -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-map-marker text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Ubicación
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              @if (store.isLoadingLocation()) {
+                <div class="space-y-4">
+                  @for (i of [1,2,3,4]; track i) {
+                    <div class="space-y-2">
+                      <div class="h-3 w-20 animate-pulse rounded bg-gray-200"></div>
+                      <div class="h-4 w-full animate-pulse rounded bg-gray-200"></div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <dl class="space-y-4">
+                  <!-- Cliente -->
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Cliente
+                    </dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ store.locationBreadcrumb().client }}
+                    </dd>
+                  </div>
+
+                  <!-- Planta -->
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Planta
+                    </dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ store.locationBreadcrumb().plant }}
+                    </dd>
+                  </div>
+
+                  <!-- Área -->
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Área
+                    </dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ store.locationBreadcrumb().area }}
+                    </dd>
+                  </div>
+
+                  <!-- Ubicación -->
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Ubicación Específica
+                    </dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ store.locationBreadcrumb().location }}
+                    </dd>
+                  </div>
+
+                  <!-- Breadcrumb Visual -->
+                  <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4">
+                    <div class="flex items-center gap-2 text-xs text-sky-700">
+                      <i class="pi pi-building text-sm"></i>
+                      <span class="font-medium">{{ store.locationBreadcrumb().client }}</span>
+                      <i class="pi pi-angle-right text-xs"></i>
+                      <span class="font-medium">{{ store.locationBreadcrumb().plant }}</span>
+                      <i class="pi pi-angle-right text-xs"></i>
+                      <span class="font-medium">{{ store.locationBreadcrumb().area }}</span>
+                      <i class="pi pi-angle-right text-xs"></i>
+                      <span class="font-medium">{{ store.locationBreadcrumb().location }}</span>
+                    </div>
+                  </div>
+                </dl>
+              }
+            </div>
+          </div>
+
+          <!-- Card: Especificaciones Técnicas -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-cog text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Especificaciones Técnicas
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <dl class="space-y-4">
+                <!-- Tipo Específico -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Panel' }}
+                  </dt>
+                  <dd class="mt-1 text-sm font-medium text-gray-900">
+                    {{ store.equipment()!.equipmentTypeName || 'No especificado' }}
+                  </dd>
+                </div>
+
+                <!-- Protocolo de Comunicación -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Protocolo de Comunicación
+                  </dt>
+                  <dd class="mt-1">
+                    @if (store.equipment()!.communicationProtocol) {
+                      <div class="flex items-center gap-2 text-sm text-gray-900">
+                        <i class="pi pi-wifi text-sky-600"></i>
+                        <span class="font-medium">{{ store.equipment()!.communicationProtocol }}</span>
+                      </div>
+                    } @else {
+                      <span class="text-sm text-gray-500">Sin protocolo configurado</span>
+                    }
+                  </dd>
+                </div>
+
+                <!-- IDs Técnicos -->
+                @if (store.equipment()!.communicationProtocolId) {
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      ID Protocolo
+                    </dt>
+                    <dd class="mt-1 font-mono text-xs text-gray-600">
+                      {{ store.equipment()!.communicationProtocolId }}
+                    </dd>
+                  </div>
+                }
+
+                @if (store.equipment()!.equipmentTypeId) {
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      ID Tipo
+                    </dt>
+                    <dd class="mt-1 font-mono text-xs text-gray-600">
+                      {{ store.equipment()!.equipmentTypeId }}
+                    </dd>
+                  </div>
+                }
+              </dl>
+            </div>
+          </div>
+
+          <!-- Card: Fechas y Registro -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-calendar text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Fechas y Registro
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <dl class="space-y-4">
+                <!-- Fecha de Creación -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Fecha de Creación
+                  </dt>
+                  <dd class="mt-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm text-gray-900">
+                        {{ formatDate(store.equipment()!.createdAt) }}
+                      </span>
+                      <span class="text-xs text-gray-500">
+                        {{ getTimeSince(store.equipment()!.createdAt) }}
+                      </span>
+                    </div>
+                  </dd>
+                </div>
+
+                <!-- Última Actualización -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Última Actualización
+                  </dt>
+                  <dd class="mt-1">
+                    @if (store.equipment()!.updatedAt) {
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-900">
+                          {{ formatDate(store.equipment()!.updatedAt) }}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                          {{ getTimeSince(store.equipment()!.updatedAt) }}
+                        </span>
+                      </div>
+                    } @else {
+                      <span class="text-sm text-gray-500">Sin actualizaciones</span>
+                    }
+                  </dd>
+                </div>
+
+                <!-- Última Revisión/Servicio -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Última Revisión
+                  </dt>
+                  <dd class="mt-1">
+                    @if (store.equipment()!.lastServiceAt) {
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-900">
+                          {{ formatDate(store.equipment()!.lastServiceAt) }}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                          {{ getTimeSince(store.equipment()!.lastServiceAt) }}
+                        </span>
+                      </div>
+                    } @else {
+                      <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                        <div class="flex items-start gap-2">
+                          <i class="pi pi-exclamation-triangle mt-0.5 text-sm text-amber-600"></i>
+                          <div>
+                            <p class="text-xs font-medium text-amber-900">
+                              Sin registro de revisión
+                            </p>
+                            <p class="mt-0.5 text-xs text-amber-700">
+                              Considera programar una revisión técnica
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </dd>
+                </div>
+
+                <!-- Timeline Visual (si hay última revisión) -->
+                @if (store.equipment()!.lastServiceAt) {
+                  <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4">
+                    <div class="flex items-center gap-3">
+                      <i class="pi pi-check-circle text-lg text-sky-600"></i>
+                      <div class="flex-1">
+                        <p class="text-xs font-medium text-sky-900">
+                          Última revisión registrada
+                        </p>
+                        <p class="mt-0.5 text-xs text-sky-700">
+                          {{ getTimeSince(store.equipment()!.lastServiceAt) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </dl>
+            </div>
+          </div>
+
+          <!-- Card: Paneles de Distribución -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-2">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                    <i class="pi pi-bolt text-lg text-sky-600"></i>
+                  </div>
+                  <div>
+                    <h2 class="text-lg font-semibold text-gray-900">
+                      Paneles de Distribución
+                    </h2>
+                    @if (powerStore.hasAssignments()) {
+                      <p class="text-xs text-gray-600">
+                        {{ powerStore.assignments().length }} {{ powerStore.assignments().length === 1 ? 'panel asignado' : 'paneles asignados' }}
+                      </p>
+                    }
+                  </div>
+                </div>
+
+                <button
+                  pRipple
+                  type="button"
+                  (click)="onAddPowerAssignment()"
+                  [disabled]="powerStore.isLoading()"
+                  class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+                  <i class="pi pi-plus text-sm"></i>
+                  <span class="hidden sm:inline">Asignar Panel</span>
+                  <span class="sm:hidden">Asignar</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="p-6">
+
+              <!-- Loading State -->
+              @if (powerStore.isLoading()) {
+                <div class="space-y-3">
+                  @for (i of [1,2]; track i) {
+                    <div class="rounded-lg border border-gray-200 bg-white p-4">
+                      <div class="flex items-start gap-4">
+                        <div class="h-12 w-12 animate-pulse rounded-lg bg-gray-200"></div>
+                        <div class="flex-1 space-y-2">
+                          <div class="h-4 w-2/3 animate-pulse rounded bg-gray-200"></div>
+                          <div class="h-3 w-1/2 animate-pulse rounded bg-gray-200"></div>
+                          <div class="h-3 w-3/4 animate-pulse rounded bg-gray-200"></div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              @else if (powerStore.hasAssignments()) {
+                <!-- Assignments List -->
+                <div class="space-y-3">
+                  @for (assignmentWithPanel of powerStore.assignments(); track assignmentWithPanel.assignment.id) {
+                    <article class="group rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-sky-300 hover:bg-sky-50/30">
+
+                      <div class="flex items-start gap-4">
+                        <!-- Icon -->
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100">
+                          <i class="pi pi-bolt text-xl text-sky-600"></i>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="min-w-0 flex-1">
+                          @if (assignmentWithPanel.isLoadingPanel) {
+                            <!-- Loading panel info -->
+                            <div class="space-y-2">
+                              <div class="h-4 w-32 animate-pulse rounded bg-gray-200"></div>
+                              <div class="h-3 w-24 animate-pulse rounded bg-gray-200"></div>
+                            </div>
+                          } @else if (assignmentWithPanel.panel) {
+                            <!-- Panel Info -->
+                            <div class="flex items-start gap-2">
+                              <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                  <h3 class="font-mono text-base font-semibold text-gray-900">
+                                    {{ assignmentWithPanel.panel.code }}
+                                  </h3>
+                                  <span
+                                    class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                                    [ngClass]="getPanelTypeBadgeClass(assignmentWithPanel.panel.type)">
+                                    {{ assignmentWithPanel.panel.type }}
+                                  </span>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-600">
+                                  {{ getPanelTypeDescription(assignmentWithPanel.panel.type) }}
+                                </p>
+                              </div>
+                            </div>
+
+                            <!-- Circuits -->
+                            <div class="mt-3 rounded-lg border border-sky-200 bg-sky-50 p-3">
+                              <div class="flex items-start gap-2">
+                                <i class="pi pi-sitemap mt-0.5 text-sm text-sky-600"></i>
+                                <div class="flex-1">
+                                  <p class="text-xs font-medium text-sky-900">
+                                    Circuitos Asignados
+                                  </p>
+
+                                  <!-- Mostrar circuitos como badges -->
+                                  <div class="mt-2 flex flex-wrap gap-1.5">
+                                    @for (circuit of assignmentWithPanel.assignment.circuitAssignments; track $index) {
+                                      <span class="inline-flex items-center rounded-full bg-sky-600 px-2.5 py-0.5 font-mono text-xs font-semibold text-white">
+                                        {{ circuit | json }}
+                                      </span>
+                                    }
+                                  </div>
+
+                                  <p class="mt-2 text-xs text-sky-600">
+                                    Total: {{ assignmentWithPanel.assignment.circuitAssignments.length }} circuitos
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="mt-3 flex gap-2">
+                              <button
+                                pRipple
+                                type="button"
+                                (click)="onEditPowerAssignment(assignmentWithPanel.assignment.id)"
+                                class="flex items-center gap-1.5 rounded-lg border border-sky-500 bg-white px-3 py-1.5 text-xs font-medium text-sky-600 transition-all hover:bg-sky-50">
+                                <i class="pi pi-pencil text-xs"></i>
+                                <span>Editar</span>
+                              </button>
+
+                              <button
+                                pRipple
+                                type="button"
+                                (click)="onDeletePowerClick(assignmentWithPanel.assignment.id)"
+                                class="flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-600 transition-all hover:bg-red-50">
+                                <i class="pi pi-trash text-xs"></i>
+                                <span>Quitar</span>
+                              </button>
+                            </div>
+                          } @else {
+                            <!-- Error loading panel -->
+                            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                              <div class="flex items-start gap-2">
+                                <i class="pi pi-exclamation-triangle text-sm text-amber-600"></i>
+                                <p class="text-xs text-amber-800">
+                                  Error al cargar información del panel
+                                </p>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+
+                    </article>
+                  }
+                </div>
+              }
+              @else {
+                <!-- Empty State -->
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                  <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-sky-100">
+                    <i class="pi pi-bolt text-4xl text-sky-600"></i>
+                  </div>
+                  <h3 class="text-base font-semibold text-gray-900">
+                    Sin paneles asignados
+                  </h3>
+                  <p class="mt-2 max-w-sm text-sm text-gray-600">
+                    Asigna un panel de distribución eléctrica para gestionar la alimentación de este equipo.
+                  </p>
+                  <button
+                    pRipple
+                    type="button"
+                    (click)="onAddPowerAssignment()"
+                    class="mt-6 flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
+                    <i class="pi pi-plus"></i>
+                    Asignar Primer Panel
+                  </button>
+                </div>
+              }
+
+              <!-- Error State -->
+              @if (powerStore.error()) {
+                <div class="mt-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
+                  <i class="pi pi-exclamation-circle mt-0.5 text-base text-red-600"></i>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-red-800">{{ powerStore.error() }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="powerStore.clearError()"
+                    class="rounded-md p-1 text-red-600 transition-colors hover:bg-red-100">
+                    <i class="pi pi-times text-xs"></i>
+                  </button>
+                </div>
+              }
+
+            </div>
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Power Assignment Drawer -->
+<app-power-assignment-drawer
+  (onSuccess)="onPowerAssignmentSuccess()">
+</app-power-assignment-drawer>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal
+  [show]="showDeleteModal()"
+  [title]="'¿Eliminar equipo?'"
+  [message]="'Estás a punto de eliminar el equipo:'"
+  [itemName]="store.hasEquipment() ? getDeleteModalMessage() : ''"
+  [warningText]="'Esta acción no se puede deshacer. Toda la información del equipo será eliminada permanentemente.'"
+  [confirmText]="'Sí, eliminar'"
+  [isLoading]="store.isDeleting()"
+  (onConfirm)="confirmDelete()"
+  (onCancel)="closeDeleteModal()">
+</app-confirmation-modal>
