@@ -117,29 +117,19 @@ export class SidebarComponent {
 
   adminMenuItems: MenuItem[] = [
     {
-      label: 'Administración',
-      icon: 'pi-shield',
+      label: 'Organización',
+      icon: 'pi-sitemap',
       adminOnly: true,
       children: [
         {
           label: 'Usuarios',
           icon: 'pi-user',
-          route: '/admin/users'
+          route: '/users'
         },
         {
-          label: 'Clientes',
-          icon: 'pi-building',
-          route: '/admin/clients'
-        },
-        {
-          label: 'Proyectos',
-          icon: 'pi-folder-open',
-          route: '/admin/projects'
-        },
-        {
-          label: 'Equipos',
-          icon: 'pi-box',
-          route: '/admin/equipments'
+          label: 'Colaboradores',
+          icon: 'pi-address-book',
+          route: '/collaborators'
         }
       ]
     }

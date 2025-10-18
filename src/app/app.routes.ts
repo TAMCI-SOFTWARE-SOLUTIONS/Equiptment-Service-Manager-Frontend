@@ -249,6 +249,29 @@ export const routes: Routes = [
         loadComponent: () => import('../page/communication-protocols/ui/communication-protocols/communication-protocols.page').then(m => m.CommunicationProtocolsPage)
       },
 
+      {
+        path: 'collaborators',
+        children: [
+          {
+            path: '',
+            title: 'Colaboradores',
+            loadComponent: () => import('../page/collaborators/ui/collaborators/collaborators.page').then(m => m.CollaboratorsPage)
+          },
+/*          {
+            path: 'new',
+            title: 'Agregar Colaborador',
+            loadComponent: () => import('./pages/create-collaborator/ui/create-collaborator.page').then(m => m.CreateCollaboratorPage)
+            // ⚠️ Esta página la crearemos después
+          },
+          {
+            path: ':id',
+            title: 'Detalle de Colaborador',
+            loadComponent: () => import('./pages/collaborator-detail/ui/collaborator-detail.page').then(m => m.CollaboratorDetailPage)
+            // ⚠️ Esta página la crearemos después
+          }*/
+        ]
+      },
+
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
       {
