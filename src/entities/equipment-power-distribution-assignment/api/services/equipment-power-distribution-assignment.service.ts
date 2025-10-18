@@ -71,4 +71,37 @@ export class EquipmentPowerDistributionAssignmentService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  /**
+   * UPDATE /api/v1/equipment-power-distribution-assignments/{id}
+   * Update equipment power distribution assignment
+   */
+  update(entity: EquipmentPowerDistributionAssignmentEntity): Observable<EquipmentPowerDistributionAssignmentEntity> {
+    const request: CreateEquipmentPowerDistributionAssignmentRequest =
+      CreateEquipmentPowerDistributionAssignmentRequestFromEntityMapper.fromEntityToDto(entity);
+    return this.http.put<EquipmentPowerDistributionAssignmentResponse>(
+      `${this.resourcePath()}/${entity.id}`,
+      request,
+      this.httpOptions
+    ).pipe(
+      map((response: EquipmentPowerDistributionAssignmentResponse) =>
+        EquipmentPowerDistributionAssignmentEntityFromResponseMapper.fromDtoToEntity(response)
+      ),
+      // NO retry for PUT (non-idempotent)
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * DELETE /api/v1/equipment-power-distribution-assignments/{id}
+   * Delete equipment power distribution assignment
+   */
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.resourcePath()}/${id}`,
+      this.httpOptions
+    ).pipe(
+      retry(2),
+    );
+  }
 }
