@@ -14,7 +14,7 @@ export class PowerDistributionPanelTypeMapper {
     }
 
     console.warn(`Invalid power distribution panel type received: ${type}, defaulting to PDJ`);
-    return PowerDistributionPanelTypeEnum.PDJ;
+    return PowerDistributionPanelTypeEnum.DPJ;
   }
 
   static mapTypeToString(type: PowerDistributionPanelTypeEnum): string {

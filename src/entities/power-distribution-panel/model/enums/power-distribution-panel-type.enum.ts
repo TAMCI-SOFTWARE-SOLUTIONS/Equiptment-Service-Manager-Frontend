@@ -1,4 +1,4 @@
 export enum PowerDistributionPanelTypeEnum {
-  PDJ = 'PDJ',
+  DPJ = 'DPJ',
   DPU = 'DPU',
 }
