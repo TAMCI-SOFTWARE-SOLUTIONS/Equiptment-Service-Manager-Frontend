@@ -13,6 +13,14 @@ import {PanelService} from '../../../../entities/panel/api';
 import {CabinetTypeService} from '../../../../entities/cabinet-type/api';
 import {PanelTypeService} from '../../../../entities/panel-type/api/panel-type.service';
 import {AreaService} from '../../../../entities/area/api';
+import {
+  EquipmentPowerDistributionAssignmentEntity
+} from '../../../../entities/equipment-power-distribution-assignment/model/entities/equipment-power-distribution-assignment.entity';
+import {PowerDistributionPanelEntity} from '../../../../entities/power-distribution-panel/model';
+import {
+  EquipmentPowerDistributionAssignmentService
+} from '../../../../entities/equipment-power-distribution-assignment/api';
+import {PowerDistributionPanelService} from '../../../../entities/power-distribution-panel/api';
 
 export enum ServiceTypeEnum {
   MAINTENANCE = 'MAINTENANCE',
@@ -30,6 +38,12 @@ export interface CreateServiceFormData {
 
   // Step 3
   supervisorName: string;
+}
+
+export interface PowerAssignmentWithPanel {
+  assignment: EquipmentPowerDistributionAssignmentEntity;
+  panel: PowerDistributionPanelEntity | null;
+  isLoadingPanel: boolean;
 }
 
 export interface CreateServiceState {
@@ -58,6 +72,11 @@ export interface CreateServiceState {
   isLoadingTypes: boolean;
   isLoadingAreas: boolean;
   isSubmitting: boolean;
+
+  // Power assignments (NEW)
+  powerAssignments: PowerAssignmentWithPanel[];
+  isLoadingPowerAssignments: boolean;
+  powerAssignmentsError: string | null;
 
   // Validation
   validationErrors: {
@@ -91,6 +110,9 @@ const initialState: CreateServiceState = {
   isLoadingTypes: false,
   isLoadingAreas: false,
   isSubmitting: false,
+  powerAssignments: [],
+  isLoadingPowerAssignments: false,
+  powerAssignmentsError: null,
   validationErrors: {},
   error: null
 };
@@ -254,7 +276,46 @@ export const CreateServiceStore = signalStore(
         };
 
         return labels[type];
-      })
+      }),
+      /**
+       * Indica si hay power assignments
+       */
+      hasPowerAssignments: computed(() => state.powerAssignments().length > 0),
+
+      /**
+       * Circuitos formateados por assignment
+       */
+      getCircuitsText: computed(() => (circuits: number[]) => {
+        if (!circuits || circuits.length === 0) return 'Sin circuitos';
+        if (circuits.length === 30) return 'Todos (1-30)';
+
+        const sorted = [...circuits].sort((a, b) => a - b);
+
+        // Agrupar en rangos
+        const ranges: string[] = [];
+        let start = sorted[0];
+        let prev = sorted[0];
+
+        for (let i = 1; i < sorted.length; i++) {
+          if (sorted[i] !== prev + 1) {
+            if (start === prev) {
+              ranges.push(`${start}`);
+            } else {
+              ranges.push(`${start}-${prev}`);
+            }
+            start = sorted[i];
+          }
+          prev = sorted[i];
+        }
+
+        if (start === prev) {
+          ranges.push(`${start}`);
+        } else {
+          ranges.push(`${start}-${prev}`);
+        }
+
+        return ranges.join(', ');
+      }),
     };
   }),
 
@@ -265,6 +326,8 @@ export const CreateServiceStore = signalStore(
     const cabinetTypeService = inject(CabinetTypeService);
     const panelTypeService = inject(PanelTypeService);
     const areaService = inject(AreaService);
+    const powerAssignmentService = inject(EquipmentPowerDistributionAssignmentService);
+    const powerPanelService = inject(PowerDistributionPanelService);
 
     return {
       /**
@@ -396,6 +459,93 @@ export const CreateServiceStore = signalStore(
         }
       },
 
+      /**
+       * Cargar power assignments del equipo seleccionado
+       */
+      async loadPowerAssignments(): Promise<void> {
+        const equipmentId = store.formData().selectedEquipmentId;
+
+        if (!equipmentId) {
+          patchState(store, {
+            powerAssignments: [],
+            isLoadingPowerAssignments: false,
+            powerAssignmentsError: null
+          });
+          return;
+        }
+
+        patchState(store, {
+          isLoadingPowerAssignments: true,
+          powerAssignmentsError: null
+        });
+
+        try {
+          const assignments = await firstValueFrom(
+            powerAssignmentService.getAllByEquipmentId(equipmentId)
+          );
+
+          // Crear estructura con placeholders para panels
+          const assignmentsWithPanels: PowerAssignmentWithPanel[] = assignments.map(a => ({
+            assignment: a,
+            panel: null,
+            isLoadingPanel: true
+          }));
+
+          patchState(store, {
+            powerAssignments: assignmentsWithPanels,
+            isLoadingPowerAssignments: false,
+            powerAssignmentsError: null
+          });
+
+          // Cargar info de cada panel en paralelo
+          await Promise.all(
+            assignments.map((assignment, index) =>
+              this.loadPanelInfo(assignment.powerDistributionPanelId, index)
+            )
+          );
+
+        } catch (error: any) {
+          console.error('❌ Error loading power assignments:', error);
+          patchState(store, {
+            powerAssignments: [],
+            isLoadingPowerAssignments: false,
+            powerAssignmentsError: error.message || 'Error al cargar paneles de distribución'
+          });
+        }
+      },
+
+      /**
+       * Cargar info de un panel específico
+       */
+      async loadPanelInfo(panelId: string, assignmentIndex: number): Promise<void> {
+        try {
+          const panel = await firstValueFrom(powerPanelService.getById(panelId));
+
+          patchState(store, (state) => {
+            const updatedAssignments = [...state.powerAssignments];
+            updatedAssignments[assignmentIndex] = {
+              ...updatedAssignments[assignmentIndex],
+              panel,
+              isLoadingPanel: false
+            };
+            return { powerAssignments: updatedAssignments };
+          });
+
+        } catch (error: any) {
+          console.error('❌ Error loading panel info:', error);
+
+          patchState(store, (state) => {
+            const updatedAssignments = [...state.powerAssignments];
+            updatedAssignments[assignmentIndex] = {
+              ...updatedAssignments[assignmentIndex],
+              panel: null,
+              isLoadingPanel: false
+            };
+            return { powerAssignments: updatedAssignments };
+          });
+        }
+      },
+
       // ==================== STEP 1: Service Type ====================
 
       setServiceType(type: ServiceTypeEnum): void {
@@ -474,6 +624,10 @@ export const CreateServiceStore = signalStore(
         const currentStep = store.currentStep();
 
         if (currentStep < store.totalSteps() && store.canGoNext()) {
+          if (currentStep === 2) {
+            this.loadPowerAssignments().then();
+          }
+
           patchState(store, {
             currentStep: currentStep + 1
           });
