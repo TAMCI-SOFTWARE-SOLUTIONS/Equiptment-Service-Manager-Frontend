@@ -257,18 +257,23 @@ export const routes: Routes = [
             title: 'Colaboradores',
             loadComponent: () => import('../page/collaborators/ui/collaborators/collaborators.page').then(m => m.CollaboratorsPage)
           },
-/*          {
+          {
             path: 'new',
             title: 'Agregar Colaborador',
-            loadComponent: () => import('./pages/create-collaborator/ui/create-collaborator.page').then(m => m.CreateCollaboratorPage)
+            loadComponent: () => import('../page/collaborators/ui/collaborator-form/collaborator-form.page').then(m => m.CollaboratorFormPage)
             // ⚠️ Esta página la crearemos después
+          },
+          {
+            path: ':id/edit',
+            title: 'Editar Colaborador',
+            loadComponent: () => import('../page/collaborators/ui/collaborator-form/collaborator-form.page').then(m => m.CollaboratorFormPage)
           },
           {
             path: ':id',
             title: 'Detalle de Colaborador',
-            loadComponent: () => import('./pages/collaborator-detail/ui/collaborator-detail.page').then(m => m.CollaboratorDetailPage)
+            loadComponent: () => import('../page/collaborators/ui/collaborator-detail/collaborator-detail.page').then(m => m.CollaboratorDetailPage)
             // ⚠️ Esta página la crearemos después
-          }*/
+          }
         ]
       },
 
