@@ -1,0 +1,253 @@
+<p-drawer
+  [visible]="store.isDrawerOpen()"
+  position="right"
+  [style]="{ width: '32rem', maxWidth: '100vw' }"
+  (onHide)="onClose()">
+
+  <!-- Header -->
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100">
+        <i class="pi pi-bolt text-lg text-sky-600"></i>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900">
+          {{ store.drawerTitle() }}
+        </h2>
+        <p class="text-xs text-gray-600">
+          Asigna un panel y sus circuitos
+        </p>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Content -->
+  <div class="space-y-6">
+
+    <!-- Error Message -->
+    @if (store.formError()) {
+      <div class="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3 animate-in fade-in slide-in-from-top-2 duration-300">
+        <i class="pi pi-exclamation-circle mt-0.5 text-base text-red-600"></i>
+        <div class="flex-1">
+          <p class="text-sm font-medium text-red-800">{{ store.formError() }}</p>
+        </div>
+        <button
+          type="button"
+          (click)="store.clearError()"
+          class="rounded-md p-1 text-red-600 transition-colors hover:bg-red-100">
+          <i class="pi pi-times text-xs"></i>
+        </button>
+      </div>
+    }
+
+    <!-- Panel Selection -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Panel de Distribución
+        <span class="text-red-500">*</span>
+      </label>
+
+      @if (store.isLoadingPanels()) {
+        <div class="flex h-11 items-center rounded-lg border border-gray-300 bg-gray-50 px-3">
+          <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+          <span class="ml-2 text-sm text-gray-500">Cargando paneles...</span>
+        </div>
+      } @else {
+        <p-select
+          [options]="store.availablePanels()"
+          [(ngModel)]="store.formData().powerDistributionPanelId"
+          (onChange)="onPanelChange($event.value)"
+          optionLabel="code"
+          optionValue="id"
+          placeholder="Selecciona un panel"
+          [disabled]="store.isSubmitting()"
+          [showClear]="false"
+          [style]="{ width: '100%' }"
+          class="w-full">
+
+          <ng-template let-panel pTemplate="item">
+            <div class="flex items-start gap-3 py-2">
+              <span
+                class="mt-0.5 shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold"
+                [ngClass]="getPanelTypeBadgeClass(panel.type)">
+                {{ panel.type }}
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="font-mono text-sm font-medium text-gray-900">
+                  {{ panel.code }}
+                </p>
+                <p class="mt-0.5 text-xs text-gray-600">
+                  {{ getPanelTypeDescription(panel.type) }}
+                </p>
+              </div>
+            </div>
+          </ng-template>
+
+          <ng-template let-panel pTemplate="selectedItem">
+            <div class="flex items-center gap-2">
+              <span
+                class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                [ngClass]="getPanelTypeBadgeClass(panel.type)">
+                {{ panel.type }}
+              </span>
+              <span class="font-mono text-sm text-gray-900">
+                {{ panel.code }}
+              </span>
+            </div>
+          </ng-template>
+        </p-select>
+
+        @if (!store.formData().powerDistributionPanelId) {
+          <p class="mt-1.5 text-xs text-gray-500">
+            <i class="pi pi-info-circle mr-1"></i>
+            Selecciona el panel al que conectarás el equipo
+          </p>
+        }
+      }
+    </div>
+
+    <!-- Circuit Selection -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <label class="block text-sm font-medium text-gray-700">
+          Circuitos Asignados
+          <span class="text-red-500">*</span>
+        </label>
+
+        @if (store.selectedCircuitsCount() > 0) {
+          <span class="rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
+            {{ store.selectedCircuitsCount() }} seleccionados
+          </span>
+        }
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-2">
+        <button
+          pRipple
+          type="button"
+          (click)="onSelectAll()"
+          [disabled]="store.isSubmitting()"
+          class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-700 transition-all hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-50">
+          <i class="pi pi-check-square text-xs"></i>
+          Seleccionar todos
+        </button>
+
+        <button
+          pRipple
+          type="button"
+          (click)="onClearAll()"
+          [disabled]="store.isSubmitting() || store.selectedCircuitsCount() === 0"
+          class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+          <i class="pi pi-times text-xs"></i>
+          Limpiar
+        </button>
+      </div>
+
+      <!-- Checkboxes Grid -->
+      <div class="max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white p-4">
+        <div class="grid grid-cols-5 gap-2">
+          @for (circuit of availableCircuits; track circuit) {
+            <label
+              class="group relative flex cursor-pointer items-center justify-center rounded-lg border-2 p-3 text-sm font-medium transition-all"
+              [class.border-sky-500]="isCircuitSelected(circuit)"
+              [class.bg-sky-50]="isCircuitSelected(circuit)"
+              [class.text-sky-700]="isCircuitSelected(circuit)"
+              [class.border-gray-300]="!isCircuitSelected(circuit)"
+              [class.hover:border-gray-400]="!isCircuitSelected(circuit)"
+              [class.text-gray-700]="!isCircuitSelected(circuit)">
+
+              <input
+                type="checkbox"
+                [checked]="isCircuitSelected(circuit)"
+                (change)="onCircuitToggle(circuit)"
+                [disabled]="store.isSubmitting()"
+                class="sr-only">
+
+              <span class="font-mono">{{ circuit }}</span>
+
+              @if (isCircuitSelected(circuit)) {
+                <div class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500">
+                  <i class="pi pi-check text-[10px] font-bold text-white"></i>
+                </div>
+              }
+            </label>
+          }
+        </div>
+      </div>
+
+      <!-- Selected Circuits Preview -->
+      @if (store.selectedCircuitsCount() > 0) {
+        <div class="rounded-lg border border-sky-200 bg-sky-50 p-3">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle mt-0.5 text-sm text-sky-600"></i>
+            <div class="flex-1">
+              <p class="text-xs font-medium text-sky-900">
+                Circuitos seleccionados
+              </p>
+              <p class="mt-1 font-mono text-xs text-sky-700">
+                {{ getCircuitsRangeText() }}
+              </p>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <p class="text-xs text-gray-500">
+          <i class="pi pi-exclamation-triangle mr-1 text-amber-500"></i>
+          Debes seleccionar al menos un circuito
+        </p>
+      }
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <ng-template pTemplate="footer">
+    <div class="flex flex-col gap-3">
+      <!-- Summary -->
+      @if (store.isFormValid()) {
+        <div class="rounded-lg border border-green-200 bg-green-50 p-3">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-check-circle mt-0.5 text-sm text-green-600"></i>
+            <div class="flex-1">
+              <p class="text-xs font-medium text-green-900">
+                Listo para asignar
+              </p>
+              <p class="mt-0.5 text-xs text-green-700">
+                {{ store.selectedCircuitsCount() }} circuitos en el panel seleccionado
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="flex gap-3">
+        <button
+          pRipple
+          type="button"
+          (click)="onClose()"
+          [disabled]="store.isSubmitting()"
+          class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+          Cancelar
+        </button>
+
+        <button
+          pRipple
+          type="button"
+          (click)="onSubmit()"
+          [disabled]="!store.canSubmit()"
+          class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+          @if (store.isSubmitting()) {
+            <i class="pi pi-spinner pi-spin text-sm"></i>
+            <span>Asignando...</span>
+          } @else {
+            <i class="pi pi-check text-sm"></i>
+            <span>Asignar Panel</span>
+          }
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+</p-drawer>

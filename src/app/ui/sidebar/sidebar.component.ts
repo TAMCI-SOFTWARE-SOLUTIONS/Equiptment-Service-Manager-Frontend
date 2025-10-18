@@ -91,6 +91,11 @@ export class SidebarComponent {
           route: '/cabinet-types'
         },
         {
+          label: 'Paneles de Distribución',
+          icon: 'pi-bolt',
+          route: '/power-distribution-panels'
+        },
+        {
           label: 'Protocolos de Comunicación',
           icon: 'pi-wifi',
           route: '/communication-protocols'

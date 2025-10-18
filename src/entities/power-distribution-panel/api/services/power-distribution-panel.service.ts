@@ -7,6 +7,10 @@ import { PowerDistributionPanelResponse } from '../types/power-distribution-pane
 import { CreatePowerDistributionPanelRequest } from '../types/create-power-distribution-panel-request.type';
 import { PowerDistributionPanelEntityFromResponseMapper } from '../mappers/power-distribution-panel-entity-from-response.mapper';
 import { CreatePowerDistributionPanelRequestFromEntityMapper } from '../mappers/create-power-distribution-panel-request-from-entity.mapper';
+import {
+  UpdatePowerDistributionPanelRequestFromEntityMapper
+} from '../mappers/update-power-distribution-panel-request-from-entity.mapper';
+import {UpdatePowerDistributionPanelRequest} from '../types/update-power-distribution-panel-request.type';
 
 @Injectable({
   providedIn: 'root'
@@ -32,6 +36,21 @@ export class PowerDistributionPanelService extends BaseService {
       retry(2),
       catchError(this.handleError)
     );
+  }
+
+  /**
+   * GET /api/v1/power-distribution-panels
+   * Get all power distribution panels
+   */
+  getAll(): Observable<PowerDistributionPanelEntity[]> {
+    return this.http.get<PowerDistributionPanelResponse[]>(
+      this.resourcePath(),
+      this.httpOptions
+    ).pipe(
+      map((responses: PowerDistributionPanelResponse[]) => responses.map(r => PowerDistributionPanelEntityFromResponseMapper.fromDtoToEntity(r))),
+      retry(2),
+      catchError(this.handleError)
+    )
   }
 
   /**
@@ -71,5 +90,36 @@ export class PowerDistributionPanelService extends BaseService {
       // NO retry for POST (non-idempotent)
       catchError(this.handleError)
     );
+  }
+
+  /**
+   * PUT /api/v1/power-distribution-panels/{powerDistributionPanelId}
+   * Update existing power distribution panel
+   */
+  update(entity: PowerDistributionPanelEntity): Observable<PowerDistributionPanelEntity> {
+    const request: UpdatePowerDistributionPanelRequest =
+      UpdatePowerDistributionPanelRequestFromEntityMapper.fromEntityToDto(entity);
+    return this.http.put<PowerDistributionPanelResponse>(
+      `${this.resourcePath()}/${entity.id}`,
+      request,
+      this.httpOptions
+    ).pipe(
+      map((response: PowerDistributionPanelResponse) =>
+        PowerDistributionPanelEntityFromResponseMapper.fromDtoToEntity(response)
+      )
+    )
+  }
+
+  /**
+   * DELETE /api/v1/power-distribution-panels/{powerDistributionPanelId}
+   * Delete power distribution panel
+   */
+  delete(powerDistributionPanelId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.resourcePath()}/${powerDistributionPanelId}`,
+      this.httpOptions
+    ).pipe(
+      retry(2),
+    )
   }
 }

@@ -1,0 +1,408 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Title & Actions -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            Paneles de Distribución
+          </h1>
+          @if (store.hasPanels() && !store.isLoading()) {
+            <span class="flex h-6 items-center rounded-full bg-gray-100 px-2.5 text-xs font-semibold text-gray-700">
+              {{ store.filteredCount() }}
+            </span>
+          }
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            pRipple
+            type="button"
+            (click)="onRefresh()"
+            [disabled]="store.isLoading()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (store.isLoading()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+            } @else {
+              <i class="pi pi-refresh text-base"></i>
+            }
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onCreateNew()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            <i class="pi pi-plus text-sm"></i>
+            <span>Nuevo Panel</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filters -->
+      @if (store.hasPanels() && !store.isLoading()) {
+        <div class="mt-4 flex items-center gap-2">
+          <!-- Search Bar -->
+          <div class="relative flex-1">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <i class="pi pi-search text-sm text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              [value]="store.searchQuery()"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Buscar por código..."
+              class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+
+            @if (store.searchQuery()) {
+              <button
+                type="button"
+                (click)="clearSearch()"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                <i class="pi pi-times text-xs"></i>
+              </button>
+            }
+          </div>
+
+          <!-- Filters Button (Mobile) -->
+          <button
+            pRipple
+            type="button"
+            (click)="toggleFiltersDrawer()"
+            class="flex h-9 items-center gap-2 rounded-lg border bg-white px-3 text-sm font-medium transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 lg:hidden"
+            [ngClass]="{
+              'border-sky-500 text-sky-700': store.hasActiveFilters(),
+              'border-gray-300 text-gray-700': !store.hasActiveFilters()
+            }">
+            <i class="pi pi-filter text-sm"></i>
+            @if (store.hasActiveFilters()) {
+              <span class="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-xs font-semibold text-white">
+                1
+              </span>
+            }
+          </button>
+
+          <!-- Type Filter (Desktop) -->
+          <div class="hidden gap-2 lg:flex">
+            <button
+              pRipple
+              type="button"
+              (click)="onTypeFilterChange('ALL')"
+              class="rounded-lg px-3 py-2 text-sm font-medium transition-all"
+              [ngClass]="{
+                'bg-sky-500 text-white shadow-sm': store.typeFilter() === 'ALL',
+                'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300': store.typeFilter() !== 'ALL'
+              }">
+              Todos
+            </button>
+
+            <button
+              pRipple
+              type="button"
+              (click)="onTypeFilterChange(PanelTypeEnum.DPJ)"
+              class="rounded-lg px-3 py-2 text-sm font-medium transition-all"
+              [ngClass]="{
+                'bg-sky-500 text-white shadow-sm': store.typeFilter() === PanelTypeEnum.DPJ,
+                'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300': store.typeFilter() !== PanelTypeEnum.DPJ
+              }">
+              PDJ
+            </button>
+
+            <button
+              pRipple
+              type="button"
+              (click)="onTypeFilterChange(PanelTypeEnum.DPU)"
+              class="rounded-lg px-3 py-2 text-sm font-medium transition-all"
+              [ngClass]="{
+                'bg-cyan-500 text-white shadow-sm': store.typeFilter() === PanelTypeEnum.DPU,
+                'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300': store.typeFilter() !== PanelTypeEnum.DPU
+              }">
+              DPU
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </header>
+
+  <!-- Content Area -->
+  <main class="flex-1 overflow-auto px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-base text-red-600"></i>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-red-800">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-xs"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <div class="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4">
+              <div class="flex items-start justify-between">
+                <div class="flex-1 space-y-2">
+                  <div class="h-5 w-2/3 animate-pulse rounded bg-gray-200"></div>
+                  <div class="h-4 w-1/3 animate-pulse rounded bg-gray-200"></div>
+                </div>
+                <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200"></div>
+              </div>
+              <div class="flex gap-2 pt-2 border-t border-gray-100">
+                <div class="h-8 flex-1 animate-pulse rounded-lg bg-gray-200"></div>
+                <div class="h-8 w-8 animate-pulse rounded-lg bg-gray-200"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      @else if (store.filteredPanels().length > 0) {
+        <!-- Cards Grid -->
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          @for (panel of store.filteredPanels(); track panel.id) {
+            <article class="group flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-sky-300 hover:bg-sky-50/30 hover:shadow-md">
+
+              <!-- Header -->
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                  <h3 class="font-mono text-base font-semibold text-gray-900 transition-colors group-hover:text-sky-700">
+                    {{ panel.code }}
+                  </h3>
+                  <p class="mt-1 text-xs text-gray-600">
+                    {{ getTypeName(panel.type) }}
+                  </p>
+                </div>
+
+                <!-- Badge -->
+                <span
+                  class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold"
+                  [ngClass]="getTypeBadgeClass(panel.type)">
+                  {{ getTypeLabel(panel.type) }}
+                </span>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex gap-2 border-t border-gray-100 pt-3">
+                <button
+                  pRipple
+                  type="button"
+                  (click)="onEdit(panel)"
+                  class="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-sky-500 bg-white px-3 py-2 text-sm font-medium text-sky-600 transition-all hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+                  <i class="pi pi-pencil text-xs"></i>
+                  <span>Editar</span>
+                </button>
+
+                <button
+                  pRipple
+                  type="button"
+                  (click)="onDeleteClick(panel)"
+                  title="Eliminar"
+                  class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
+                  <i class="pi pi-trash text-xs"></i>
+                </button>
+              </div>
+
+            </article>
+          }
+        </div>
+
+        <!-- No Search Results -->
+        @if (store.searchQuery() && !store.hasSearchResults()) {
+          <div class="flex flex-col items-center justify-center py-12 text-center">
+            <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <i class="pi pi-search text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900">
+              No se encontraron resultados
+            </h3>
+            <p class="mt-1 text-sm text-gray-600">
+              No hay paneles que coincidan con "<strong>{{ store.searchQuery() }}</strong>"
+            </p>
+            <button
+              pRipple
+              type="button"
+              (click)="clearFilters()"
+              class="mt-4 flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600">
+              <i class="pi pi-times text-xs"></i>
+              Limpiar filtros
+            </button>
+          </div>
+        }
+      }
+      @else if (!store.isLoading() && !store.hasPanels()) {
+        <!-- Empty State -->
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-100 to-cyan-100">
+            <i class="pi pi-bolt text-4xl text-sky-600"></i>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900">
+            No hay paneles registrados
+          </h3>
+          <p class="mt-2 max-w-md text-sm text-gray-600">
+            Comienza agregando el primer panel de distribución eléctrica de tu sistema.
+          </p>
+          <button
+            pRipple
+            type="button"
+            (click)="onCreateNew()"
+            class="mt-6 flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
+            <i class="pi pi-plus"></i>
+            Crear Primer Panel
+          </button>
+        </div>
+      }
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Filters Drawer (Mobile) -->
+<p-drawer
+  [(visible)]="showFiltersDrawer"
+  position="right"
+  [style]="{ width: '20rem' }">
+
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-2">
+      <i class="pi pi-filter text-lg text-gray-700"></i>
+      <h3 class="font-semibold text-gray-900">Filtros</h3>
+    </div>
+  </ng-template>
+
+  <div class="space-y-4">
+    <!-- Type Filter -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-700">
+        Tipo de Panel
+      </label>
+      <div class="space-y-2">
+        <button
+          pRipple
+          type="button"
+          (click)="onTypeFilterChange('ALL')"
+          class="flex w-full items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium transition-all"
+          [ngClass]="{
+            'bg-sky-500 text-white': store.typeFilter() === 'ALL',
+            'bg-gray-100 text-gray-700 hover:bg-gray-200': store.typeFilter() !== 'ALL'
+          }">
+          <span>Todos</span>
+          @if (store.typeFilter() === 'ALL') {
+            <i class="pi pi-check text-sm"></i>
+          }
+        </button>
+
+        <button
+          pRipple
+          type="button"
+          (click)="onTypeFilterChange(PanelTypeEnum.DPJ)"
+          class="flex w-full items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium transition-all"
+          [ngClass]="{
+            'bg-sky-500 text-white': store.typeFilter() === PanelTypeEnum.DPJ,
+            'bg-gray-100 text-gray-700 hover:bg-gray-200': store.typeFilter() !== PanelTypeEnum.DPJ
+          }">
+          <span>PDJ - Instrumentación</span>
+          @if (store.typeFilter() === PanelTypeEnum.DPJ) {
+            <i class="pi pi-check text-sm"></i>
+          }
+        </button>
+
+        <button
+          pRipple
+          type="button"
+          (click)="onTypeFilterChange(PanelTypeEnum.DPU)"
+          class="flex w-full items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium transition-all"
+          [ngClass]="{
+            'bg-cyan-500 text-white': store.typeFilter() === PanelTypeEnum.DPU,
+            'bg-gray-100 text-gray-700 hover:bg-gray-200': store.typeFilter() !== PanelTypeEnum.DPU
+          }">
+          <span>DPU - UPS</span>
+          @if (store.typeFilter() === PanelTypeEnum.DPU) {
+            <i class="pi pi-check text-sm"></i>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex gap-2">
+      <button
+        pRipple
+        type="button"
+        (click)="clearFilters()"
+        class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        Limpiar
+      </button>
+      <button
+        pRipple
+        type="button"
+        (click)="toggleFiltersDrawer()"
+        class="flex-1 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600">
+        Aplicar
+      </button>
+    </div>
+  </ng-template>
+</p-drawer>
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200"
+       (click)="closeDeleteModal()">
+    <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl animate-in zoom-in slide-in-from-bottom-4 duration-300"
+         (click)="$event.stopPropagation()">
+
+      <!-- Icon -->
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+        <i class="pi pi-exclamation-triangle text-2xl text-red-600"></i>
+      </div>
+
+      <!-- Content -->
+      <h3 class="text-xl font-bold text-gray-900">
+        ¿Eliminar panel de distribución?
+      </h3>
+      <p class="mt-2 text-sm text-gray-600">
+        Estás a punto de eliminar el panel
+        <strong class="font-mono font-semibold text-gray-900">{{ panelToDelete()?.code }}</strong>
+        <span class="text-gray-500">({{ getTypeLabel(panelToDelete()!.type) }})</span>.
+      </p>
+      <p class="mt-2 text-sm font-medium text-red-600">
+        Esta acción no se puede deshacer.
+      </p>
+
+      <!-- Actions -->
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button
+          pRipple
+          type="button"
+          (click)="closeDeleteModal()"
+          class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+          Cancelar
+        </button>
+
+        <button
+          pRipple
+          type="button"
+          (click)="confirmDelete()"
+          class="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+          <i class="pi pi-trash text-sm"></i>
+          Sí, eliminar
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
