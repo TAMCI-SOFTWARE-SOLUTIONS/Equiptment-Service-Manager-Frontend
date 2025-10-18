@@ -1,5 +1,6 @@
 import { ProfileEntity } from '../../model';
 import { UpdateProfileRequest } from '../types';
+import {IdentityDocumentTypeMapper} from './identity-document-type.mapper';
 
 export class UpdateProfileRequestFromEntityMapper {
   static fromEntityToDto(entity: ProfileEntity): UpdateProfileRequest {
@@ -9,6 +10,8 @@ export class UpdateProfileRequestFromEntityMapper {
       secondSurname: entity.secondSurname,
       photoFileId: entity.photoFileId,
       gender: entity.gender,
+      identityDocumentNumber: entity.identityDocumentNumber,
+      identityDocumentType: IdentityDocumentTypeMapper.mapIdentityDocumentTypeToString(entity.identityDocumentType),
       email: entity.email
     };
   }

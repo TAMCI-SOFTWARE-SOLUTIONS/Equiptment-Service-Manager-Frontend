@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LayoutStore } from '../../../shared/model/layout.store';
 import { ContextStore } from '../../../shared/model/context.store';
-import { ProfileStore } from '../../../shared/stores';
+import { MyProfileStore } from '../../../shared/stores';
 import { AuthStore } from '../../../shared/stores';
 import { Avatar } from 'primeng/avatar';
 import { Ripple } from 'primeng/ripple';
@@ -18,7 +18,7 @@ import {RoleEntity, RolesEnum} from '../../../entities/role/model';
 export class TopbarComponent {
   readonly layoutStore = inject(LayoutStore);
   readonly contextStore = inject(ContextStore);
-  readonly profileStore = inject(ProfileStore);
+  readonly profileStore = inject(MyProfileStore);
   readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
 

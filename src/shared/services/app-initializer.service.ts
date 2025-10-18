@@ -1,5 +1,5 @@
 import {inject, Injectable} from '@angular/core';
-import {AuthStore, ProfileStore} from '../stores';
+import {AuthStore, MyProfileStore} from '../stores';
 import {EventBusService} from './event-bus.service';
 import {EventNames} from '../events/event-names';
 import {AuthLoginPayload, AuthLogoutPayload, AuthRefreshPayload, ProfileUpdatedPayload} from '../events/event-payloads';
@@ -9,7 +9,7 @@ import {AuthLoginPayload, AuthLogoutPayload, AuthRefreshPayload, ProfileUpdatedP
 })
 export class AppInitializerService {
   private readonly authStore = inject(AuthStore);
-  private readonly profileStore = inject(ProfileStore);
+  private readonly myProfileStore = inject(MyProfileStore);
   private readonly eventBus = inject(EventBusService);
 
   initializeApp(): Promise<void> {
@@ -42,15 +42,15 @@ export class AppInitializerService {
     });
 
     this.eventBus.on(EventNames.AUTH_LOGIN, (data: AuthLoginPayload) => {
-      if (data.userId) {this.profileStore.loadProfile(data.userId).then(() => {});}
+      if (data.userId) {this.myProfileStore.loadProfile(data.userId).then(() => {});}
     });
 
     this.eventBus.on(EventNames.AUTH_REFRESH, (data: AuthRefreshPayload) => {
-      if (data.userId) {this.profileStore.loadProfile(data.userId).then(() => {});}
+      if (data.userId) {this.myProfileStore.loadProfile(data.userId).then(() => {});}
     });
 
     this.eventBus.on(EventNames.AUTH_LOGOUT, (_: AuthLogoutPayload) => {
-      this.profileStore.clearProfile();
+      this.myProfileStore.clearProfile();
     });
   }
 

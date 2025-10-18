@@ -1,106 +1,68 @@
-import {Component, computed, inject, OnInit, signal} from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProfileStore } from '../../../../shared/stores';
-import { AuthStore } from '../../../../shared/stores';
-import { Avatar } from 'primeng/avatar';
-import { Card } from 'primeng/card';
-import { Button } from 'primeng/button';
-import { Skeleton } from 'primeng/skeleton';
-import {GenderEnum, ProfileEntity} from '../../../../entities/profile';
-import {PrimeTemplate} from 'primeng/api';
+import { Ripple } from 'primeng/ripple';
+import { Toast } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import {ProfileViewComponent} from '../profile-view/profile-view.component';
+import {ProfileFormComponent} from '../profile-form/profile-form.component';
+import {ProfileStore} from '../../model/store/profile.store';
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, Avatar, Card, Button, Skeleton, PrimeTemplate],
   standalone: true,
-  templateUrl: './profile.page.html',
-  styleUrl: './profile.page.css'
+  imports: [
+    CommonModule,
+    ProfileViewComponent,
+    ProfileFormComponent,
+    Ripple,
+    Toast
+  ],
+  providers: [ProfileStore, MessageService],
+  templateUrl: './profile.page.html'
 })
 export class ProfilePage implements OnInit {
-  readonly profileStore = inject(ProfileStore);
-  readonly authStore = inject(AuthStore);
-
-  // Loading state for profile data
-  isLoadingProfile = signal(true);
+  readonly store = inject(ProfileStore);
+  private readonly messageService = inject(MessageService);
 
   ngOnInit(): void {
-    this.loadProfile();
+    this.loadProfile().then();
   }
 
-  private async loadProfile(): Promise<void> {
-    const userId = this.authStore.userId();
+  async loadProfile(): Promise<void> {
+    await this.store.loadProfile();
+  }
 
-    if (userId) {
-      this.isLoadingProfile.set(true);
-      try {
-        await this.profileStore.loadProfile(userId);
-      } catch (error) {
-        console.error('Error loading profile:', error);
-      } finally {
-        this.isLoadingProfile.set(false);
-      }
+  toggleEditMode(): void {
+    this.store.toggleEditMode();
+  }
+
+  async onSave(): Promise<void> {
+    const success = await this.store.save();
+
+    if (success) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Perfil Actualizado',
+        detail: 'Tu información se ha guardado correctamente',
+        life: 3000
+      });
+    } else if (this.store.error()) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: this.store.error() || 'No se pudo guardar el perfil',
+        life: 5000
+      });
+    }
+  }
+
+  onCancel(): void {
+    if (this.store.hasChanges()) {
+      // TODO: Mostrar confirmación si hay cambios sin guardar
+      // Por ahora solo cancela
+      this.toggleEditMode();
     } else {
-      console.warn('No userId available for profile loading');
-      this.isLoadingProfile.set(false);
+      this.toggleEditMode();
     }
   }
-
-  // Signals for template
-  profile = this.profileStore.profile;
-  profileImageUrl = this.profileStore.profileImageUrl;
-  fullName = this.profileStore.fullName;
-  displayName = this.profileStore.displayName;
-  userInitials = this.profileStore.userInitials;
-  isLoading = computed(() => this.profileStore.isLoading() || this.isLoadingProfile());
-  hasError = computed(() => !!this.profileStore.error());
-  errorMessage = this.profileStore.error;
-
-  // Actions
-  async onRefreshProfile(): Promise<void> {
-    const userId = this.authStore.userId();
-    if (userId) {
-      await this.loadProfile();
-    }
-  }
-
-  onEditProfile(): void {
-    // TODO: Implement edit profile functionality
-    console.log('Edit profile clicked - Coming soon!');
-  }
-
-  // Additional methods for profile management
-  async onUpdateProfile(updates: Partial<ProfileEntity>): Promise<void> {
-    const currentProfile = this.profile();
-    if (!currentProfile) {
-      console.warn('No profile available to update');
-      return;
-    }
-
-    try {
-      const updatedProfile = { ...currentProfile, ...updates };
-      await this.profileStore.updateProfile(currentProfile.id, updatedProfile);
-      console.log('Profile updated successfully');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-    }
-  }
-
-  async onDeleteProfile(): Promise<void> {
-    const currentProfile = this.profile();
-    if (!currentProfile) {
-      console.warn('No profile available to delete');
-      return;
-    }
-
-    if (confirm('¿Estás seguro de que deseas eliminar este perfil? Esta acción no se puede deshacer.')) {
-      try {
-        await this.profileStore.deleteProfile(currentProfile.id);
-        console.log('Profile deleted successfully');
-      } catch (error) {
-        console.error('Error deleting profile:', error);
-      }
-    }
-  }
-
-  protected readonly GenderEnum = GenderEnum;
 }

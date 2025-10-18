@@ -1,2 +1,2 @@
 export { AuthStore } from './auth.store';
-export { ProfileStore } from './profile.store';
+export { MyProfileStore } from './my-profile.store';
