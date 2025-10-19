@@ -50,9 +50,9 @@ export class ProjectService extends BaseService {
     );
   }
 
-  update(projectId: string, entity: ProjectEntity): Observable<ProjectEntity> {
+  update(entity: ProjectEntity): Observable<ProjectEntity> {
     const request: UpdateProjectRequest = UpdateProjectRequestFromEntityMapper.fromEntityToDto(entity);
-    return this.http.put<ProjectResponseDto>(`${this.resourcePath()}/${projectId}`, request, this.httpOptions).pipe(
+    return this.http.put<ProjectResponseDto>(`${this.resourcePath()}/${entity.id}`, request, this.httpOptions).pipe(
       map((response: ProjectResponseDto) => ProjectEntityFromResponseMapper.fromDtoToEntity(response)),
       retry(2),
       catchError(this.handleError)

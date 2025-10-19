@@ -1,44 +1,78 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { ProjectsStore } from '../../model/projects.store';
-import { ProjectStatusEnum } from '../../../../entities/project/model/project-status.enum';
-import { Ripple } from 'primeng/ripple';
 import { FormsModule } from '@angular/forms';
-import {ProjectBanner} from '../project-banner/project-banner';
+import { Router } from '@angular/router';
+import { Ripple } from 'primeng/ripple';
+import {ProjectCardComponent} from '../project-card/project-card.component';
+import {FilterDrawerComponent} from '../filter-drawer/filter-drawer.component';
+import {ProjectsStore} from '../../model/projects.store';
+import {ProjectStatusEnum} from '../../../../entities/project/model/project-status.enum';
+import {EquipmentTypeEnum} from '../../../../shared/model';
 
 @Component({
   selector: 'app-projects',
-  imports: [CommonModule, Ripple, FormsModule, ProjectBanner],
   standalone: true,
+  imports: [CommonModule, FormsModule, Ripple, ProjectCardComponent, FilterDrawerComponent],
   templateUrl: './projects.page.html'
 })
-export class ProjectsPage implements OnInit, OnDestroy {
+export class ProjectsPage implements OnInit {
   readonly store = inject(ProjectsStore);
   private readonly router = inject(Router);
 
-  // UI state - SOLO estado de UI
-  readonly searchQuery = signal('');
+  // UI State
+  readonly filterDrawerVisible = signal(false);
 
-  // Computed - Proyectos filtrados
-  readonly filteredProjects = computed(() => {
-    return this.store.filteredProjects();
-  });
+  // Search
+  searchQuery = '';
+
+  // Expose enums
+  readonly ProjectStatusEnum = ProjectStatusEnum;
 
   ngOnInit(): void {
-    this.loadProjects();
-  }
-
-  ngOnDestroy(): void {
-    // Cleanup si es necesario
-  }
-
-  loadProjects(): void {
     this.store.loadAllData();
   }
 
-  onProjectSelect(projectId: string): void {
-    this.store.selectProject(projectId);
+  // ==================== SEARCH ====================
+
+  onSearchChange(value: string): void {
+    this.searchQuery = value;
+    this.store.setSearchQuery(value);
+  }
+
+  // ==================== FILTERS ====================
+
+  onOpenFilters(): void {
+    this.filterDrawerVisible.set(true);
+  }
+
+  onFilterDrawerVisibleChange(visible: boolean): void {
+    this.filterDrawerVisible.set(visible);
+  }
+
+  onStatusFilterChange(status: ProjectStatusEnum | null): void {
+    this.store.setStatusFilter(status);
+  }
+
+  onClientFilterChange(clientId: string | null): void {
+    this.store.setClientFilter(clientId);
+  }
+
+  onEquipmentTypeFilterChange(equipmentType: EquipmentTypeEnum | null): void {
+    this.store.setEquipmentTypeFilter(equipmentType);
+  }
+
+  onClearFilters(): void {
+    this.store.clearFilters();
+  }
+
+  onApplyFilters(): void {
+    // Los filtros ya se aplicaron en tiempo real
+    // Este método es solo para cerrar el drawer
+  }
+
+  // ==================== ACTIONS ====================
+
+  onProjectClick(projectId: string): void {
     this.router.navigate(['/projects', projectId]).then(() => {});
   }
 
@@ -46,75 +80,27 @@ export class ProjectsPage implements OnInit, OnDestroy {
     this.router.navigate(['/projects/new']).then(() => {});
   }
 
-  onEditProject(projectId: string, event: Event): void {
-    event.stopPropagation();
-    this.router.navigate(['/projects', projectId, 'edit']).then(() => {});
-  }
-
   onRefresh(): void {
-    this.searchQuery.set('');
-    this.store.clearFilters();
     this.store.loadAllData();
   }
 
-  onSearchChange(value: string): void {
-    this.searchQuery.set(value);
-    this.store.setSearchQuery(value);
+  // ==================== HELPERS ====================
+
+  hasActiveFilters(): boolean {
+    return this.store.selectedStatus() !== null ||
+      this.store.selectedClientId() !== null ||
+      this.store.selectedEquipmentType() !== null;
   }
 
-  clearSearch(): void {
-    this.searchQuery.set('');
-    this.store.setSearchQuery('');
+  getActiveFiltersCount(): number {
+    let count = 0;
+    if (this.store.selectedStatus() !== null) count++;
+    if (this.store.selectedClientId() !== null) count++;
+    if (this.store.selectedEquipmentType() !== null) count++;
+    return count;
   }
 
-  onStatusFilterChange(status: ProjectStatusEnum | null): void {
-    this.store.setStatusFilter(status);
-  }
-
-  clearStatusFilter(): void {
-    this.store.setStatusFilter(null);
-  }
-
-  getStatusClass(status: ProjectStatusEnum): string {
-    switch (status) {
-      case ProjectStatusEnum.IN_PROGRESS:
-        return 'bg-green-100 text-green-800';
-      case ProjectStatusEnum.COMPLETED:
-        return 'bg-blue-100 text-blue-800';
-      case ProjectStatusEnum.CANCELLED:
-        return 'bg-red-100 text-red-800';
-      case ProjectStatusEnum.ON_HOLD:
-        return 'bg-yellow-100 text-yellow-800';
-      case ProjectStatusEnum.PLANNED:
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  }
-
-  getStatusIcon(status: ProjectStatusEnum): string {
-    switch (status) {
-      case ProjectStatusEnum.IN_PROGRESS:
-        return 'pi-check-circle';
-      case ProjectStatusEnum.COMPLETED:
-        return 'pi-check';
-      case ProjectStatusEnum.CANCELLED:
-        return 'pi-times-circle';
-      case ProjectStatusEnum.ON_HOLD:
-        return 'pi-pause-circle';
-      case ProjectStatusEnum.PLANNED:
-        return 'pi-clock';
-      default:
-        return 'pi-question-circle';
-    }
-  }
-
-  formatDate(date: Date | null): string {
-    if (!date) return 'No definida';
-    return new Intl.DateTimeFormat('es-PE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).format(new Date(date));
+  getStatusCount(status: ProjectStatusEnum): number {
+    return this.store.projectsCountByStatus()[status] || 0;
   }
 }

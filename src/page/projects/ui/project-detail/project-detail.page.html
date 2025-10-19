@@ -1,0 +1,424 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Hero Banner (si existe) -->
+  @if (store.hasBanner() && store.bannerUrl()) {
+    <div class="relative h-64 w-full overflow-hidden bg-gray-900 lg:h-80">
+      @if (store.isLoadingBanner()) {
+        <div class="flex h-full items-center justify-center">
+          <i class="pi pi-spinner pi-spin text-4xl text-white"></i>
+        </div>
+      } @else {
+        <img
+          [src]="store.bannerUrl()"
+          alt="Banner del proyecto"
+          class="h-full w-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+      }
+    </div>
+  }
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Back Button & Actions -->
+      <div class="mb-4 flex items-center justify-between gap-4">
+        <button
+          pRipple
+          type="button"
+          (click)="onBack()"
+          class="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+          <i class="pi pi-arrow-left text-sm"></i>
+          <span>Volver a Proyectos</span>
+        </button>
+
+        @if (store.hasProject() && !store.isLoading()) {
+          <div class="flex items-center gap-2">
+            <button
+              pRipple
+              type="button"
+              (click)="onRefresh()"
+              [disabled]="store.isLoading()"
+              class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+              @if (store.isLoading()) {
+                <i class="pi pi-spinner pi-spin text-base"></i>
+              } @else {
+                <i class="pi pi-refresh text-base"></i>
+              }
+            </button>
+
+            <!-- Botón Editar (Principal) -->
+            <button
+              pRipple
+              type="button"
+              (click)="onEdit()"
+              class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+              <i class="pi pi-pencil text-sm"></i>
+              <span class="hidden sm:inline">Editar</span>
+            </button>
+
+            <!-- Menú "Más opciones" -->
+            <button
+              #moreActionsBtn
+              pRipple
+              type="button"
+              (click)="toggleActionsMenu($event, moreActionsMenu)"
+              class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+              <span class="hidden sm:inline">Más acciones</span>
+              <span class="sm:hidden">Acciones</span>
+              <i class="pi pi-chevron-down text-xs"></i>
+            </button>
+
+            <p-menu
+              #moreActionsMenu
+              [model]="moreActionsItems"
+              [popup]="true"
+              appendTo="body">
+            </p-menu>
+          </div>
+        }
+      </div>
+
+      <!-- Title & Status -->
+      @if (store.hasProject() && !store.isLoading()) {
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div class="flex-1">
+            <div class="flex items-start gap-3">
+              <div>
+                <p class="font-mono text-xs font-medium text-gray-500">
+                  {{ store.project()!.code }}
+                </p>
+                <h1 class="mt-1 text-2xl font-bold text-gray-900 lg:text-3xl">
+                  {{ store.project()!.name }}
+                </h1>
+              </div>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <!-- Status Badge -->
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold"
+                [ngClass]="store.statusColor()">
+                <i class="pi text-xs" [ngClass]="store.statusIcon()"></i>
+                {{ store.statusLabel() }}
+              </span>
+
+              <!-- Equipment Types -->
+              @for (equipment of store.equipmentTypeLabels(); track equipment.type) {
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
+                  <span>{{ equipment.icon }}</span>
+                  {{ equipment.label }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="grid gap-6 lg:grid-cols-2">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="space-y-4">
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200"></div>
+                <div class="space-y-3">
+                  <div class="h-3 w-full animate-pulse rounded bg-gray-200"></div>
+                  <div class="h-3 w-4/5 animate-pulse rounded bg-gray-200"></div>
+                  <div class="h-3 w-3/5 animate-pulse rounded bg-gray-200"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      @else if (store.hasProject()) {
+        <div class="grid gap-6 lg:grid-cols-2">
+
+          <!-- Card: Información del Proyecto -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-info-circle text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Información del Proyecto
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <dl class="space-y-4">
+                <!-- Código -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Código
+                  </dt>
+                  <dd class="mt-1 font-mono text-base font-semibold text-gray-900">
+                    {{ store.project()!.code }}
+                  </dd>
+                </div>
+
+                <!-- Descripción -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Descripción
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-700 leading-relaxed">
+                    {{ store.project()!.description }}
+                  </dd>
+                </div>
+
+                <!-- Estado -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Estado Actual
+                  </dt>
+                  <dd class="mt-1">
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold"
+                      [ngClass]="store.statusColor()">
+                      <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+                      {{ store.statusLabel() }}
+                    </span>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <!-- Card: Cliente Asociado -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-building text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Cliente Asociado
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              @if (store.isLoadingClient()) {
+                <div class="flex items-center justify-center py-8">
+                  <i class="pi pi-spinner pi-spin text-2xl text-gray-400"></i>
+                </div>
+              } @else if (store.client()) {
+                <dl class="space-y-4">
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Nombre del Cliente
+                    </dt>
+                    <dd class="mt-1 text-base font-semibold text-gray-900">
+                      {{ store.client()!.name }}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      ID del Cliente
+                    </dt>
+                    <dd class="mt-1 font-mono text-xs text-gray-600">
+                      {{ store.client()!.id }}
+                    </dd>
+                  </div>
+                </dl>
+              } @else {
+                <div class="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                  <p class="text-sm text-amber-800">
+                    <i class="pi pi-exclamation-triangle mr-2"></i>
+                    No se pudo cargar la información del cliente
+                  </p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Card: Configuración -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-cog text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Configuración
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <dl class="space-y-4">
+                <!-- Tipos de Equipo -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Tipos de Equipo Permitidos
+                  </dt>
+                  <dd class="mt-2 flex flex-wrap gap-2">
+                    @for (equipment of store.equipmentTypeLabels(); track equipment.type) {
+                      <span class="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1.5 text-sm font-semibold text-sky-700">
+                        <span class="text-base">{{ equipment.icon }}</span>
+                        {{ equipment.label }}
+                      </span>
+                    }
+                  </dd>
+                </div>
+
+                <!-- Banner -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Banner
+                  </dt>
+                  <dd class="mt-1">
+                    @if (store.hasBanner()) {
+                      <span class="inline-flex items-center gap-1.5 text-sm text-gray-700">
+                        <i class="pi pi-check-circle text-green-600"></i>
+                        Banner configurado
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1.5 text-sm text-gray-500">
+                        <i class="pi pi-times-circle"></i>
+                        Sin banner
+                      </span>
+                    }
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <!-- Card: Fechas -->
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-calendar text-lg text-sky-600"></i>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900">
+                  Fechas del Proyecto
+                </h2>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <dl class="space-y-4">
+                <!-- Fecha de Inicio -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Fecha de Inicio
+                  </dt>
+                  <dd class="mt-1 flex items-center gap-2 text-sm text-gray-700">
+                    <i class="pi pi-calendar text-xs text-gray-400"></i>
+                    {{ formatDate(store.project()!.startAt) }}
+                  </dd>
+                </div>
+
+                <!-- Fecha de Finalización -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Fecha de Finalización
+                  </dt>
+                  <dd class="mt-1 flex items-center gap-2 text-sm text-gray-700">
+                    <i class="pi pi-calendar text-xs text-gray-400"></i>
+                    {{ formatDate(store.project()!.completionAt) }}
+                  </dd>
+                </div>
+
+                <!-- Fecha de Cancelación -->
+                @if (store.project()!.cancelledAt) {
+                  <div>
+                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Fecha de Cancelación
+                    </dt>
+                    <dd class="mt-1 flex items-center gap-2 text-sm text-red-700">
+                      <i class="pi pi-times-circle text-xs text-red-600"></i>
+                      {{ formatDate(store.project()!.cancelledAt) }}
+                    </dd>
+                  </div>
+                }
+              </dl>
+            </div>
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </main>
+
+  <!-- Modal de Confirmación de Eliminación -->
+  @if (showDeleteConfirm()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
+      <div class="w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+        <div class="border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+              <i class="pi pi-exclamation-triangle text-2xl text-red-600"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                Eliminar Proyecto
+              </h3>
+              <p class="mt-0.5 text-sm text-gray-600">
+                Esta acción no se puede deshacer
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <p class="text-sm text-gray-700">
+            ¿Estás seguro que deseas eliminar el proyecto <strong>{{ store.project()!.name }}</strong>?
+            Todos los datos asociados se perderán permanentemente.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 border-t border-gray-200 p-4">
+          <button
+            pRipple
+            type="button"
+            (click)="onCancelDelete()"
+            class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+            Cancelar
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onConfirmDelete()"
+            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+            <i class="pi pi-trash mr-2"></i>
+            Eliminar Proyecto
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
