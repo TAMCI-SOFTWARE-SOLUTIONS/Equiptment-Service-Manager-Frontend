@@ -58,7 +58,7 @@ export const EquipmentDetailStore = signalStore(
     equipmentTypeLabel: computed(() => {
       const equipment = state.equipment();
       if (!equipment) return '';
-      return equipment.type === EquipmentTypeEnum.CABINET ? 'Gabinete' : 'Panel';
+      return equipment.type === EquipmentTypeEnum.CABINET ? 'Gabinete' : 'Tablero';
     }),
 
     /**
