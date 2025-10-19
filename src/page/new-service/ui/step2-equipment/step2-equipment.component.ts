@@ -11,6 +11,7 @@ import { Drawer } from 'primeng/drawer';
 import { MultiSelect } from 'primeng/multiselect';
 import {CreateServiceStore} from '../../model/store/create-service.store';
 import {PanelTypeEntity} from '../../../../entities/panel-type/model/panel-type.entity';
+import {PrimeTemplate} from 'primeng/api';
 
 @Component({
   selector: 'app-step2-equipment',
@@ -20,7 +21,8 @@ import {PanelTypeEntity} from '../../../../entities/panel-type/model/panel-type.
     FormsModule,
     Ripple,
     Drawer,
-    MultiSelect
+    MultiSelect,
+    PrimeTemplate
   ],
   templateUrl: './step2-equipment.component.html'
 })
