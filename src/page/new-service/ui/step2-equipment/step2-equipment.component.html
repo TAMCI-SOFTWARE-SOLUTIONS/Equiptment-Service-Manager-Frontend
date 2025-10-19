@@ -2,10 +2,10 @@
 
   <div class="text-center">
     <h2 class="text-xl font-semibold text-gray-900">
-      Seleccionar Equipo
+      Seleccionar {{ store.projectAllowedEquipmentTypeLabel() }}
     </h2>
     <p class="mt-2 text-sm text-gray-600">
-      Elige el equipo para el servicio de {{ store.serviceTypeLabel() }}
+      Elige el {{ store.projectAllowedEquipmentTypeLabel().toLowerCase() }} para el servicio de {{ store.serviceTypeLabel() }}
     </p>
   </div>
 
