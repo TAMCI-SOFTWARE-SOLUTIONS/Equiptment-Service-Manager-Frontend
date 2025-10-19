@@ -144,12 +144,12 @@ export const routes: Routes = [
       {
         path: 'projects/new',
         title: 'Nuevo Proyecto',
-        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectNewPage)
+        loadComponent: () => import('../page/projects/ui/project-form/project-form.page').then(m => m.ProjectFormPage)
       },
       {
-        path: 'projects/:projectId',
+        path: 'projects/:projectId/edit',
         title: 'Editar Proyecto',
-        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectEditPage)
+        loadComponent: () => import('../page/projects/ui/project-form/project-form.page').then(m => m.ProjectFormPage)
       },
 
       // ==================== REPORTS ====================
@@ -248,7 +248,7 @@ export const routes: Routes = [
         title: 'Protocolos de Comunicación',
         loadComponent: () => import('../page/communication-protocols/ui/communication-protocols/communication-protocols.page').then(m => m.CommunicationProtocolsPage)
       },
-      
+
       // ==================== POWER DISTRIBUTIONS PANELS ====================
       {
         path: 'power-distribution-panels',
