@@ -1,97 +1,194 @@
-import {computed, inject} from '@angular/core';
-import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
-import {ProjectService} from '../../../entities/project/api';
-import {ClientService} from '../../../entities/client/api';
-import {ClientEntity} from '../../../entities/client/model';
-import {EquipmentTypeEnum} from '../../../shared/model';
-import {firstValueFrom} from 'rxjs';
-import {ProjectEntity} from '../../../entities/project/model/project.entity';
-import {ProjectStatusEnum} from '../../../entities/project/model/project-status.enum';
-import {FileService} from '../../../entities/file/api/file.service';
+import { computed, inject } from '@angular/core';
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { ProjectService } from '../../../entities/project/api';
+import { ClientService } from '../../../entities/client/api';
+import { FileService } from '../../../entities/file/api/file.service';
+import { ProjectEntity } from '../../../entities/project/model/project.entity';
+import { ProjectStatusEnum } from '../../../entities/project/model/project-status.enum';
+import { EquipmentTypeEnum } from '../../../shared/model';
+import { ClientEntity } from '../../../entities/client/model';
+import { firstValueFrom } from 'rxjs';
 
 export interface ProjectFormData {
   name: string;
   code: string;
   description: string;
-  clientId: string;
-  bannerFile: File | null;
-  allowedEquipmentTypes: EquipmentTypeEnum[];
+  clientId: string | null;
+  //allowedEquipmentTypes: EquipmentTypeEnum[];
+  allowedEquipmentType: EquipmentTypeEnum | null;
   startAt: Date | null;
   completionAt: Date | null;
+  bannerFile: File | null;
 }
 
 export interface ProjectFormState {
+  // Stepper
+  currentStep: number;
+  totalSteps: number;
+
+  // Form data
   formData: ProjectFormData;
-  bannerPreview: string | null;
+
+  // Clients
   clients: ClientEntity[];
-  isSubmitting: boolean;
+  isLoadingClients: boolean;
+
+  // Banner
+  bannerId: string | null;
+  bannerPreviewUrl: string | null;
   isUploadingBanner: boolean;
-  error: string | null;
+
+  // Loading & submission
+  isSubmitting: boolean;
+
+  // Validation
   validationErrors: {
     name?: string;
     code?: string;
     description?: string;
     clientId?: string;
-    allowedEquipmentTypes?: string;
-    banner?: string;
+    allowedEquipmentType?: string;
+    startAt?: string;
+    completionAt?: string;
+    bannerFile?: string;
   };
+
+  error: string | null;
 }
 
 const initialState: ProjectFormState = {
+  currentStep: 1,
+  totalSteps: 2,
   formData: {
     name: '',
     code: '',
     description: '',
-    clientId: '',
-    bannerFile: null,
-    allowedEquipmentTypes: [],
+    clientId: null,
+    allowedEquipmentType: null,
+    //allowedEquipmentTypes: [],
     startAt: null,
-    completionAt: null
+    completionAt: null,
+    bannerFile: null
   },
-  bannerPreview: null,
   clients: [],
-  isSubmitting: false,
+  isLoadingClients: false,
+  bannerId: null,
+  bannerPreviewUrl: null,
   isUploadingBanner: false,
-  error: null,
-  validationErrors: {}
+  isSubmitting: false,
+  validationErrors: {},
+  error: null
 };
 
 export const ProjectFormStore = signalStore(
-  { providedIn: 'root' },
   withState<ProjectFormState>(initialState),
 
   withComputed((state) => ({
-    isFormValid: computed(() => {
+    /**
+     * Validación Step 1
+     */
+    isStep1Valid: computed(() => {
+      const data = state.formData();
       const errors = state.validationErrors();
-      const formData = state.formData();
-      return formData.name.trim().length >= 3 &&
-             formData.code.trim().length >= 2 &&
-             formData.description.trim().length >= 10 &&
-             formData.clientId.trim().length > 0 &&
-             formData.allowedEquipmentTypes.length > 0 &&
-             Object.keys(errors).length === 0;
+
+      return data.name.trim().length >= 3 &&
+        data.code.trim().length === 10 &&
+        data.description.trim().length >= 10 &&
+        data.clientId !== null &&
+        !errors.name &&
+        !errors.code &&
+        !errors.description &&
+        !errors.clientId;
     }),
 
-    isLoading: computed(() =>
-      state.isSubmitting() || state.isUploadingBanner()
-    ),
-
-    canSubmit: computed(() => {
+    /**
+     * Validación Step 2
+     */
+    isStep2Valid: computed(() => {
+      const data = state.formData();
       const errors = state.validationErrors();
-      const formData = state.formData();
-      return formData.name.trim().length >= 3 &&
-        formData.code.trim().length >= 2 &&
-        formData.description.trim().length >= 10 &&
-        formData.clientId.trim().length > 0 &&
-        formData.allowedEquipmentTypes.length > 0 &&
-        Object.keys(errors).length === 0 &&
+
+      return data.allowedEquipmentType !== null &&
+        !errors.allowedEquipmentType &&
+        !errors.bannerFile;
+    }),
+
+    /**
+     * Puede avanzar al siguiente step
+     */
+    canGoNext: computed(() => {
+      const currentStep = state.currentStep();
+      const data = state.formData();
+      const errors = state.validationErrors();
+
+      if (currentStep === 1) {
+        // Duplicar lógica de isStep1Valid
+        return data.name.trim().length >= 3 &&
+          data.code.trim().length === 10 &&
+          data.description.trim().length >= 10 &&
+          data.clientId !== null &&
+          !errors.name &&
+          !errors.code &&
+          !errors.description &&
+          !errors.clientId;
+      }
+
+      return false;
+    }),
+
+    /**
+     * Puede enviar el formulario
+     */
+    canSubmit: computed(() => {
+      const data = state.formData();
+      const errors = state.validationErrors();
+
+      // Duplicar lógica de isStep1Valid
+      const step1Valid = data.name.trim().length >= 3 &&
+        data.code.trim().length === 10 &&
+        data.description.trim().length >= 10 &&
+        data.clientId !== null &&
+        !errors.name &&
+        !errors.code &&
+        !errors.description &&
+        !errors.clientId;
+
+      // Duplicar lógica de isStep2Valid
+      const step2Valid = data.allowedEquipmentType != null &&
+        !errors.allowedEquipmentType &&
+        !errors.bannerFile;
+
+      return step1Valid &&
+        step2Valid &&
         !state.isSubmitting() &&
         !state.isUploadingBanner();
     }),
 
-    selectedClient: computed(() => {
-      const clientId = state.formData().clientId;
-      return clientId ? state.clients().find(client => client.id === clientId) || null : null;
+    /**
+     * Progreso del stepper
+     */
+    progress: computed(() => (state.currentStep() / state.totalSteps()) * 100),
+
+    /**
+     * Título del step actual
+     */
+    currentStepTitle: computed(() => {
+      const titles: Record<number, string> = {
+        1: 'Información del Proyecto',
+        2: 'Configuración'
+      };
+      return titles[state.currentStep()] || '';
+    }),
+
+    /**
+     * Descripción del step actual
+     */
+    currentStepDescription: computed(() => {
+      const descriptions: Record<number, string> = {
+        1: 'Datos básicos y cliente asociado',
+        2: 'Tipo de equipo y banner'
+      };
+      return descriptions[state.currentStep()] || '';
     })
   })),
 
@@ -102,25 +199,66 @@ export const ProjectFormStore = signalStore(
 
     return {
       /**
-       * Cargar clientes disponibles
+       * Inicializar formulario
        */
-      loadClients(): void {
-        clientService.getAll().subscribe({
-          next: (clients: ClientEntity[]) => {
-            patchState(store, { clients });
-          },
-          error: (error: any) => {
-            console.error('❌ Error al cargar clientes:', error);
-            patchState(store, {
-              error: 'Error al cargar la lista de clientes'
-            });
-          }
-        });
+      async initialize(): Promise<void> {
+        patchState(store, initialState);
+        await this.loadClients();
       },
 
       /**
-       * Actualizar nombre del proyecto
+       * Cargar clientes
        */
+      async loadClients(): Promise<void> {
+        patchState(store, { isLoadingClients: true });
+
+        try {
+          const clients = await firstValueFrom(clientService.getAll());
+
+          patchState(store, {
+            clients: clients.sort((a, b) => a.name.localeCompare(b.name)),
+            isLoadingClients: false
+          });
+
+        } catch (error: any) {
+          console.error('❌ Error loading clients:', error);
+          patchState(store, {
+            clients: [],
+            isLoadingClients: false
+          });
+        }
+      },
+
+      // ==================== NAVIGATION ====================
+
+      goToNextStep(): void {
+        const currentStep = store.currentStep();
+
+        if (currentStep < store.totalSteps() && store.canGoNext()) {
+          patchState(store, {
+            currentStep: currentStep + 1
+          });
+        }
+      },
+
+      goToPreviousStep(): void {
+        const currentStep = store.currentStep();
+
+        if (currentStep > 1) {
+          patchState(store, {
+            currentStep: currentStep - 1
+          });
+        }
+      },
+
+      goToStep(step: number): void {
+        if (step >= 1 && step <= store.totalSteps()) {
+          patchState(store, { currentStep: step });
+        }
+      },
+
+      // ==================== SETTERS ====================
+
       setName(name: string): void {
         patchState(store, (state) => ({
           formData: { ...state.formData, name }
@@ -128,59 +266,16 @@ export const ProjectFormStore = signalStore(
         this.validateName(name);
       },
 
-      /**
-       * Validar nombre
-       */
-      validateName(name: string): void {
-        const errors = { ...store.validationErrors() };
-
-        if (!name.trim()) {
-          errors.name = 'El nombre es requerido';
-        } else if (name.trim().length < 3) {
-          errors.name = 'El nombre debe tener al menos 3 caracteres';
-        } else if (name.trim().length > 100) {
-          errors.name = 'El nombre no puede exceder 100 caracteres';
-        } else {
-          delete errors.name;
-        }
-
-        patchState(store, { validationErrors: errors });
-      },
-
-      /**
-       * Actualizar código del proyecto
-       */
       setCode(code: string): void {
+        // Convertir a mayúsculas y limpiar
+        const cleanCode = code.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+
         patchState(store, (state) => ({
-          formData: { ...state.formData, code }
+          formData: { ...state.formData, code: cleanCode }
         }));
-        this.validateCode(code);
+        this.validateCode(cleanCode);
       },
 
-      /**
-       * Validar código
-       */
-      validateCode(code: string): void {
-        const errors = { ...store.validationErrors() };
-
-        if (!code.trim()) {
-          errors.code = 'El código es requerido';
-        } else if (code.trim().length < 2) {
-          errors.code = 'El código debe tener al menos 2 caracteres';
-        } else if (code.trim().length > 20) {
-          errors.code = 'El código no puede exceder 20 caracteres';
-        } else if (!/^[A-Z0-9-]+$/.test(code.trim())) {
-          errors.code = 'El código solo puede contener letras mayúsculas, números y guiones';
-        } else {
-          delete errors.code;
-        }
-
-        patchState(store, { validationErrors: errors });
-      },
-
-      /**
-       * Actualizar descripción del proyecto
-       */
       setDescription(description: string): void {
         patchState(store, (state) => ({
           formData: { ...state.formData, description }
@@ -188,18 +283,131 @@ export const ProjectFormStore = signalStore(
         this.validateDescription(description);
       },
 
-      /**
-       * Validar descripción
-       */
+      setClientId(clientId: string | null): void {
+        patchState(store, (state) => ({
+          formData: { ...state.formData, clientId }
+        }));
+        this.validateClientId(clientId);
+      },
+
+      setAllowedEquipmentType(equipmentType: EquipmentTypeEnum | null): void {
+        patchState(store, (state) => ({
+          formData: { ...state.formData, allowedEquipmentType: equipmentType }
+        }));
+        this.validateEquipmentType(equipmentType);
+      },
+
+      setStartAt(date: Date | null): void {
+        patchState(store, (state) => ({
+          formData: { ...state.formData, startAt: date }
+        }));
+        this.validateStartAt(date);
+      },
+
+      setCompletionAt(date: Date | null): void {
+        patchState(store, (state) => ({
+          formData: { ...state.formData, completionAt: date }
+        }));
+        this.validateCompletionAt(date, store.formData().startAt);
+      },
+
+      async setBannerFile(file: File | null): Promise<void> {
+        if (!file) {
+          patchState(store, (state) => ({
+            formData: { ...state.formData, bannerFile: null },
+            bannerPreviewUrl: null,
+            bannerId: null
+          }));
+          return;
+        }
+
+        // Validar tamaño (máx 5MB)
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+          const errors = { ...store.validationErrors() };
+          errors.bannerFile = 'El banner no puede superar 5MB';
+          patchState(store, { validationErrors: errors });
+          return;
+        }
+
+        // Validar tipo
+        if (!file.type.startsWith('image/')) {
+          const errors = { ...store.validationErrors() };
+          errors.bannerFile = 'Solo se permiten imágenes';
+          patchState(store, { validationErrors: errors });
+          return;
+        }
+
+        // Clear error
+        const errors = { ...store.validationErrors() };
+        delete errors.bannerFile;
+
+        // Preview URL
+        const previewUrl = URL.createObjectURL(file);
+
+        patchState(store, (state) => ({
+          formData: { ...state.formData, bannerFile: file },
+          bannerPreviewUrl: previewUrl,
+          validationErrors: errors
+        }));
+      },
+
+      clearBanner(): void {
+        // Revoke preview URL
+        if (store.bannerPreviewUrl()) {
+          URL.revokeObjectURL(store.bannerPreviewUrl()!);
+        }
+
+        patchState(store, (state) => ({
+          formData: { ...state.formData, bannerFile: null },
+          bannerPreviewUrl: null,
+          bannerId: null
+        }));
+      },
+
+      // ==================== VALIDATIONS ====================
+
+      validateName(name: string): void {
+        const errors = { ...store.validationErrors() };
+
+        if (!name.trim()) {
+          errors.name = 'El nombre del proyecto es requerido';
+        } else if (name.trim().length < 3) {
+          errors.name = 'Debe tener al menos 3 caracteres';
+        } else if (name.trim().length > 100) {
+          errors.name = 'No puede exceder 100 caracteres';
+        } else {
+          delete errors.name;
+        }
+
+        patchState(store, { validationErrors: errors });
+      },
+
+      validateCode(code: string): void {
+        const errors = { ...store.validationErrors() };
+
+        if (!code.trim()) {
+          errors.code = 'El código del proyecto es requerido';
+        } else if (code.length !== 10) {
+          errors.code = 'El código debe tener exactamente 10 caracteres';
+        } else if (!/^[A-Z0-9-]+$/.test(code)) {
+          errors.code = 'Solo se permiten letras mayúsculas, números y guiones';
+        } else {
+          delete errors.code;
+        }
+
+        patchState(store, { validationErrors: errors });
+      },
+
       validateDescription(description: string): void {
         const errors = { ...store.validationErrors() };
 
         if (!description.trim()) {
           errors.description = 'La descripción es requerida';
         } else if (description.trim().length < 10) {
-          errors.description = 'La descripción debe tener al menos 10 caracteres';
+          errors.description = 'Debe tener al menos 10 caracteres';
         } else if (description.trim().length > 500) {
-          errors.description = 'La descripción no puede exceder 500 caracteres';
+          errors.description = 'No puede exceder 500 caracteres';
         } else {
           delete errors.description;
         }
@@ -207,24 +415,11 @@ export const ProjectFormStore = signalStore(
         patchState(store, { validationErrors: errors });
       },
 
-      /**
-       * Seleccionar cliente
-       */
-      setClientId(clientId: string): void {
-        patchState(store, (state) => ({
-          formData: { ...state.formData, clientId }
-        }));
-        this.validateClientId(clientId);
-      },
-
-      /**
-       * Validar cliente seleccionado
-       */
-      validateClientId(clientId: string): void {
+      validateClientId(clientId: string | null): void {
         const errors = { ...store.validationErrors() };
 
-        if (!clientId.trim()) {
-          errors.clientId = 'Debe seleccionar un cliente';
+        if (!clientId) {
+          errors.clientId = 'Debes seleccionar un cliente';
         } else {
           delete errors.clientId;
         }
@@ -232,151 +427,97 @@ export const ProjectFormStore = signalStore(
         patchState(store, { validationErrors: errors });
       },
 
-      /**
-       * Establecer tipos de equipo permitidos
-       */
-      setAllowedEquipmentTypes(equipmentTypes: EquipmentTypeEnum[]): void {
-        patchState(store, (state) => ({
-          formData: { ...state.formData, allowedEquipmentTypes: equipmentTypes }
-        }));
-        this.validateEquipmentTypes(equipmentTypes);
-      },
-
-      /**
-       * Validar tipos de equipo
-       */
-      validateEquipmentTypes(equipmentTypes: EquipmentTypeEnum[]): void {
+      validateEquipmentType(equipmentType: EquipmentTypeEnum | null): void {
         const errors = { ...store.validationErrors() };
 
-        if (equipmentTypes.length === 0) {
-          errors.allowedEquipmentTypes = 'Debe seleccionar al menos un tipo de equipo';
+        if (!equipmentType) {
+          errors.allowedEquipmentType = 'Debes seleccionar un tipo de equipo';
         } else {
-          delete errors.allowedEquipmentTypes;
+          delete errors.allowedEquipmentType;
+        }
+
+        patchState(store, { validationErrors: errors });
+      },
+
+      validateStartAt(date: Date | null): void {
+        const errors = { ...store.validationErrors() };
+
+        // startAt es opcional, solo validar si existe
+        if (date) {
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+
+          if (date < now) {
+            errors.startAt = 'La fecha de inicio no puede ser anterior a hoy';
+          } else {
+            delete errors.startAt;
+          }
+        } else {
+          delete errors.startAt;
+        }
+
+        patchState(store, { validationErrors: errors });
+      },
+
+      validateCompletionAt(completionDate: Date | null, startDate: Date | null): void {
+        const errors = { ...store.validationErrors() };
+
+        // completionAt es opcional
+        if (completionDate) {
+          if (startDate && completionDate < startDate) {
+            errors.completionAt = 'La fecha de finalización debe ser posterior a la fecha de inicio';
+          } else {
+            delete errors.completionAt;
+          }
+        } else {
+          delete errors.completionAt;
         }
 
         patchState(store, { validationErrors: errors });
       },
 
       /**
-       * Establecer fecha de inicio
+       * TODO: Verificar disponibilidad del código
+       * Este método consultará al backend si el código está disponible
        */
-      setStartAt(startAt: Date | null): void {
-        patchState(store, (state) => ({
-          formData: { ...state.formData, startAt }
-        }));
+      async checkCodeAvailability(code: string): Promise<boolean> {
+        console.log('🚧 TODO: Implementar verificación de disponibilidad de código');
+        console.log('Código a verificar:', code);
+
+        // TODO: Implementar cuando el backend esté listo
+        // const isAvailable = await firstValueFrom(projectService.checkCodeAvailability(code));
+        // return isAvailable;
+
+        return true; // Por ahora siempre retorna disponible
       },
 
       /**
-       * Establecer fecha de finalización
+       * TODO: Generar código automático
+       * Este método generará un código único disponible
        */
-      setCompletionAt(completionAt: Date | null): void {
-        patchState(store, (state) => ({
-          formData: { ...state.formData, completionAt }
-        }));
+      async generateCode(): Promise<string | null> {
+        console.log('🚧 TODO: Implementar generación automática de código');
+
+        // TODO: Implementar cuando el backend esté listo
+        // const generatedCode = await firstValueFrom(projectService.generateCode());
+        // this.setCode(generatedCode);
+        // return generatedCode;
+
+        return null;
       },
 
-      /**
-       * Seleccionar archivo de banner
-       */
-      setBannerFile(file: File | null): void {
-        if (!file) {
-          this.clearBanner();
-          return;
-        }
+      // ==================== SUBMIT ====================
 
-        // Validar archivo
-        const validation = this.validateImageFile(file);
-        if (!validation.isValid) {
-          patchState(store, (state) => ({
-            validationErrors: { ...state.validationErrors, banner: validation.error }
-          }));
-          return;
-        }
+      async submit(): Promise<ProjectEntity | null> {
+        // Validar todo
+        this.validateName(store.formData().name);
+        this.validateCode(store.formData().code);
+        this.validateDescription(store.formData().description);
+        this.validateClientId(store.formData().clientId);
+        this.validateEquipmentType(store.formData().allowedEquipmentType);
+        this.validateStartAt(store.formData().startAt);
+        this.validateCompletionAt(store.formData().completionAt, store.formData().startAt);
 
-        // Limpiar error previo
-        patchState(store, (state) => {
-          const errors = { ...state.validationErrors };
-          delete errors.banner;
-          return {
-            formData: { ...state.formData, bannerFile: file },
-            validationErrors: errors
-          };
-        });
-
-        console.log(file);
-
-        // Generar preview
-        this.generatePreview(file);
-      },
-
-      /**
-       * Validar archivo de imagen
-       */
-      validateImageFile(file: File): { isValid: boolean; error?: string } {
-        // Validar tipo
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
-          return {
-            isValid: false,
-            error: 'Solo se permiten archivos JPG, PNG o WebP'
-          };
-        }
-
-        // Validar tamaño (5MB máximo)
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        if (file.size > maxSize) {
-          return {
-            isValid: false,
-            error: 'El archivo no debe superar los 5MB'
-          };
-        }
-
-        return { isValid: true };
-      },
-
-      /**
-       * Generar preview de imagen
-       */
-      generatePreview(file: File): void {
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-          const preview = e.target?.result as string;
-          patchState(store, { bannerPreview: preview });
-        };
-
-        reader.onerror = () => {
-          console.error('Error al leer archivo');
-        };
-
-        reader.readAsDataURL(file);
-      },
-
-      /**
-       * Limpiar banner
-       */
-      clearBanner(): void {
-        // Revocar URL de preview si existe
-        if (store.bannerPreview()) {
-          URL.revokeObjectURL(store.bannerPreview()!);
-        }
-
-        patchState(store, (state) => {
-          const errors = { ...state.validationErrors };
-          delete errors.banner;
-          return {
-            formData: { ...state.formData, bannerFile: null },
-            bannerPreview: null,
-            validationErrors: errors
-          };
-        });
-      },
-
-      /**
-       * Actualizar proyecto existente
-       */
-      async updateProject(projectId: string): Promise<ProjectEntity | null> {
-        // Validación final
         if (!store.canSubmit()) {
           return null;
         }
@@ -387,145 +528,73 @@ export const ProjectFormStore = signalStore(
         });
 
         try {
-          let bannerFileId: string | null = null;
+          let bannerId: string | null = null;
 
-          // 1. Subir banner si existe (si hay servicio de archivos)
+          // Upload banner if exists
           if (store.formData().bannerFile) {
-            // Por ahora, establecer bannerFileId como null
-            // Cuando esté disponible el servicio de archivos, implementar aquí
             patchState(store, { isUploadingBanner: true });
-            // bannerFileId = await this.uploadBannerFile();
-            patchState(store, { isUploadingBanner: false });
+
+            const uploadedFile = await firstValueFrom(
+              fileService.upload(store.formData().bannerFile!)
+            );
+
+            bannerId = uploadedFile.id;
+
+            patchState(store, {
+              bannerId,
+              isUploadingBanner: false
+            });
           }
 
+          // Create project
           const projectData: ProjectEntity = {
-            id: projectId,
+            id: '', // Backend generates
             name: store.formData().name.trim(),
             code: store.formData().code.trim(),
             description: store.formData().description.trim(),
-            clientId: store.formData().clientId,
-            bannerId: bannerFileId,
+            clientId: store.formData().clientId!,
+            bannerId,
+            allowedEquipmentTypes: [store.formData().allowedEquipmentType!],
+            status: ProjectStatusEnum.PLANNED,
             startAt: store.formData().startAt,
             completionAt: store.formData().completionAt,
-            cancelledAt: null,
-            status: store.formData().startAt ? ProjectStatusEnum.IN_PROGRESS : ProjectStatusEnum.PLANNED,
-            allowedEquipmentTypes: store.formData().allowedEquipmentTypes
+            cancelledAt: null
           };
 
-          const updatedProject = await firstValueFrom(projectService.update(projectId, projectData));
+          const result = await firstValueFrom(
+            projectService.create(projectData)
+          );
+
+          console.log('✅ Project created:', result);
 
           patchState(store, {
             isSubmitting: false,
             error: null
           });
 
-          // Limpiar formulario
-          this.resetForm();
-
-          return updatedProject!;
+          return result;
 
         } catch (error: any) {
-          console.error('❌ Error al actualizar proyecto:', error);
-
-          const errorMessage = error.message || 'Error al actualizar el proyecto. Inténtalo de nuevo.';
+          console.error('❌ Error creating project:', error);
 
           patchState(store, {
             isSubmitting: false,
             isUploadingBanner: false,
-            error: errorMessage
+            error: error.message || 'Error al crear el proyecto'
           });
 
           return null;
         }
       },
 
-      /**
-       * Subir proyecto (método original para crear)
-       */
-      async submitProject(): Promise<ProjectEntity | null> {
-        // Validación final
-        if (!store.canSubmit()) {
-          return null;
-        }
-
-        patchState(store, {
-          isSubmitting: true,
-          error: null
-        });
-
-        try {
-          let bannerFileId: string | null = null;
-
-          // 1. Subir banner si existe (si hay servicio de archivos)
-          if (store.formData().bannerFile) {
-            // Por ahora, establecer bannerFileId como null
-            // Cuando esté disponible el servicio de archivos, implementar aquí
-            patchState(store, {isUploadingBanner: true});
-
-            const bannerEntity = await firstValueFrom(fileService.upload(store.formData().bannerFile!));
-
-            bannerFileId = bannerEntity!.id;
-
-            patchState(store, { isUploadingBanner: false });
-          }
-
-          const projectData: ProjectEntity = {
-            id: '',
-            name: store.formData().name.trim(),
-            code: store.formData().code.trim(),
-            description: store.formData().description.trim(),
-            clientId: store.formData().clientId,
-            bannerId: bannerFileId,
-            startAt: store.formData().startAt,
-            completionAt: store.formData().completionAt,
-            cancelledAt: null,
-            status: store.formData().startAt ? ProjectStatusEnum.IN_PROGRESS: ProjectStatusEnum.PLANNED,
-            allowedEquipmentTypes: store.formData().allowedEquipmentTypes
-          };
-
-          const newProject = await firstValueFrom(projectService.create(projectData));
-
-          console.log(newProject);
-
-          patchState(store, {
-            isSubmitting: false,
-            error: null
-          });
-
-          // Limpiar formulario
-          this.resetForm();
-
-          return newProject!;
-
-        } catch (error: any) {
-          console.error('❌ Error al crear proyecto:', error);
-
-          const errorMessage = error.message || 'Error al crear el proyecto. Inténtalo de nuevo.';
-
-          patchState(store, {
-            isSubmitting: false,
-            isUploadingBanner: false,
-            error: errorMessage
-          });
-
-          return null;
-        }
-      },
-
-      /**
-       * Limpiar error
-       */
       clearError(): void {
         patchState(store, { error: null });
       },
 
-      /**
-       * Resetear formulario
-       */
-      resetForm(): void {
-        // Limpiar preview
-        if (store.bannerPreview()) {
-          URL.revokeObjectURL(store.bannerPreview()!);
+      reset(): void {
+        // Cleanup preview URL
+        if (store.bannerPreviewUrl()) {
+          URL.revokeObjectURL(store.bannerPreviewUrl()!);
         }
 
         patchState(store, initialState);
