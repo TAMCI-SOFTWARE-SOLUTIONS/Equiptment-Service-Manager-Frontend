@@ -147,7 +147,12 @@ export const routes: Routes = [
         loadComponent: () => import('../page/projects/ui/project-form/project-form.page').then(m => m.ProjectFormPage)
       },
       {
-        path: 'projects/:projectId/edit',
+        path: 'projects/:id',
+        title: 'Detalle Proyecto',
+        loadComponent: () => import('../page/projects/ui/project-detail/project-detail.page').then(m => m.ProjectDetailPage)
+      },
+      {
+        path: 'projects/:id/edit',
         title: 'Editar Proyecto',
         loadComponent: () => import('../page/projects/ui/project-form/project-form.page').then(m => m.ProjectFormPage)
       },
