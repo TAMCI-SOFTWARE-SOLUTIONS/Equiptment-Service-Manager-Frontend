@@ -6,7 +6,7 @@
       <div class="flex items-center justify-between gap-4">
         <div class="flex-1">
           <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
-            Nuevo Proyecto
+            {{ isEditMode ? 'Editar Proyecto' : 'Nuevo Proyecto' }}
           </h1>
           <p class="mt-1 text-sm text-gray-600">
             Paso {{ store.currentStep() }} de {{ store.totalSteps() }}
@@ -653,7 +653,7 @@
                       <span>{{ store.isUploadingBanner() ? 'Subiendo banner...' : 'Creando proyecto...' }}</span>
                     } @else {
                       <i class="pi pi-check text-sm"></i>
-                      <span>Crear Proyecto</span>
+                      <span>{{ isEditMode ? 'Guardar Cambios' : 'Crear Proyecto' }}</span>
                     }
                   </button>
                 }

@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import { Ripple } from 'primeng/ripple';
 import { Select } from 'primeng/select';
 import {ProjectFormStore} from '../../model/project-form.store';
@@ -24,9 +24,13 @@ export class ProjectFormPage implements OnInit, OnDestroy {
   readonly store = inject(ProjectFormStore);
   readonly projectsStore = inject(ProjectsStore);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   // Expose enum
   readonly EquipmentTypeEnum = EquipmentTypeEnum;
+
+  projectId: string | null = null;
+  isEditMode = false;
 
   // Opciones de tipo de equipo
   readonly equipmentTypes = [
@@ -46,6 +50,15 @@ export class ProjectFormPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.store.initialize();
+
+    // Detectar si es modo edición
+    this.projectId = this.route.snapshot.paramMap.get('id');
+    this.isEditMode = !!this.projectId;
+
+    // Sí es edición, cargar datos del proyecto
+    if (this.isEditMode && this.projectId) {
+      this.store.loadProjectForEdit(this.projectId);
+    }
   }
 
   ngOnDestroy(): void {
@@ -135,13 +148,28 @@ export class ProjectFormPage implements OnInit, OnDestroy {
   // ==================== SUBMIT ====================
 
   async onSubmit(): Promise<void> {
-    const result = await this.store.submit();
+    let result: any = null;
 
+    if (this.isEditMode && this.projectId) {
+      // Modo edición: actualizar
+      result = await this.store.update(this.projectId);
+
+      if (result) {
+        // Actualizar en el store principal
+        this.projectsStore.updateProject(result);
+      }
+    } else {
+      // Modo creación: crear nuevo
+      result = await this.store.submit();
+
+      if (result) {
+        // Agregar al store principal
+        this.projectsStore.addProject(result);
+      }
+    }
+
+    // Navegar al detalle si fue exitoso
     if (result) {
-      // Agregar al store principal
-      this.projectsStore.addProject(result);
-
-      // Navegar al detalle del proyecto
       this.router.navigate(['/projects', result.id]).then(() => {});
     }
   }
