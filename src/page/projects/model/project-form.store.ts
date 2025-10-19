@@ -53,6 +53,7 @@ export interface ProjectFormState {
     bannerFile?: string;
   };
 
+  isLoading: boolean;
   error: string | null;
 }
 
@@ -77,6 +78,7 @@ const initialState: ProjectFormState = {
   isUploadingBanner: false,
   isSubmitting: false,
   validationErrors: {},
+  isLoading: false,
   error: null
 };
 
@@ -226,6 +228,141 @@ export const ProjectFormStore = signalStore(
             clients: [],
             isLoadingClients: false
           });
+        }
+      },
+
+      /**
+       * Cargar proyecto existente para edición
+       */
+      async loadProjectForEdit(projectId: string): Promise<void> {
+        patchState(store, {
+          isLoading: true,
+          error: null
+        });
+
+        try {
+          const project = await firstValueFrom(projectService.getById(projectId));
+
+          console.log("Loaded project for edit:", project);
+
+          // Cargar banner preview si existe
+          let bannerPreviewUrl: string | null = null;
+          if (project.bannerId) {
+            try {
+              bannerPreviewUrl = await firstValueFrom(fileService.viewFileAsUrl(project.bannerId));
+            } catch (bannerError) {
+              console.warn('⚠️ No se pudo cargar el banner del proyecto:', bannerError);
+              // Continuar sin banner, no romper todo el flujo
+              bannerPreviewUrl = null;
+            }
+          }
+
+          // Poblar el formulario con los datos del proyecto
+          patchState(store, {
+            formData: {
+              name: project.name,
+              code: project.code,
+              description: project.description,
+              clientId: project.clientId,
+              allowedEquipmentType: project.allowedEquipmentTypes[0] || null,
+              startAt: project.startAt,
+              completionAt: project.completionAt,
+              bannerFile: null // No se puede pre-cargar el File
+            },
+            bannerId: project.bannerId,
+            bannerPreviewUrl,
+            isLoading: false,
+            error: null
+          });
+
+        } catch (error: any) {
+          console.error('❌ Error loading project for edit:', error);
+          patchState(store, {
+            isLoading: false,
+            error: error.message || 'Error al cargar el proyecto'
+          });
+        }
+      },
+
+      /**
+       * Actualizar proyecto existente
+       */
+      async update(projectId: string): Promise<ProjectEntity | null> {
+        // Validar todo
+        this.validateName(store.formData().name);
+        this.validateCode(store.formData().code);
+        this.validateDescription(store.formData().description);
+        this.validateClientId(store.formData().clientId);
+        this.validateEquipmentType(store.formData().allowedEquipmentType);
+        this.validateStartAt(store.formData().startAt);
+        this.validateCompletionAt(store.formData().completionAt, store.formData().startAt);
+
+        if (!store.canSubmit()) {
+          return null;
+        }
+
+        patchState(store, {
+          isSubmitting: true,
+          error: null
+        });
+
+        try {
+          let bannerId: string | null = store.bannerId();
+
+          // Upload nuevo banner si se seleccionó uno
+          if (store.formData().bannerFile) {
+            patchState(store, { isUploadingBanner: true });
+
+            const uploadedFile = await firstValueFrom(
+              fileService.upload(store.formData().bannerFile!)
+            );
+
+            bannerId = uploadedFile.id;
+
+            patchState(store, {
+              bannerId,
+              isUploadingBanner: false
+            });
+          }
+
+          // Update project
+          const projectData: ProjectEntity = {
+            id: projectId,
+            name: store.formData().name.trim(),
+            code: store.formData().code.trim(),
+            description: store.formData().description.trim(),
+            clientId: store.formData().clientId!,
+            bannerId,
+            allowedEquipmentTypes: [store.formData().allowedEquipmentType!],
+            status: ProjectStatusEnum.PLANNED, // El backend maneja el status
+            startAt: store.formData().startAt,
+            completionAt: store.formData().completionAt,
+            cancelledAt: null
+          };
+
+          const result = await firstValueFrom(
+            projectService.update(projectData)
+          );
+
+          console.log('✅ Project updated:', result);
+
+          patchState(store, {
+            isSubmitting: false,
+            error: null
+          });
+
+          return result;
+
+        } catch (error: any) {
+          console.error('❌ Error updating project:', error);
+
+          patchState(store, {
+            isSubmitting: false,
+            isUploadingBanner: false,
+            error: error.message || 'Error al actualizar el proyecto'
+          });
+
+          return null;
         }
       },
 
