@@ -303,6 +303,22 @@ export const routes: Routes = [
           }
         ]
       },
+      // --- Users Management ---
+      {
+        path: 'users',
+        title: 'Gestión de Usuarios',
+        loadComponent: () => import('../page/users/ui/users/users.page').then(m => m.UsersPage)
+      },
+      {
+        path: 'users/new',
+        title: 'Nuevo Usuario',
+        loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
+      },
+      {
+        path: 'users/:userId',
+        title: 'Editar Usuario',
+        loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
+      },
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
       {
@@ -313,23 +329,6 @@ export const routes: Routes = [
             path: '',
             redirectTo: 'users',
             pathMatch: 'full'
-          },
-
-          // --- Users Management ---
-          {
-            path: 'users',
-            title: 'Gestión de Usuarios',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminUsersPage)
-          },
-          {
-            path: 'users/new',
-            title: 'Nuevo Usuario',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
-          },
-          {
-            path: 'users/:userId',
-            title: 'Editar Usuario',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
           },
 
           // --- Clients Management (CRUD) ---
