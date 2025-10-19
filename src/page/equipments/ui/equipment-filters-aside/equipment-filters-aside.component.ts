@@ -14,8 +14,7 @@ import { Ripple } from 'primeng/ripple';
     @if (show) {
       <div
         class="fixed inset-0 z-40 bg-black/50 transition-opacity lg:hidden"
-        (click)="onClose.emit()"
-        [@fadeIn]>
+        (click)="onClose.emit()">
       </div>
     }
 
@@ -23,8 +22,7 @@ import { Ripple } from 'primeng/ripple';
     <aside
       class="fixed bottom-0 right-0 top-0 z-50 flex w-80 max-w-full flex-col bg-white shadow-xl transition-transform lg:hidden"
       [class.translate-x-0]="show"
-      [class.translate-x-full]="!show"
-      [@slideIn]>
+      [class.translate-x-full]="!show">
 
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-gray-200 p-4">

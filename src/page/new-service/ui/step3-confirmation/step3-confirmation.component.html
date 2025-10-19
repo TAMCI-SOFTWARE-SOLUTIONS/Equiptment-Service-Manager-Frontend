@@ -40,7 +40,7 @@
             <!-- Equipo -->
             <div>
               <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                Equipo Seleccionado
+                {{ store.projectAllowedEquipmentTypeLabel() }} Seleccionado
               </dt>
               <dd class="mt-1">
                 <div class="flex items-center gap-2">
@@ -65,7 +65,7 @@
               <i class="pi pi-box text-lg text-sky-600"></i>
             </div>
             <h3 class="text-lg font-semibold text-gray-900">
-              Información del Equipo
+              Información del {{ store.projectAllowedEquipmentTypeLabel() }}
             </h3>
           </div>
         </div>
@@ -85,7 +85,7 @@
             <!-- Tipo -->
             <div>
               <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                Tipo de Equipo
+                Tipo de {{ store.projectAllowedEquipmentTypeLabel() }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900">
                 {{ getEquipmentTypeName() }}
@@ -284,7 +284,7 @@
                 Interruptor Principal
               </h4>
               <p class="mt-2 text-xs text-gray-600">
-                Este equipo está conectado directamente al interruptor principal
+                Este {{ store.projectAllowedEquipmentTypeLabel().toLowerCase() }} está conectado directamente al interruptor principal
               </p>
               <div class="mt-4 inline-flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2 text-xs font-medium text-gray-700">
                 <i class="pi pi-info-circle text-xs"></i>
@@ -368,10 +368,10 @@
     <div class="flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 py-16 text-center">
       <i class="pi pi-exclamation-triangle mb-4 text-5xl text-red-400"></i>
       <h3 class="text-lg font-semibold text-red-900">
-        No hay equipo seleccionado
+        No hay {{ store.projectAllowedEquipmentTypeLabel().toLowerCase() }} seleccionado
       </h3>
       <p class="mt-2 text-sm text-red-700">
-        Por favor, regresa al paso anterior y selecciona un equipo.
+        Por favor, regresa al paso anterior y selecciona un {{ store.projectAllowedEquipmentTypeLabel().toLowerCase() }}.
       </p>
     </div>
   }

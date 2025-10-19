@@ -2,10 +2,10 @@
 
   <div class="text-center">
     <h2 class="text-xl font-semibold text-gray-900">
-      Seleccionar Equipo
+      Seleccionar {{ store.projectAllowedEquipmentTypeLabel() }}
     </h2>
     <p class="mt-2 text-sm text-gray-600">
-      Elige el equipo para el servicio de {{ store.serviceTypeLabel() }}
+      Elige el {{ store.projectAllowedEquipmentTypeLabel().toLowerCase() }} para el servicio de {{ store.serviceTypeLabel() }}
     </p>
   </div>
 
@@ -203,8 +203,8 @@
   <div class="space-y-6">
 
     <!-- Áreas -->
-    <div>
-      <label class="mb-2 block text-sm font-medium text-gray-700">
+    <div class="w-full">
+      <label class="mb-2 w-full block text-sm font-medium text-gray-700">
         Áreas
       </label>
       <p-multiSelect
@@ -213,15 +213,30 @@
         optionLabel="name"
         placeholder="Selecciona áreas"
         [maxSelectedLabels]="3"
+        [showClear]="true"
+        [filter]="true"
+        filterBy="code,name"
         display="chip"
-        [style]="{width: '100%'}">
+        [panelStyle]="{'width': '280px', 'max-width': '280px'}"
+        appendTo="body"
+        class="w-full">
+        <ng-template let-area pTemplate="item">
+          <div class="flex items-center gap-2 w-full min-w-0 pr-2">
+            <span class="text-sm font-medium text-gray-600 shrink-0">
+              {{ area.code }}
+            </span>
+            <span class="text-sm font-medium truncate" [title]="area.name">
+              {{ area.name }}
+            </span>
+          </div>
+        </ng-template>
       </p-multiSelect>
     </div>
 
     <!-- Cabinet Types -->
     @if (store.showCabinets()) {
       <div>
-        <label class="mb-2 block text-sm font-medium text-gray-700">
+        <label class="mb-2 w-full block text-sm font-medium text-gray-700">
           Tipos de Gabinete
         </label>
         <p-multiSelect
@@ -230,8 +245,23 @@
           optionLabel="name"
           placeholder="Selecciona tipos"
           [maxSelectedLabels]="3"
+          [showClear]="true"
+          [filter]="true"
+          filterBy="code,name"
           display="chip"
-          [style]="{width: '100%'}">
+          [panelStyle]="{ 'width': '280px', 'max-width': '280px' }"
+          appendTo="body"
+          class="w-full">
+          <ng-template let-type pTemplate="item">
+            <div class="flex items-center gap-2 overflow-hidden">
+          <span class="text-sm font-medium text-gray-600 shrink-0">
+            {{ type.code }}
+          </span>
+              <span class="text-sm font-medium truncate min-w-0" [title]="type.name">
+            {{ type.name }}
+          </span>
+            </div>
+          </ng-template>
         </p-multiSelect>
       </div>
     }
@@ -239,7 +269,7 @@
     <!-- Panel Types -->
     @if (store.showPanels()) {
       <div>
-        <label class="mb-2 block text-sm font-medium text-gray-700">
+        <label class="mb-2 w-full block text-sm font-medium text-gray-700">
           Tipos de Panel
         </label>
         <p-multiSelect
@@ -248,8 +278,23 @@
           optionLabel="name"
           placeholder="Selecciona tipos"
           [maxSelectedLabels]="3"
+          [showClear]="true"
+          [filter]="true"
+          filterBy="code,name"
           display="chip"
-          [style]="{width: '100%'}">
+          [panelStyle]="{ 'width': '280px','max-width': '280px' }"
+          appendTo="body"
+          class="w-full">
+          <ng-template let-type pTemplate="item">
+            <div class="flex items-center gap-2 overflow-hidden">
+          <span class="text-sm font-medium text-gray-600 shrink-0">
+            {{ type.code }}
+          </span>
+              <span class="text-sm font-medium truncate min-w-0" [title]="type.name">
+            {{ type.name }}
+          </span>
+            </div>
+          </ng-template>
         </p-multiSelect>
       </div>
     }

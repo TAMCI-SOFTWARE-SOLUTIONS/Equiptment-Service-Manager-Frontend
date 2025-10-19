@@ -144,12 +144,17 @@ export const routes: Routes = [
       {
         path: 'projects/new',
         title: 'Nuevo Proyecto',
-        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectNewPage)
+        loadComponent: () => import('../page/projects/ui/project-form/project-form.page').then(m => m.ProjectFormPage)
       },
       {
-        path: 'projects/:projectId',
+        path: 'projects/:id',
+        title: 'Detalle Proyecto',
+        loadComponent: () => import('../page/projects/ui/project-detail/project-detail.page').then(m => m.ProjectDetailPage)
+      },
+      {
+        path: 'projects/:id/edit',
         title: 'Editar Proyecto',
-        loadComponent: () => import('../page/projects/ui').then(m => m.ProjectEditPage)
+        loadComponent: () => import('../page/projects/ui/project-form/project-form.page').then(m => m.ProjectFormPage)
       },
 
       // ==================== REPORTS ====================
@@ -248,7 +253,7 @@ export const routes: Routes = [
         title: 'Protocolos de Comunicación',
         loadComponent: () => import('../page/communication-protocols/ui/communication-protocols/communication-protocols.page').then(m => m.CommunicationProtocolsPage)
       },
-      
+
       // ==================== POWER DISTRIBUTIONS PANELS ====================
       {
         path: 'power-distribution-panels',
@@ -298,6 +303,22 @@ export const routes: Routes = [
           }
         ]
       },
+      // --- Users Management ---
+      {
+        path: 'users',
+        title: 'Gestión de Usuarios',
+        loadComponent: () => import('../page/users/ui/users/users.page').then(m => m.UsersPage)
+      },
+      {
+        path: 'users/new',
+        title: 'Nuevo Usuario',
+        loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
+      },
+      {
+        path: 'users/:userId',
+        title: 'Editar Usuario',
+        loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
+      },
       // ==================== ADMINISTRATION ====================
       // 🔒 Only for administrators
       {
@@ -308,23 +329,6 @@ export const routes: Routes = [
             path: '',
             redirectTo: 'users',
             pathMatch: 'full'
-          },
-
-          // --- Users Management ---
-          {
-            path: 'users',
-            title: 'Gestión de Usuarios',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminUsersPage)
-          },
-          {
-            path: 'users/new',
-            title: 'Nuevo Usuario',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
-          },
-          {
-            path: 'users/:userId',
-            title: 'Editar Usuario',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
           },
 
           // --- Clients Management (CRUD) ---

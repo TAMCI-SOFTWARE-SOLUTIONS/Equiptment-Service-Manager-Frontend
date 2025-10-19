@@ -9,6 +9,7 @@ import Aura from '@primeuix/themes/aura';
 import {definePreset} from '@primeuix/themes';
 import { authenticationInterceptor } from '../shared/api';
 import { AppInitializerService } from '../shared/services';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 const BlueModern = definePreset(Aura, {
   semantic: {
@@ -45,6 +46,6 @@ export const appConfig: ApplicationConfig = {
       useFactory: (appInitializer: AppInitializerService) => () => appInitializer.initializeApp(),
       deps: [AppInitializerService],
       multi: true
-    }
+    }, provideCharts(withDefaultRegisterables())
   ]
 };
