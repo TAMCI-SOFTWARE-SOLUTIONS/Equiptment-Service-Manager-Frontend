@@ -1,1 +1,322 @@
-<p>dashboard works!</p>
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="flex items-center justify-between gap-4">
+        <!-- Title -->
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            Dashboard
+          </h1>
+          <p class="mt-0.5 text-sm text-gray-600">
+            Resumen general del sistema
+          </p>
+        </div>
+
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          (click)="onRefresh()"
+          [disabled]="store.isLoading()"
+          class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+          @if (store.isLoading()) {
+            <i class="pi pi-spinner pi-spin text-base"></i>
+          } @else {
+            <i class="pi pi-refresh text-base"></i>
+          }
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="space-y-6">
+          <!-- KPI Skeletons -->
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div class="h-4 w-24 animate-pulse rounded bg-gray-200"></div>
+                <div class="mt-2 h-8 w-16 animate-pulse rounded bg-gray-200"></div>
+              </div>
+            }
+          </div>
+
+          <!-- Chart Skeletons -->
+          <div class="grid gap-6 lg:grid-cols-2">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div class="h-4 w-32 animate-pulse rounded bg-gray-200"></div>
+                <div class="mt-4 h-64 animate-pulse rounded bg-gray-100"></div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+      @else {
+        <div class="space-y-6">
+
+          <!-- KPI Cards -->
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+            <!-- Proyectos Activos -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-600">
+                    Proyectos Activos
+                  </p>
+                  <p class="mt-2 text-3xl font-bold text-gray-900">
+                    {{ store.stats().activeProjects }}
+                  </p>
+                </div>
+                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100">
+                  <i class="pi pi-briefcase text-xl text-sky-600"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Equipos -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-600">
+                    Total Equipos
+                  </p>
+                  <p class="mt-2 text-3xl font-bold text-gray-900">
+                    {{ store.stats().totalEquipment }}
+                  </p>
+                </div>
+                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-cyan-100">
+                  <i class="pi pi-box text-xl text-cyan-600"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Colaboradores -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-600">
+                    Colaboradores
+                  </p>
+                  <p class="mt-2 text-3xl font-bold text-gray-900">
+                    {{ store.stats().totalCollaborators }}
+                  </p>
+                </div>
+                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <i class="pi pi-users text-xl text-green-600"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Clientes -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-600">
+                    Clientes
+                  </p>
+                  <p class="mt-2 text-3xl font-bold text-gray-900">
+                    {{ store.stats().totalClients }}
+                  </p>
+                </div>
+                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+                  <i class="pi pi-building text-xl text-amber-600"></i>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="grid gap-6 lg:grid-cols-2">
+
+            <!-- Equipos por Tipo -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="mb-4 flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-chart-bar text-lg text-sky-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">
+                    Equipos por Tipo
+                  </h3>
+                  <p class="text-xs text-gray-600">
+                    Distribución de gabinetes y paneles
+                  </p>
+                </div>
+              </div>
+              <div class="relative h-64">
+                <canvas #equipmentByTypeChart></canvas>
+              </div>
+            </div>
+
+            <!-- Equipos por Estado -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="mb-4 flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+                  <i class="pi pi-chart-pie text-lg text-green-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">
+                    Equipos por Estado
+                  </h3>
+                  <p class="text-xs text-gray-600">
+                    Estado operativo de los equipos
+                  </p>
+                </div>
+              </div>
+              <div class="relative h-64">
+                <canvas #equipmentByStatusChart></canvas>
+              </div>
+            </div>
+
+            <!-- Estado de Mantenimientos -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="mb-4 flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-wrench text-lg text-sky-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">
+                    Estado de Mantenimientos
+                  </h3>
+                  <p class="text-xs text-gray-600">
+                    Próximamente disponible
+                  </p>
+                </div>
+              </div>
+              <div class="relative h-64">
+                <canvas #maintenanceChart></canvas>
+              </div>
+            </div>
+
+            <!-- Estado de Reparaciones -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="mb-4 flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
+                  <i class="pi pi-cog text-lg text-amber-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">
+                    Estado de Reparaciones
+                  </h3>
+                  <p class="text-xs text-gray-600">
+                    Próximamente disponible
+                  </p>
+                </div>
+              </div>
+              <div class="relative h-64">
+                <canvas #repairChart></canvas>
+              </div>
+            </div>
+
+            <!-- Estado de Levantamientos -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="mb-4 flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-100">
+                  <i class="pi pi-arrow-up text-lg text-cyan-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">
+                    Levantamientos de Operación
+                  </h3>
+                  <p class="text-xs text-gray-600">
+                    Próximamente disponible
+                  </p>
+                </div>
+              </div>
+              <div class="relative h-64">
+                <canvas #operationalLiftChart></canvas>
+              </div>
+            </div>
+
+            <!-- Actividad Reciente -->
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div class="mb-4 flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+                  <i class="pi pi-history text-lg text-purple-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">
+                    Actividad Reciente
+                  </h3>
+                  <p class="text-xs text-gray-600">
+                    Últimas modificaciones de equipos
+                  </p>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                @if (store.stats().recentActivity.length === 0) {
+                  <div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
+                    <i class="pi pi-inbox text-3xl text-gray-400"></i>
+                    <p class="mt-2 text-sm text-gray-600">
+                      No hay actividad reciente
+                    </p>
+                  </div>
+                } @else {
+                  @for (activity of store.stats().recentActivity; track activity.id) {
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 transition-all hover:bg-gray-100">
+                      <div class="flex items-start gap-3">
+                        <!-- Icon -->
+                        <div
+                          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-xl"
+                          [ngClass]="getEquipmentColor(activity.equipmentType)">
+                          {{ getEquipmentIcon(activity.equipmentType) }}
+                        </div>
+
+                        <!-- Content -->
+                        <div class="min-w-0 flex-1">
+                          <p class="text-sm font-semibold text-gray-900">
+                            {{ activity.equipmentName }}
+                          </p>
+                          <p class="mt-1 text-xs text-gray-600">
+                            {{ activity.description }}
+                          </p>
+                          <div class="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                            <i class="pi pi-user text-xs"></i>
+                            <span>{{ activity.modifiedByName }}</span>
+                            <span>•</span>
+                            <span>{{ getRelativeTime(activity.createdAt) }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </main>
+
+</div>
