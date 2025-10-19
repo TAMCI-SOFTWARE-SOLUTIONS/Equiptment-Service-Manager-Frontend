@@ -1,7 +1,7 @@
 import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { firstValueFrom } from 'rxjs';
-import {EquipmentTypeEnum} from '../../../../shared/model';
+import {EquipmentTypeEnum, ServiceTypeEnum} from '../../../../shared/model';
 import {CabinetEntity} from '../../../../entities/cabinet/model';
 import {PanelEntity} from '../../../../entities/panel/model';
 import {CabinetTypeEntity} from '../../../../entities/cabinet-type/model';
@@ -21,12 +21,6 @@ import {
   EquipmentPowerDistributionAssignmentService
 } from '../../../../entities/equipment-power-distribution-assignment/api';
 import {PowerDistributionPanelService} from '../../../../entities/power-distribution-panel/api';
-
-export enum ServiceTypeEnum {
-  MAINTENANCE = 'MAINTENANCE',
-  INSPECTION = 'INSPECTION',
-  RAISE_OBSERVATION = 'RAISE_OBSERVATION'
-}
 
 export interface CreateServiceFormData {
   // Step 1
@@ -195,6 +189,22 @@ export const CreateServiceStore = signalStore(
       showPanels: computed(() => {
         const project = contextStore.project();
         return project?.allowedEquipmentTypes.includes(EquipmentTypeEnum.PANEL) ?? false;
+      }),
+
+      /**
+       * Equipment type from project to string
+       */
+      projectAllowedEquipmentTypeLabel: computed(() => {
+        const project = contextStore.project();
+        if (!project) return '';
+        const allowedType = project.allowedEquipmentTypes[0];
+        if (allowedType === EquipmentTypeEnum.CABINET) {
+          return 'Gabinete';
+        } else if (allowedType === EquipmentTypeEnum.PANEL) {
+          return 'Panele';
+        } else {
+          return 'Equipo';
+        }
       }),
 
       /**
