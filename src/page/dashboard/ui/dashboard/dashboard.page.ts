@@ -1,6 +1,5 @@
 import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables } from 'chart.js';
 import {DashboardStore} from '../../model/store/dashboard.store';
 
@@ -73,7 +72,7 @@ export class DashboardPage implements OnInit, AfterViewInit {
     this.charts['equipmentByType'] = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Gabinetes', 'Paneles'],
+        labels: ['Gabinetes', 'Tableros'],
         datasets: [{
           label: 'Cantidad',
           data: [

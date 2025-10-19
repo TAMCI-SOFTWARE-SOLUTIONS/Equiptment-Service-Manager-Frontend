@@ -213,7 +213,7 @@ export const EquipmentFormStore = signalStore(
     formTitle: computed(() => {
       const type = state.formData().type;
       const isEditing = state.isEditing();
-      const typeLabel = type === EquipmentTypeEnum.CABINET ? 'Gabinete' : 'Panel';
+      const typeLabel = type === EquipmentTypeEnum.CABINET ? 'Gabinete' : 'Tablero';
 
       return isEditing ? `Editar ${typeLabel}` : `Nuevo ${typeLabel}`;
     }),
@@ -263,10 +263,10 @@ export const EquipmentFormStore = signalStore(
      */
     currentStepDescription: computed(() => {
       const step = state.currentStep();
-      const type = state.formData().type === EquipmentTypeEnum.CABINET ? 'gabinete' : 'panel';
+      const type = state.formData().type === EquipmentTypeEnum.CABINET ? 'gabinete' : 'tablero';
 
       const descriptions: Record<number, string> = {
-        1: 'Selecciona si es un gabinete o panel',
+        1: 'Selecciona si es un gabinete o tablero',
         2: `Ingresa el identificador único del ${type}`,
         3: `Indica dónde se encuentra el ${type}`,
         4: `Define las características técnicas del ${type}`

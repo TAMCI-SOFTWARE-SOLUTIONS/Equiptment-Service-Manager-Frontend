@@ -9,7 +9,7 @@ export enum EquipmentTypeEnum {
 export function getEquipmentTypeLabel(type: EquipmentTypeEnum): string {
   const labels: Record<EquipmentTypeEnum, string> = {
     [EquipmentTypeEnum.CABINET]: 'Gabinete',
-    [EquipmentTypeEnum.PANEL]: 'Panel'
+    [EquipmentTypeEnum.PANEL]: 'Tablero'
   };
   return labels[type];
 }
