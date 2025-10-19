@@ -1,0 +1,502 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <div class="flex items-center justify-between gap-4">
+        <!-- Title -->
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            Usuarios
+          </h1>
+          @if (store.users().length > 0) {
+            <p class="mt-0.5 text-sm text-gray-600">
+              {{ store.filteredUsers().length }} de {{ store.users().length }} usuario{{ store.users().length !== 1 ? 's' : '' }}
+              @if (store.hasActiveFilters()) {
+                <span class="text-sky-600">(filtrado)</span>
+              }
+            </p>
+          }
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2">
+          <!-- Refresh Button -->
+          <button
+            pRipple
+            type="button"
+            (click)="onRefresh()"
+            [disabled]="store.isLoading()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (store.isLoading()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+            } @else {
+              <i class="pi pi-refresh text-base"></i>
+            }
+          </button>
+
+          <!-- Add User Button -->
+          <button
+            pRipple
+            type="button"
+            (click)="onAddUser()"
+            [disabled]="store.isLoading()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300">
+            <i class="pi pi-plus text-sm"></i>
+            <span class="hidden sm:inline">Agregar Usuario</span>
+            <span class="sm:hidden">Agregar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="mt-3 flex items-center gap-2">
+        <!-- Search -->
+        <div class="relative flex-1">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="pi pi-search text-sm text-gray-400"></i>
+          </div>
+          <input
+            type="text"
+            [value]="store.searchQuery()"
+            (input)="onSearchChange($any($event.target).value)"
+            placeholder="Buscar por email..."
+            class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+          @if (store.searchQuery()) {
+            <button
+              type="button"
+              (click)="onSearchChange('')"
+              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+              <i class="pi pi-times text-xs"></i>
+            </button>
+          }
+        </div>
+
+        <!-- Filters Button -->
+        <button
+          pRipple
+          type="button"
+          (click)="toggleFilterDrawer()"
+          class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1"
+          [class.border-sky-500]="store.hasActiveFilters()"
+          [class.bg-sky-50]="store.hasActiveFilters()"
+          [class.border-gray-300]="!store.hasActiveFilters()"
+          [class.bg-white]="!store.hasActiveFilters()">
+          <i
+            class="text-sm pi pi-filter"
+            [class.text-sky-600]="store.hasActiveFilters()"
+            [class.text-gray-700]="!store.hasActiveFilters()">
+          </i>
+          @if (store.hasActiveFilters()) {
+            <span class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-[10px] font-bold text-white">
+            !
+          </span>
+          }
+        </button>
+
+        <!-- Clear Filters (solo si hay filtros activos) -->
+        @if (store.hasActiveFilters()) {
+          <button
+            pRipple
+            type="button"
+            (click)="onClearFilters()"
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1">
+            <i class="pi pi-filter-slash text-sm"></i>
+            <span class="hidden sm:inline">Limpiar</span>
+          </button>
+        }
+      </div>
+
+      <!-- Stats Pills (opcional, puedes quitarlo si no quieres) -->
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
+        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+        {{ store.activeCount() }} activos
+      </span>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
+        <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+          {{ store.lockedCount() }} bloqueados
+      </span>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700">
+        <span class="h-1.5 w-1.5 rounded-full bg-gray-500"></span>
+          {{ store.disabledCount() }} deshabilitados
+      </span>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+        <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+          {{ store.pendingCount() }} pendientes
+      </span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Error State -->
+      @if (store.error()) {
+        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div class="p-12 text-center">
+            <i class="pi pi-spinner pi-spin text-4xl text-gray-400"></i>
+            <p class="mt-4 text-sm text-gray-600">Cargando usuarios...</p>
+          </div>
+        </div>
+      }
+      @else if (store.filteredUsers().length === 0) {
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div class="p-12 text-center">
+            @if (store.users().length === 0) {
+              <!-- Sin usuarios en el sistema -->
+              <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
+                <i class="pi pi-users text-3xl text-gray-400"></i>
+              </div>
+              <h3 class="mt-4 text-lg font-semibold text-gray-900">
+                No hay usuarios registrados
+              </h3>
+              <p class="mt-2 text-sm text-gray-600">
+                Agrega el primer usuario al sistema
+              </p>
+              <button
+                pRipple
+                type="button"
+                (click)="onAddUser()"
+                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30">
+                <i class="pi pi-plus text-sm"></i>
+                Agregar Usuario
+              </button>
+            } @else {
+              <!-- Sin resultados de filtro -->
+              <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
+                <i class="pi pi-search text-3xl text-gray-400"></i>
+              </div>
+              <h3 class="mt-4 text-lg font-semibold text-gray-900">
+                No se encontraron usuarios
+              </h3>
+              <p class="mt-2 text-sm text-gray-600">
+                Intenta ajustar los filtros de búsqueda
+              </p>
+              <button
+                pRipple
+                type="button"
+                (click)="onClearFilters()"
+                class="mt-6 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
+                <i class="pi pi-filter-slash text-sm"></i>
+                Limpiar filtros
+              </button>
+            }
+          </div>
+        </div>
+      }
+      @else {
+        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto">
+            <table class="w-full">
+
+              <!-- Table Header -->
+              <thead class="border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                  Email
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                  Roles
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                  Estado
+                </th>
+                <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 lg:table-cell">
+                  Fecha Creación
+                </th>
+                <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 lg:table-cell">
+                  Último Login
+                </th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">
+                  Acciones
+                </th>
+              </tr>
+              </thead>
+
+              <!-- Table Body -->
+              <tbody class="divide-y divide-gray-200">
+                @for (user of store.filteredUsers(); track user.id) {
+                  <tr class="transition-colors hover:bg-gray-50">
+
+                    <!-- Email -->
+                    <td class="px-4 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500">
+                          <i class="pi pi-user text-base text-white"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <p class="truncate text-sm font-medium text-gray-900">
+                            {{ user.email }}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Roles -->
+                    <td class="px-4 py-4">
+                      <div class="flex flex-wrap gap-1.5">
+                        @for (role of user.roles; track role.id) {
+                          <span
+                            class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold"
+                            [ngClass]="getRoleClass(role.name)">
+                            {{ getRoleLabel(role.name) }}
+                          </span>
+                        }
+                        @if (user.roles.length === 0) {
+                          <span class="text-xs italic text-gray-400">Sin roles</span>
+                        }
+                      </div>
+                    </td>
+
+                    <!-- Estado -->
+                    <td class="px-4 py-4">
+                      <span
+                        class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
+                        [ngClass]="getStatusClass(user.accountStatus)">
+                        <i class="pi text-xs" [ngClass]="getStatusIcon(user.accountStatus)"></i>
+                        {{ getStatusLabel(user.accountStatus) }}
+                      </span>
+                    </td>
+
+                    <!-- Fecha Creación (hidden en mobile) -->
+                    <td class="hidden px-4 py-4 lg:table-cell">
+                      <p class="text-sm text-gray-700">
+                        {{ formatDate(user.passwordChangedAt) }}
+                      </p>
+                    </td>
+
+                    <!-- Último Login (hidden en mobile) -->
+                    <td class="hidden px-4 py-4 lg:table-cell">
+                      <div class="flex items-center gap-2">
+                        @if (user.lastLoginAt) {
+                          <i class="pi pi-calendar text-xs text-gray-400"></i>
+                          <p class="text-sm text-gray-700">
+                            {{ formatDate(user.lastLoginAt) }}
+                          </p>
+                        } @else {
+                          <span class="text-sm italic text-gray-400">Nunca</span>
+                        }
+                      </div>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="px-4 py-4 text-right">
+                      <button
+                        #actionsBtn
+                        pRipple
+                        type="button"
+                        (click)="toggleActionsMenu($event, actionsMenu, user)"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+                        <i class="pi pi-ellipsis-v text-sm"></i>
+                      </button>
+
+                      <p-menu
+                        #actionsMenu
+                        [popup]="true"
+                        appendTo="body">
+                      </p-menu>
+                    </td>
+
+                  </tr>
+                }
+              </tbody>
+
+            </table>
+          </div>
+
+          <!-- Table Footer (Total) -->
+          <div class="border-t border-gray-200 bg-gray-50 px-4 py-3">
+            <p class="text-sm text-gray-600">
+              Mostrando <strong>{{ store.filteredUsers().length }}</strong> de <strong>{{ store.users().length }}</strong> usuarios
+            </p>
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </main>
+
+  <!-- Filter Drawer -->
+  <p-drawer
+    [visible]="showFilterDrawer()"
+    position="right"
+    [closable]="false"
+    styleClass="w-full sm:w-96">
+
+    <ng-template #header>
+      <div class="flex w-full items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+            <i class="pi pi-filter text-lg text-sky-600"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">Filtros</h2>
+            <p class="text-xs text-gray-600">
+              {{ store.filteredUsers().length }} resultados
+            </p>
+          </div>
+        </div>
+        <button
+          pRipple
+          type="button"
+          (click)="toggleFilterDrawer()"
+          class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50">
+          <i class="pi pi-times text-sm"></i>
+        </button>
+      </div>
+    </ng-template>
+
+    <div class="space-y-6 py-4">
+      <!-- Filtro por Estado -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">
+          Estado
+        </label>
+        <div class="space-y-2">
+          @for (option of statusOptions; track option.value) {
+            <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 transition-all hover:bg-gray-50"
+                   [class.border-sky-500]="store.statusFilter() === option.value"
+                   [class.bg-sky-50]="store.statusFilter() === option.value">
+              <input
+                type="radio"
+                name="statusFilter"
+                [value]="option.value"
+                [checked]="store.statusFilter() === option.value"
+                (change)="onStatusFilterChange($any(option.value))"
+                class="h-4 w-4 border-gray-300 text-sky-600 focus:ring-2 focus:ring-sky-500">
+              <span class="text-sm font-medium text-gray-900">
+                {{ option.label }}
+              </span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <!-- Filtro por Rol -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">
+          Rol
+        </label>
+        <div class="space-y-2">
+          @for (option of roleOptions; track option.value) {
+            <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 transition-all hover:bg-gray-50"
+                   [class.border-sky-500]="store.roleFilter() === option.value"
+                   [class.bg-sky-50]="store.roleFilter() === option.value">
+              <input
+                type="radio"
+                name="roleFilter"
+                [value]="option.value"
+                [checked]="store.roleFilter() === option.value"
+                (change)="onStatusFilterChange($any(option.value))"
+                class="h-4 w-4 border-gray-300 text-sky-600 focus:ring-2 focus:ring-sky-500">
+              <span class="text-sm font-medium text-gray-900">
+                {{ option.label }}
+              </span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <!-- Botón Limpiar Filtros -->
+      @if (store.hasActiveFilters()) {
+        <button
+          pRipple
+          type="button"
+          (click)="onClearFilters()"
+          class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+          <i class="pi pi-filter-slash text-sm"></i>
+          Limpiar filtros
+        </button>
+      }
+
+    </div>
+
+  </p-drawer>
+
+  <!-- Confirmation Modal -->
+  @if (showActionConfirm()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
+      <div class="w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+
+        <!-- Modal Header -->
+        <div class="border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full"
+              [ngClass]="getConfirmColor()">
+              <i
+                class="text-2xl pi"
+                [ngClass]="[getConfirmIcon(), getConfirmTextColor()]">
+              </i>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                {{ getConfirmTitle() }}
+              </h3>
+              <p class="mt-0.5 text-sm text-gray-600">
+                Esta acción modificará el estado del usuario
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+          <p class="text-sm text-gray-700" [innerHTML]="getConfirmMessage()"></p>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-end gap-3 border-t border-gray-200 p-4">
+          <button
+            pRipple
+            type="button"
+            (click)="onCancelAction()"
+            class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+            Cancelar
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onConfirmAction()"
+            class="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
+            [ngClass]="{
+              'bg-green-600 hover:bg-green-700 focus:ring-green-500': confirmAction()?.type === 'activate',
+              'bg-red-600 hover:bg-red-700 focus:ring-red-500': confirmAction()?.type === 'lock',
+              'bg-gray-600 hover:bg-gray-700 focus:ring-gray-500': confirmAction()?.type === 'disable'
+            }">
+            <i class="mr-2 pi" [ngClass]="getConfirmIcon()"></i>
+            Confirmar
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>
