@@ -318,22 +318,74 @@
               @if (store.currentStep() === 2) {
                 <div class="space-y-6">
 
-                  <div>
-                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Tipo de Equipo
-                    </dt>
-                    <dd class="mt-1 flex flex-wrap items-center gap-2">
-                        @if (store.formData().allowedEquipmentType) {
-                          <span class="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
-                          @for (et of equipmentTypes; track et.value) {
-                              @if (et.value === store.formData().allowedEquipmentType) {
-                                <span>{{ et.icon }}</span>
-                                <span>{{ et.label }}</span>
+                  <!-- ✅ AGREGAR ESTA SECCIÓN COMPLETA -->
+                  <!-- Tipo de Equipo Permitido -->
+                  <div class="space-y-3">
+                    <label class="block text-sm font-medium text-gray-700">
+                      Tipo de Equipo Permitido
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <p class="text-xs text-gray-600">
+                      Selecciona el tipo de equipo que se utilizará en este proyecto.
+                    </p>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                      @for (equipmentType of equipmentTypes; track equipmentType.value) {
+                        <label
+                          class="group relative cursor-pointer overflow-hidden rounded-xl border-2 bg-white transition-all hover:shadow-md"
+                          [class.border-sky-500]="store.formData().allowedEquipmentType === equipmentType.value"
+                          [class.bg-sky-50]="store.formData().allowedEquipmentType === equipmentType.value"
+                          [class.border-gray-300]="store.formData().allowedEquipmentType !== equipmentType.value">
+
+                          <input
+                            type="radio"
+                            name="equipmentType"
+                            [value]="equipmentType.value"
+                            [checked]="store.formData().allowedEquipmentType === equipmentType.value"
+                            (change)="onEquipmentTypeChange(equipmentType.value)"
+                            [disabled]="store.isSubmitting()"
+                            class="sr-only">
+
+                          <div class="p-6">
+                            <div class="flex items-center justify-between">
+                              <div class="flex h-12 w-12 items-center justify-center rounded-full text-2xl transition-all"
+                                   [class.bg-sky-100]="store.formData().allowedEquipmentType !== equipmentType.value"
+                                   [class.bg-sky-500]="store.formData().allowedEquipmentType === equipmentType.value">
+                                  <span [class.grayscale]="store.formData().allowedEquipmentType !== equipmentType.value">
+                                    {{ equipmentType.icon }}
+                                  </span>
+                              </div>
+
+                              @if (store.formData().allowedEquipmentType === equipmentType.value) {
+                                <div class="flex h-6 w-6 items-center justify-center rounded-full bg-sky-500">
+                                  <i class="pi pi-check text-xs font-bold text-white"></i>
+                                </div>
                               }
-                          }
-                          </span>
-                        }
-                    </dd>
+                            </div>
+
+                            <h3 class="mt-4 text-base font-semibold transition-colors"
+                                [class.text-sky-900]="store.formData().allowedEquipmentType === equipmentType.value"
+                                [class.text-gray-900]="store.formData().allowedEquipmentType !== equipmentType.value">
+                              {{ equipmentType.label }}
+                            </h3>
+                            <p class="mt-1 text-xs text-gray-600">
+                              {{ equipmentType.description }}
+                            </p>
+                          </div>
+
+                          <div class="absolute inset-0 border-2 border-sky-500 opacity-0 transition-opacity"
+                               [class.opacity-100]="store.formData().allowedEquipmentType === equipmentType.value">
+                          </div>
+                        </label>
+                      }
+                    </div>
+
+                    @if (store.validationErrors().allowedEquipmentType) {
+                      <p class="mt-1.5 flex items-start text-xs text-red-600">
+                        <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
+                        {{ store.validationErrors().allowedEquipmentType }}
+                      </p>
+                    }
                   </div>
 
                   <!-- Fechas (Opcional) -->
