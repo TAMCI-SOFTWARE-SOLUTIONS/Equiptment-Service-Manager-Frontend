@@ -202,16 +202,6 @@
                     </span>
                   </dd>
                 </div>
-
-                <!-- ID -->
-                <div>
-                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                    ID del Sistema
-                  </dt>
-                  <dd class="mt-1 font-mono text-xs text-gray-600">
-                    {{ store.equipment()!.id }}
-                  </dd>
-                </div>
               </dl>
             </div>
           </div>
@@ -279,20 +269,6 @@
                     <dd class="mt-1 text-sm font-medium text-gray-900">
                       {{ store.locationBreadcrumb().location }}
                     </dd>
-                  </div>
-
-                  <!-- Breadcrumb Visual -->
-                  <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4">
-                    <div class="flex items-center gap-2 text-xs text-sky-700">
-                      <i class="pi pi-building text-sm"></i>
-                      <span class="font-medium">{{ store.locationBreadcrumb().client }}</span>
-                      <i class="pi pi-angle-right text-xs"></i>
-                      <span class="font-medium">{{ store.locationBreadcrumb().plant }}</span>
-                      <i class="pi pi-angle-right text-xs"></i>
-                      <span class="font-medium">{{ store.locationBreadcrumb().area }}</span>
-                      <i class="pi pi-angle-right text-xs"></i>
-                      <span class="font-medium">{{ store.locationBreadcrumb().location }}</span>
-                    </div>
                   </div>
                 </dl>
               }
@@ -498,10 +474,9 @@
                   type="button"
                   (click)="onAddPowerAssignment()"
                   [disabled]="powerStore.isLoading()"
-                  class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+                  class="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none sm:justify-start sm:px-4">
                   <i class="pi pi-plus text-sm"></i>
                   <span class="hidden sm:inline">Asignar Panel</span>
-                  <span class="sm:hidden">Asignar</span>
                 </button>
               </div>
             </div>
