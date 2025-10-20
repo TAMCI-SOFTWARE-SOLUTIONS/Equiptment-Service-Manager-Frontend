@@ -9,6 +9,7 @@ export class CreatePanelRequestFromEntityMapper {
       tag: entity.tag,
       areaId: entity.areaId,
       locationId: entity.locationId,
+      referenceLocation: entity.referenceLocation,
       communicationProtocolId: entity.communicationProtocolId,
       panelTypeId: entity.panelTypeId,
     };

@@ -7,6 +7,7 @@ export interface CabinetEntity {
   tag: string;
   areaId: string;
   locationId: string;
+  referenceLocation: string;
   communicationProtocolId: string | null;
   communicationProtocol: string;
   cabinetTypeId: string | null;

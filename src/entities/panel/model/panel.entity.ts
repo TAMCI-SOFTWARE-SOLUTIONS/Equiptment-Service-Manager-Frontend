@@ -7,6 +7,7 @@ export interface PanelEntity {
   tag: string;
   areaId: string;
   locationId: string;
+  referenceLocation: string;
   communicationProtocolId: string | null;
   communicationProtocol: string;
   panelTypeId: string | null;

@@ -5,6 +5,7 @@ export interface UpdatePanelRequest {
   plantId: string | null;
   areaId: string | null;
   locationId: string | null;
+  referenceLocation: string | null;
   communicationProtocolId: string | null;
   panelTypeId: string | null;
 }

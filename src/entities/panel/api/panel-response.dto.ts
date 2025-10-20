@@ -5,6 +5,7 @@ export interface PanelResponseDto {
   tag: string | null;
   areaId: string | null;
   locationId: string | null;
+  referenceLocation: string | null;
   communicationProtocol: string | null;
   panelType: string | null;
   status: string | null;

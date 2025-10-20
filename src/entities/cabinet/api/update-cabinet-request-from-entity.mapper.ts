@@ -12,7 +12,8 @@ export class UpdateCabinetRequestFromEntityMapper {
       areaId: entity.areaId,
       communicationProtocolId: entity.communicationProtocolId,
       cabinetTypeId: entity.cabinetTypeId,
-      locationId: entity.locationId
+      locationId: entity.locationId,
+      referenceLocation: entity.referenceLocation,
     };
   }
 }
