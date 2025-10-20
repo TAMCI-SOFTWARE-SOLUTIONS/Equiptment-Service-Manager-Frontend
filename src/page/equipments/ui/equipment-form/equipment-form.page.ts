@@ -34,20 +34,36 @@ export class EquipmentFormPage implements OnInit, OnDestroy {
   readonly EquipmentStatusEnum = EquipmentStatusEnum;
 
   ngOnInit(): void {
-    const equipmentType = this.route.snapshot.paramMap.get('type');
     const equipmentId = this.route.snapshot.paramMap.get('id');
 
-    if (equipmentId && equipmentId !== 'new') {
-      const type = equipmentType === 'panel'
+    const fullPath = this.router.url;
+    console.log('🔍 URL completa:', fullPath);
+
+    let type: EquipmentTypeEnum;
+
+    if (fullPath.includes('/panel/')) {
+      type = EquipmentTypeEnum.PANEL;
+      console.log('✅ Tipo detectado: PANEL');
+    } else if (fullPath.includes('/cabinet/')) {
+      type = EquipmentTypeEnum.CABINET;
+      console.log('✅ Tipo detectado: CABINET');
+    } else {
+      // Fallback: leer de route param si existe
+      const equipmentType = this.route.snapshot.paramMap.get('type');
+      type = equipmentType === 'panel'
         ? EquipmentTypeEnum.PANEL
         : EquipmentTypeEnum.CABINET;
+      console.log('✅ Tipo detectado desde param:', type);
+    }
 
+    if (equipmentId && equipmentId !== 'new') {
+      console.log('🔧 Modo: EDITAR');
+      console.log('  ID:', equipmentId);
+      console.log('  Type:', type);
       this.store.initializeForEdit(equipmentId, type);
     } else {
-      const type = equipmentType === 'panel'
-        ? EquipmentTypeEnum.PANEL
-        : EquipmentTypeEnum.CABINET;
-
+      console.log('🔧 Modo: CREAR');
+      console.log('  Type:', type);
       this.store.initializeForCreate(type);
     }
   }
@@ -120,6 +136,10 @@ export class EquipmentFormPage implements OnInit, OnDestroy {
 
   onLocationChange(value: string): void {
     this.store.setLocation(value);
+  }
+
+  onReferenceLocationChange(value: string): void {
+    this.store.setReferenceLocation(value);
   }
 
   onEquipmentTypeChange(value: string): void {

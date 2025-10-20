@@ -261,15 +261,52 @@
                     </dd>
                   </div>
 
-                  <!-- Ubicación -->
-                  <div>
-                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Ubicación Específica
-                    </dt>
-                    <dd class="mt-1 text-sm font-medium text-gray-900">
-                      {{ store.locationBreadcrumb().location }}
-                    </dd>
-                  </div>
+                  <!-- Ubicación Registrada (si existe) -->
+                  @if (store.locationBreadcrumb().location) {
+                    <div>
+                      <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Ubicación Específica
+                      </dt>
+                      <dd class="mt-1 flex items-center gap-2">
+                        <i class="pi pi-building text-sky-600"></i>
+                        <span class="text-sm font-medium text-gray-900">
+                {{ store.locationBreadcrumb().location }}
+              </span>
+                      </dd>
+                    </div>
+                  }
+
+                  <!-- Ubicación de Referencia (si existe) -->
+                  @if (store.locationBreadcrumb().referenceLocation) {
+                    <div>
+                      <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Ubicación de Referencia
+                      </dt>
+                      <dd class="mt-1 flex items-center gap-2">
+                        <i class="pi pi-map-marker text-sky-600"></i>
+                        <span class="text-sm italic text-gray-900">
+                          {{ store.locationBreadcrumb().referenceLocation }}
+                        </span>
+                      </dd>
+                    </div>
+                  }
+
+                  <!-- Sin ubicación específica (si no tiene ni location ni referenceLocation) -->
+                  @if (!store.locationBreadcrumb().location && !store.locationBreadcrumb().referenceLocation) {
+                    <div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                      <div class="flex items-start gap-3">
+                        <i class="pi pi-info-circle text-lg text-gray-400"></i>
+                        <div class="flex-1">
+                          <p class="text-sm font-medium text-gray-700">
+                            Sin ubicación específica
+                          </p>
+                          <p class="mt-1 text-xs text-gray-600">
+                            El equipo está registrado en el área pero sin una ubicación detallada
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  }
                 </dl>
               }
             </div>

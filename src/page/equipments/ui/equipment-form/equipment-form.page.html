@@ -396,11 +396,11 @@
                     }
                   </div>
 
-                  <!-- Ubicación -->
+                  <!-- Ubicación Registrada (OPCIONAL) -->
                   <div class="space-y-2">
                     <label for="location" class="block text-sm font-medium text-gray-700">
                       Ubicación
-                      <span class="text-red-500">*</span>
+                      <span class="text-xs font-normal text-gray-500 ml-1">(Opcional)</span>
                     </label>
 
                     @if (store.isLoadingLocations()) {
@@ -414,43 +414,86 @@
                         [value]="store.formData().locationId"
                         (change)="onLocationChange($any($event.target).value)"
                         [disabled]="!store.formData().areaId || store.isSubmitting()"
-                        class="block w-full rounded-lg border py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
-                        [ngClass]="{
-                          'border-red-500 focus:border-red-500 focus:ring-red-500/20': store.validationErrors().locationId,
-                          'border-gray-300 focus:border-sky-500 focus:ring-sky-500/20': !store.validationErrors().locationId
-                        }">
-                        <option value="">{{ store.formData().areaId ? 'Selecciona una ubicación' : 'Primero selecciona un área' }}</option>
+                        class="block w-full rounded-lg border border-gray-300 py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500">
+                        <option value="">{{ store.formData().areaId ? 'Sin ubicación específica' : 'Primero selecciona un área' }}</option>
                         @for (location of store.locations(); track location.id) {
                           <option [value]="location.id">{{ location.name }}</option>
                         }
                       </select>
 
-                      @if (store.validationErrors().locationId) {
-                        <p class="mt-1.5 flex items-start text-xs text-red-600">
-                          <i class="pi pi-exclamation-circle mr-1.5 mt-0.5 text-xs"></i>
-                          {{ store.validationErrors().locationId }}
-                        </p>
-                      } @else if (store.formData().locationId) {
-                        <p class="mt-1.5 flex items-start text-xs text-sky-600">
-                          <i class="pi pi-check-circle mr-1.5 mt-0.5 text-xs"></i>
-                          Ubicación seleccionada
-                        </p>
-                      }
+                      <p class="text-xs text-gray-500">
+                        <i class="pi pi-info-circle mr-1"></i>
+                        Selecciona una ubicación registrada o deja vacío
+                      </p>
                     }
+                  </div>
+
+                  <!-- Ubicación de Referencia (OPCIONAL - TEXTO LIBRE) -->
+                  <div class="space-y-2">
+                    <label for="referenceLocation" class="block text-sm font-medium text-gray-700">
+                      Ubicación de Referencia
+                      <span class="text-xs font-normal text-gray-500 ml-1">(Opcional)</span>
+                    </label>
+
+                    <input
+                      id="referenceLocation"
+                      type="text"
+                      [value]="store.formData().referenceLocation"
+                      (input)="onReferenceLocationChange($any($event.target).value)"
+                      [disabled]="store.isSubmitting()"
+                      placeholder="Ej: Zona A, Piso 2, cerca del extintor..."
+                      class="block w-full rounded-lg border border-gray-300 py-2.5 px-3.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500">
+
+                    <p class="text-xs text-gray-500">
+                      <i class="pi pi-info-circle mr-1"></i>
+                      Texto libre para detalles adicionales de ubicación
+                    </p>
                   </div>
 
                   <!-- Summary -->
                   @if (store.isStep3Valid()) {
-                    <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4">
+                    <div class="mt-6 rounded-xl border-2 border-dashed border-sky-200 bg-sky-50/50 p-4">
                       <div class="flex items-start gap-3">
                         <i class="pi pi-check-circle mt-0.5 text-lg text-sky-600"></i>
                         <div class="flex-1">
                           <p class="text-sm font-medium text-sky-900">
-                            Ubicación completa
+                            Ubicación configurada correctamente
                           </p>
-                          <p class="mt-1 text-xs text-sky-700">
-                            El equipo estará registrado en esta ubicación
-                          </p>
+                          <div class="mt-2 space-y-1 text-xs text-sky-700">
+                            @for (client of store.clients(); track client.id) {
+                              @if (client.id === store.formData().clientId) {
+                                <p><span class="font-medium">Cliente:</span> {{ client.name }}</p>
+                              }
+                            }
+
+                            @for (plant of store.plants(); track plant.id) {
+                              @if (plant.id === store.formData().plantId) {
+                                <p><span class="font-medium">Planta:</span> {{ plant.name }}</p>
+                              }
+                            }
+
+                            @for (area of store.areas(); track area.id) {
+                              @if (area.id === store.formData().areaId) {
+                                <p><span class="font-medium">Área:</span> {{ area.name }}</p>
+                              }
+                            }
+
+                            @if (store.formData().locationId) {
+                              @for (location of store.locations(); track location.id) {
+                                @if (location.id === store.formData().locationId) {
+                                  <p><span class="font-medium">Ubicación:</span> {{ location.name }}</p>
+                                }
+                              }
+                            }
+
+                            @if (store.formData().referenceLocation) {
+                              <p><span class="font-medium">Referencia:</span> {{ store.formData().referenceLocation }}</p>
+                            }
+
+                            @if (!store.formData().locationId && !store.formData().referenceLocation) {
+                              <p class="italic text-sky-600">Sin ubicación específica</p>
+                            }
+                          </div>
                         </div>
                       </div>
                     </div>
