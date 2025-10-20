@@ -215,10 +215,10 @@
                       <div class="flex-1">
                         <div class="flex items-center gap-2">
                           <span class="text-2xl">📋</span>
-                          <p class="font-semibold text-gray-900">Panel</p>
+                          <p class="font-semibold text-gray-900">Tablero</p>
                         </div>
                         <p class="mt-1 text-xs text-gray-600">
-                          Panel de control o tablero
+                          Tablero de control o tablero
                         </p>
                       </div>
 
@@ -292,7 +292,11 @@
                         }">
                         <option value="">Selecciona un cliente</option>
                         @for (client of store.clients(); track client.id) {
-                          <option [value]="client.id">{{ client.name }}</option>
+                          <option
+                            [value]="client.id"
+                            [selected]="client.id === store.formData().clientId">
+                            {{ client.name }}
+                          </option>
                         }
                       </select>
 
@@ -335,7 +339,11 @@
                         }">
                         <option value="">{{ store.formData().clientId ? 'Selecciona una planta' : 'Primero selecciona un cliente' }}</option>
                         @for (plant of store.plants(); track plant.id) {
-                          <option [value]="plant.id">{{ plant.name }}</option>
+                          <option
+                            [value]="plant.id"
+                            [selected]="plant.id === store.formData().plantId">
+                            {{ plant.name }}
+                          </option>
                         }
                       </select>
 
@@ -378,7 +386,11 @@
                         }">
                         <option value="">{{ store.formData().plantId ? 'Selecciona un área' : 'Primero selecciona una planta' }}</option>
                         @for (area of store.areas(); track area.id) {
-                          <option [value]="area.id">{{ area.name }}</option>
+                          <option
+                            [value]="area.id"
+                            [selected]="area.id === store.formData().areaId">
+                            {{ area.name }}
+                          </option>
                         }
                       </select>
 
@@ -417,7 +429,11 @@
                         class="block w-full rounded-lg border border-gray-300 py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500">
                         <option value="">{{ store.formData().areaId ? 'Sin ubicación específica' : 'Primero selecciona un área' }}</option>
                         @for (location of store.locations(); track location.id) {
-                          <option [value]="location.id">{{ location.name }}</option>
+                          <option
+                            [value]="location.id"
+                            [selected]="location.id === store.formData().locationId">
+                            {{ location.name }}
+                          </option>
                         }
                       </select>
 
@@ -531,7 +547,11 @@
                         }">
                         <option value="">{{ getEquipmentTypeSelectPlaceholder() }}</option>
                         @for (type of store.availableEquipmentTypes(); track type.id) {
-                          <option [value]="type.id">{{ type.name }}</option>
+                          <option
+                            [value]="type.id"
+                            [selected]="type.id === store.formData().equipmentTypeId">
+                            {{ type.code }} - {{ type.name }}
+                          </option>
                         }
                       </select>
 
@@ -570,7 +590,11 @@
                         class="block w-full rounded-lg border border-gray-300 py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500">
                         <option value="">Sin protocolo</option>
                         @for (protocol of store.communicationProtocols(); track protocol.id) {
-                          <option [value]="protocol.id">{{ protocol.name }}</option>
+                          <option
+                            [value]="protocol.id"
+                            [selected]="protocol.id === store.formData().communicationProtocolId">
+                            {{ protocol.name }}
+                          </option>
                         }
                       </select>
 
@@ -594,16 +618,24 @@
                       (change)="onStatusChange($any($event.target).value)"
                       [disabled]="store.isSubmitting()"
                       class="block w-full rounded-lg border border-gray-300 py-2.5 px-3.5 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500">
-                      <option [value]="EquipmentStatusEnum.OPERATIVE">
+                      <option
+                        [value]="EquipmentStatusEnum.OPERATIVE"
+                        [selected]="store.formData().status === EquipmentStatusEnum.OPERATIVE">
                         {{ getEquipmentStatusLabel(EquipmentStatusEnum.OPERATIVE) }}
                       </option>
-                      <option [value]="EquipmentStatusEnum.STAND_BY">
+                      <option
+                        [value]="EquipmentStatusEnum.STAND_BY"
+                        [selected]="store.formData().status === EquipmentStatusEnum.STAND_BY">
                         {{ getEquipmentStatusLabel(EquipmentStatusEnum.STAND_BY) }}
                       </option>
-                      <option [value]="EquipmentStatusEnum.INOPERATIVE">
+                      <option
+                        [value]="EquipmentStatusEnum.INOPERATIVE"
+                        [selected]="store.formData().status === EquipmentStatusEnum.INOPERATIVE">
                         {{ getEquipmentStatusLabel(EquipmentStatusEnum.INOPERATIVE) }}
                       </option>
-                      <option [value]="EquipmentStatusEnum.RETIRED">
+                      <option
+                        [value]="EquipmentStatusEnum.RETIRED"
+                        [selected]="store.formData().status === EquipmentStatusEnum.RETIRED">
                         {{ getEquipmentStatusLabel(EquipmentStatusEnum.RETIRED) }}
                       </option>
                     </select>

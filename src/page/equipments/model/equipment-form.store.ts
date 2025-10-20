@@ -331,8 +331,6 @@ export const EquipmentFormStore = signalStore(
             equipment = await firstValueFrom(panelService.getById(equipmentId));
           }
 
-          console.log(equipment)
-
           await Promise.all([
             this.loadClients(),
             this.loadEquipmentTypes(type),
@@ -347,6 +345,25 @@ export const EquipmentFormStore = signalStore(
             await this.loadLocations(equipment.areaId);
           }
 
+          let equipmentTypeId: string | null = null;
+
+          if (type === EquipmentTypeEnum.CABINET) {
+            const cabinetTypeName = (equipment as CabinetEntity).cabinetType;
+            const foundType = store.cabinetTypes().find(t => t.code === cabinetTypeName);
+            equipmentTypeId = foundType?.id || null;
+          } else {
+            const panelTypeName = (equipment as PanelEntity).panelType;
+            const foundType = store.panelTypes().find(t => t.code === panelTypeName);
+            equipmentTypeId = foundType?.id || null;
+          }
+
+          let communicationProtocolId: string | null = null;
+
+          if (equipment.communicationProtocol) {
+            const foundProtocol = store.communicationProtocols().find(p => p.name === equipment.communicationProtocol);
+            communicationProtocolId = foundProtocol?.id || null;
+          }
+
           patchState(store, {
             formData: {
               type,
@@ -356,10 +373,8 @@ export const EquipmentFormStore = signalStore(
               areaId: equipment.areaId,
               locationId: equipment.locationId || '',
               referenceLocation: equipment.referenceLocation || '',
-              communicationProtocolId: equipment.communicationProtocolId,
-              equipmentTypeId: type === EquipmentTypeEnum.CABINET
-                ? (equipment as CabinetEntity).cabinetTypeId
-                : (equipment as PanelEntity).panelTypeId,
+              communicationProtocolId: communicationProtocolId,
+              equipmentTypeId: equipmentTypeId,
               status: equipment.status as unknown as EquipmentStatusEnum
             },
             isLoadingEquipment: false,
