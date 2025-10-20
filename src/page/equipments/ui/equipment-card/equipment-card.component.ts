@@ -59,8 +59,14 @@ import { Ripple } from 'primeng/ripple';
               {{ equipment.plantName || 'N/A' }}
             </p>
             <p class="text-xs text-gray-600">
-              {{ equipment.areaName || 'N/A' }} • {{ equipment.locationName || 'N/A' }}
+              {{ equipment.areaName || 'N/A' }}
+              @if (equipment.locationName ) {
+                • {{ equipment.locationName || 'N/A' }}
+              }
             </p>
+            @if (equipment.referenceLocation ) {
+              <p class="text-xs text-gray-600">{{ equipment.referenceLocation || 'N/A' }}</p>
+            }
           </div>
         </div>
 

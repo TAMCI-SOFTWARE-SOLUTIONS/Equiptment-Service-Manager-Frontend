@@ -11,6 +11,7 @@ export class PanelEntityFromResponseMapper {
       tag: dto.tag ?? '',
       areaId: dto.areaId ?? '',
       locationId: dto.locationId ?? '',
+      referenceLocation: dto.referenceLocation ?? '',
       communicationProtocolId: null,
       communicationProtocol: dto.communicationProtocol ?? '',
       panelTypeId: null,

@@ -11,6 +11,7 @@ export class CabinetEntityFromResponseMapper {
       tag: dto.tag ?? '',
       areaId: dto.areaId ?? '',
       locationId: dto.locationId ?? '',
+      referenceLocation: dto.referenceLocation ?? '',
       communicationProtocol: dto.communicationProtocol ?? '',
       communicationProtocolId: null,
       cabinetType: dto.cabinetType ?? '',

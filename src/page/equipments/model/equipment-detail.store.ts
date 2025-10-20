@@ -69,10 +69,24 @@ export const EquipmentDetailStore = signalStore(
       const plant = state.plant();
       const area = state.area();
       const location = state.location();
+      const equipment = state.equipment();
 
-      if (!client || !plant || !area || !location) return '';
+      if (!client || !plant || !area) return '';
 
-      return `${client.name} • ${plant.name} • ${area.name} • ${location.name}`;
+      // Construir ubicación base
+      let fullLoc = `${client.name} • ${plant.name} • ${area.name}`;
+
+      // Agregar location si existe
+      if (location) {
+        fullLoc += ` • ${location.name}`;
+      }
+
+      // Agregar referenceLocation si existe
+      if (equipment?.referenceLocation) {
+        fullLoc += ` • ${equipment.referenceLocation}`;
+      }
+
+      return fullLoc;
     }),
 
     /**
@@ -83,13 +97,30 @@ export const EquipmentDetailStore = signalStore(
       const plant = state.plant();
       const area = state.area();
       const location = state.location();
+      const equipment = state.equipment();
 
       return {
         client: client?.name || 'Cargando...',
         plant: plant?.name || 'Cargando...',
         area: area?.name || 'Cargando...',
-        location: location?.name || 'Cargando...'
+        location: location?.name || null,
+        referenceLocation: equipment?.referenceLocation || null
       };
+    }),
+
+    /**
+     * Indica si tiene ubicación registrada
+     */
+    hasRegisteredLocation: computed(() => {
+      return state.location() !== null;
+    }),
+
+    /**
+     * Indica si tiene ubicación de referencia
+     */
+    hasReferenceLocation: computed(() => {
+      const equipment = state.equipment();
+      return !!equipment?.referenceLocation;
     })
   })),
 
@@ -128,8 +159,8 @@ export const EquipmentDetailStore = signalStore(
             error: null
           });
 
-          // Cargar detalles de ubicación
-          this.loadLocationDetails(equipment);
+
+          await this.loadLocationDetails(equipment);
 
         } catch (error: any) {
           console.error('❌ Error loading equipment:', error);
@@ -148,24 +179,37 @@ export const EquipmentDetailStore = signalStore(
         patchState(store, { isLoadingLocation: true });
 
         try {
-          const [client, plant, area, location] = await Promise.all([
+          // Crear array de promesas solo para los campos que existen
+          const promises: Promise<any>[] = [
             firstValueFrom(clientService.getById(equipment.clientId)),
             firstValueFrom(plantService.getById(equipment.plantId)),
-            firstValueFrom(areaService.getById(equipment.areaId)),
-            firstValueFrom(locationService.getById(equipment.locationId))
-          ]);
+            firstValueFrom(areaService.getById(equipment.areaId))
+          ];
+
+          // ✅ Solo cargar location si locationId existe y no está vacío
+          if (equipment.locationId && equipment.locationId.trim() !== '') {
+            promises.push(
+              firstValueFrom(locationService.getById(equipment.locationId))
+            );
+          }
+
+          const results = await Promise.all(promises);
+
+          const [client, plant, area, location] = results;
 
           patchState(store, {
             client,
             plant,
             area,
-            location,
+            location: location || null,
             isLoadingLocation: false
           });
 
         } catch (error: any) {
           console.error('❌ Error loading location details:', error);
-          patchState(store, { isLoadingLocation: false });
+          patchState(store, {
+            isLoadingLocation: false,
+          });
         }
       },
 

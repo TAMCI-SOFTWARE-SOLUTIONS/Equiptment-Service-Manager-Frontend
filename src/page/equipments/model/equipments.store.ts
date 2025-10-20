@@ -200,7 +200,7 @@ export const EquipmentsStore = signalStore(
         // Extraer IDs únicos
         const uniquePlantIds = Array.from(new Set(equipments.map(e => e.plantId)));
         const uniqueAreaIds = Array.from(new Set(equipments.map(e => e.areaId)));
-        const uniqueLocationIds = Array.from(new Set(equipments.map(e => e.locationId)));
+        const uniqueLocationIds = Array.from(new Set(equipments.map(e => e.locationId).filter(id => id && id.trim() !== '')));
 
         // Si no hay equipos, no hacer nada
         if (equipments.length === 0) return;
@@ -230,7 +230,7 @@ export const EquipmentsStore = signalStore(
             ...equipment,
             plantName: plantsMap.get(equipment.plantId)?.name || 'Desconocida',
             areaName: areasMap.get(equipment.areaId)?.name || 'Desconocida',
-            locationName: locationsMap.get(equipment.locationId)?.name || 'Desconocida'
+            locationName: locationsMap.get(equipment.locationId)?.name || ''
           }));
 
           patchState(store, {
