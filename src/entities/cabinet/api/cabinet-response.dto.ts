@@ -5,6 +5,7 @@ export interface CabinetResponseDto {
   tag: string | null;
   areaId: string | null;
   locationId: string | null;
+  referenceLocation: string | null;
   communicationProtocol: string | null;
   cabinetType: string | null;
   status: string | null;

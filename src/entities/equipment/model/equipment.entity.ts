@@ -24,6 +24,7 @@ export interface EquipmentEntity {
   plantName?: string;
   areaName?: string;
   locationName?: string;
+  referenceLocation?: string;
 
   // Type-specific
   communicationProtocolId: string | null;
@@ -50,6 +51,7 @@ export function cabinetToEquipment(cabinet: CabinetEntity): EquipmentEntity {
     plantId: cabinet.plantId,
     areaId: cabinet.areaId,
     locationId: cabinet.locationId,
+    referenceLocation: cabinet.referenceLocation,
     communicationProtocolId: cabinet.communicationProtocolId,
     communicationProtocol: cabinet.communicationProtocol,
     equipmentTypeId: cabinet.cabinetTypeId,
@@ -73,6 +75,7 @@ export function panelToEquipment(panel: PanelEntity): EquipmentEntity {
     plantId: panel.plantId,
     areaId: panel.areaId,
     locationId: panel.locationId,
+    referenceLocation: panel.referenceLocation,
     communicationProtocolId: panel.communicationProtocolId,
     communicationProtocol: panel.communicationProtocol,
     equipmentTypeId: panel.panelTypeId,

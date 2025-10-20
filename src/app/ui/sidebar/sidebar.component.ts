@@ -81,7 +81,7 @@ export class SidebarComponent {
       icon: 'pi-cog',
       children: [
         {
-          label: 'Tipos de Panel',
+          label: 'Tipos de Tableros',
           icon: 'pi-th-large',
           route: '/panel-types'
         },

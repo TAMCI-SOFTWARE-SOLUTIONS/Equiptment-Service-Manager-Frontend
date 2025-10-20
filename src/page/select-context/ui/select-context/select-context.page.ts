@@ -1,51 +1,102 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { RippleModule } from 'primeng/ripple';
+import {StepIndicatorComponent} from '../step-indicator/step-indicator.component';
+import {ClientCardComponent} from '../client-card/client-card.component';
+import {ProjectCardComponent} from '../project-card/project-card.component';
 import {SelectContextStep, SelectContextStore} from '../../../../shared/model/select-context.store';
-import {SelectClientStepComponent} from '../select-client-step/select-client-step.component';
-import {SelectProjectStepComponent} from '../select-project-step/select-project-step.component';
+import {ProjectEntity} from '../../../../entities/project/model/project.entity';
+import {ClientEntity} from '../../../../entities/client/model';
+import {Dialog} from 'primeng/dialog';
 
 @Component({
   selector: 'app-select-context',
-  imports: [
-    SelectClientStepComponent,
-    SelectProjectStepComponent
-  ],
   standalone: true,
-  providers: [SelectContextStore],
+  imports: [
+    CommonModule,
+    StepIndicatorComponent,
+    ClientCardComponent,
+    ProjectCardComponent,
+    ToastModule,
+    RippleModule,
+    Dialog
+  ],
+  providers: [
+    SelectContextStore,
+    MessageService
+  ],
   templateUrl: './select-context.page.html'
 })
-export class SelectContextPage implements OnInit, OnDestroy {
-  readonly store = inject(SelectContextStore);
-  private readonly router = inject(Router);
+export class SelectContextPage implements OnInit {
+  store = inject(SelectContextStore);
+  private router = inject(Router);
+  private messageService = inject(MessageService);
 
-  // Exponer enum para el template
   readonly SelectContextStep = SelectContextStep;
 
+  showSuccessModal = false;
+
   ngOnInit(): void {
-    // Cargar clientes al iniciar
     this.store.loadClients();
   }
 
-  ngOnDestroy(): void {
-    this.store.reset();
+  // Step Navigation
+  getStepIcon(step: number): string {
+    return step === 1 ? 'pi-building' : 'pi-folder';
   }
 
+  getStepDescription(): string {
+    if (this.store.currentStep() === SelectContextStep.SELECT_CLIENT) {
+      return 'Elige el cliente con el que deseas trabajar';
+    }
+    return `Elige el proyecto del cliente ${this.store.selectedClient()?.name || ''}`;
+  }
+
+  // Selection Handlers
+  onClientSelect(client: ClientEntity): void {
+    this.store.selectClient(client);
+  }
+
+  onProjectSelect(project: ProjectEntity): void {
+    this.store.selectProject(project);
+  }
+
+  // Navigation
   async onNext(): Promise<void> {
     await this.store.nextStep();
   }
 
-  onPrevious(): void {
+  onBack(): void {
     this.store.previousStep();
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/']).then();
   }
 
   onFinish(): void {
     this.store.finish();
-
-    // Navegar al dashboard
-    this.router.navigate(['/dashboard']).then(() => {});
+    this.showSuccessModal = true;
   }
 
-  onCancel(): void {
-    this.router.navigate(['/']).then(() => {});
+  protected navigateToCreateService(): void {
+    this.messageService.clear('context-success');
+    this.router.navigate(['/services/new']).then();
+  }
+
+  protected navigateToDashboard(): void {
+    this.messageService.clear('context-success');
+    this.router.navigate(['/']).then();
+  }
+
+  onRetry(): void {
+    if (this.store.currentStep() === SelectContextStep.SELECT_CLIENT) {
+      this.store.loadClients();
+    } else {
+      this.store.loadProjects();
+    }
   }
 }

@@ -201,7 +201,7 @@ export const CreateServiceStore = signalStore(
         if (allowedType === EquipmentTypeEnum.CABINET) {
           return 'Gabinete';
         } else if (allowedType === EquipmentTypeEnum.PANEL) {
-          return 'Panele';
+          return 'Tablero';
         } else {
           return 'Equipo';
         }
@@ -413,7 +413,7 @@ export const CreateServiceStore = signalStore(
           patchState(store, {
             panels: [],
             isLoadingEquipments: false,
-            error: 'Error al cargar paneles'
+            error: 'Error al cargar tableros'
           });
         }
       },

@@ -172,7 +172,7 @@
           [class.bg-gray-100]="!isTypeFilterActive('panel')"
           [class.text-gray-700]="!isTypeFilterActive('panel')"
           class="flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all hover:shadow-md">
-          <span>📋 Paneles</span>
+          <span>📋 Tableros</span>
           <span class="opacity-75">{{ store.panelCount() }}</span>
           </button>
         </div>
@@ -276,8 +276,13 @@
                     <td class="px-4 py-4">
                       <div class="text-sm text-gray-900">
                         <p>{{ equipment.areaName || 'N/A' }}</p>
-                        <p class="text-xs text-gray-500">{{ equipment.locationName || 'N/A' }}</p>
+                        @if (equipment.locationName ) {
+                          <p class="text-xs text-gray-500">{{ equipment.locationName || 'N/A' }}</p>
+                        }
                       </div>
+                      @if (equipment.referenceLocation ) {
+                        <p class="text-xs text-gray-500">{{ equipment.referenceLocation || 'N/A' }}</p>
+                      }
                     </td>
 
                     <!-- Protocolo -->
@@ -381,7 +386,7 @@
           iconBgClass="bg-gradient-to-br from-sky-100 to-cyan-100"
           iconColorClass="text-sky-600"
           title="No hay equipos registrados"
-          description="Comienza agregando el primer equipo (gabinete o panel) al sistema."
+          description="Comienza agregando el primer equipo (gabinete o tablero) al sistema."
           buttonText="Crear Primer Equipo"
           buttonIcon="pi-plus"
           (onAction)="onCreateNew()">

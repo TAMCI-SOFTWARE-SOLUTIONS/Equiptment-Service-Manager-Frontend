@@ -28,6 +28,7 @@ export interface EquipmentFormData {
   plantId: string;
   areaId: string;
   locationId: string;
+  referenceLocation: string;
   communicationProtocolId: string | null;
   equipmentTypeId: string | null;
   status: EquipmentStatusEnum;
@@ -72,7 +73,7 @@ export interface EquipmentFormState {
     clientId?: string;
     plantId?: string;
     areaId?: string;
-    locationId?: string;
+    referenceLocation?: string;
     equipmentTypeId?: string;
   };
 
@@ -90,6 +91,7 @@ const initialState: EquipmentFormState = {
     plantId: '',
     areaId: '',
     locationId: '',
+    referenceLocation: '',
     communicationProtocolId: null,
     equipmentTypeId: null,
     status: EquipmentStatusEnum.OPERATIVE
@@ -142,14 +144,13 @@ export const EquipmentFormStore = signalStore(
       const data = state.formData();
       const errors = state.validationErrors();
 
+      // Solo Cliente, Planta y Área son obligatorios
       return data.clientId.length > 0 &&
         data.plantId.length > 0 &&
         data.areaId.length > 0 &&
-        data.locationId.length > 0 &&
         !errors.clientId &&
         !errors.plantId &&
-        !errors.areaId &&
-        !errors.locationId;
+        !errors.areaId;
     }),
 
     /**
@@ -177,10 +178,10 @@ export const EquipmentFormStore = signalStore(
           return state.formData().tag.trim().length > 0;
         case 3:
           const data = state.formData();
+          // Solo Cliente, Planta y Área son obligatorios
           return data.clientId.length > 0 &&
             data.plantId.length > 0 &&
-            data.areaId.length > 0 &&
-            data.locationId.length > 0;
+            data.areaId.length > 0;
         case 4:
           return state.formData().equipmentTypeId !== null &&
             state.formData().equipmentTypeId!.length > 0;
@@ -200,7 +201,6 @@ export const EquipmentFormStore = signalStore(
         data.clientId.length > 0 &&
         data.plantId.length > 0 &&
         data.areaId.length > 0 &&
-        data.locationId.length > 0 &&
         data.equipmentTypeId !== null &&
         data.equipmentTypeId.length > 0 &&
         Object.keys(errors).length === 0 &&
@@ -213,7 +213,7 @@ export const EquipmentFormStore = signalStore(
     formTitle: computed(() => {
       const type = state.formData().type;
       const isEditing = state.isEditing();
-      const typeLabel = type === EquipmentTypeEnum.CABINET ? 'Gabinete' : 'Panel';
+      const typeLabel = type === EquipmentTypeEnum.CABINET ? 'Gabinete' : 'Tablero';
 
       return isEditing ? `Editar ${typeLabel}` : `Nuevo ${typeLabel}`;
     }),
@@ -263,10 +263,10 @@ export const EquipmentFormStore = signalStore(
      */
     currentStepDescription: computed(() => {
       const step = state.currentStep();
-      const type = state.formData().type === EquipmentTypeEnum.CABINET ? 'gabinete' : 'panel';
+      const type = state.formData().type === EquipmentTypeEnum.CABINET ? 'gabinete' : 'tablero';
 
       const descriptions: Record<number, string> = {
-        1: 'Selecciona si es un gabinete o panel',
+        1: 'Selecciona si es un gabinete o tablero',
         2: `Ingresa el identificador único del ${type}`,
         3: `Indica dónde se encuentra el ${type}`,
         4: `Define las características técnicas del ${type}`
@@ -331,6 +331,8 @@ export const EquipmentFormStore = signalStore(
             equipment = await firstValueFrom(panelService.getById(equipmentId));
           }
 
+          console.log(equipment)
+
           await Promise.all([
             this.loadClients(),
             this.loadEquipmentTypes(type),
@@ -339,7 +341,11 @@ export const EquipmentFormStore = signalStore(
 
           await this.loadPlants(equipment.clientId);
           await this.loadAreas(equipment.plantId);
-          await this.loadLocations(equipment.areaId);
+
+          // Solo cargar locations si hay areaId
+          if (equipment.areaId) {
+            await this.loadLocations(equipment.areaId);
+          }
 
           patchState(store, {
             formData: {
@@ -348,7 +354,8 @@ export const EquipmentFormStore = signalStore(
               clientId: equipment.clientId,
               plantId: equipment.plantId,
               areaId: equipment.areaId,
-              locationId: equipment.locationId,
+              locationId: equipment.locationId || '',
+              referenceLocation: equipment.referenceLocation || '',
               communicationProtocolId: equipment.communicationProtocolId,
               equipmentTypeId: type === EquipmentTypeEnum.CABINET
                 ? (equipment as CabinetEntity).cabinetTypeId
@@ -586,7 +593,8 @@ export const EquipmentFormStore = signalStore(
             clientId,
             plantId: '',
             areaId: '',
-            locationId: ''
+            locationId: '',
+            referenceLocation: ''
           },
           plants: [],
           areas: [],
@@ -606,7 +614,8 @@ export const EquipmentFormStore = signalStore(
             ...state.formData,
             plantId,
             areaId: '',
-            locationId: ''
+            locationId: '',
+            referenceLocation: ''
           },
           areas: [],
           locations: []
@@ -624,7 +633,8 @@ export const EquipmentFormStore = signalStore(
           formData: {
             ...state.formData,
             areaId,
-            locationId: ''
+            locationId: '',
+            referenceLocation: '' // ← Reset también
           },
           locations: []
         }));
@@ -640,7 +650,12 @@ export const EquipmentFormStore = signalStore(
         patchState(store, (state) => ({
           formData: { ...state.formData, locationId }
         }));
-        this.validateLocation(locationId);
+      },
+
+      setReferenceLocation(referenceLocation: string): void {
+        patchState(store, (state) => ({
+          formData: { ...state.formData, referenceLocation }
+        }));
       },
 
       setEquipmentType(equipmentTypeId: string): void {
@@ -712,18 +727,6 @@ export const EquipmentFormStore = signalStore(
         patchState(store, { validationErrors: errors });
       },
 
-      validateLocation(locationId: string): void {
-        const errors = { ...store.validationErrors() };
-
-        if (!locationId) {
-          errors.locationId = 'Debes seleccionar una ubicación';
-        } else {
-          delete errors.locationId;
-        }
-
-        patchState(store, { validationErrors: errors });
-      },
-
       validateEquipmentType(equipmentTypeId: string | null): void {
         const errors = { ...store.validationErrors() };
 
@@ -743,7 +746,6 @@ export const EquipmentFormStore = signalStore(
         this.validateClient(store.formData().clientId);
         this.validatePlant(store.formData().plantId);
         this.validateArea(store.formData().areaId);
-        this.validateLocation(store.formData().locationId);
         this.validateEquipmentType(store.formData().equipmentTypeId);
 
         if (!store.canSubmit()) {
@@ -766,7 +768,8 @@ export const EquipmentFormStore = signalStore(
               clientId: formData.clientId,
               plantId: formData.plantId,
               areaId: formData.areaId,
-              locationId: formData.locationId,
+              locationId: formData.locationId || '',
+              referenceLocation: formData.referenceLocation.trim(), // ← NUEVO campo
               communicationProtocolId: formData.communicationProtocolId,
               communicationProtocol: '',
               cabinetTypeId: formData.equipmentTypeId,
@@ -789,7 +792,8 @@ export const EquipmentFormStore = signalStore(
               clientId: formData.clientId,
               plantId: formData.plantId,
               areaId: formData.areaId,
-              locationId: formData.locationId,
+              locationId: formData.locationId || '',
+              referenceLocation: formData.referenceLocation.trim(),
               communicationProtocolId: formData.communicationProtocolId,
               communicationProtocol: '',
               panelTypeId: formData.equipmentTypeId,

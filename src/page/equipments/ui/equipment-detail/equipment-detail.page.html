@@ -179,7 +179,7 @@
                 <!-- Tipo Específico -->
                 <div>
                   <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                    {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Panel' }}
+                    {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Tablero' }}
                   </dt>
                   <dd class="mt-1 text-sm text-gray-900">
                     {{ store.equipment()!.equipmentTypeName || 'No especificado' }}
@@ -261,15 +261,52 @@
                     </dd>
                   </div>
 
-                  <!-- Ubicación -->
-                  <div>
-                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Ubicación Específica
-                    </dt>
-                    <dd class="mt-1 text-sm font-medium text-gray-900">
-                      {{ store.locationBreadcrumb().location }}
-                    </dd>
-                  </div>
+                  <!-- Ubicación Registrada (si existe) -->
+                  @if (store.locationBreadcrumb().location) {
+                    <div>
+                      <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Ubicación Específica
+                      </dt>
+                      <dd class="mt-1 flex items-center gap-2">
+                        <i class="pi pi-building text-sky-600"></i>
+                        <span class="text-sm font-medium text-gray-900">
+                {{ store.locationBreadcrumb().location }}
+              </span>
+                      </dd>
+                    </div>
+                  }
+
+                  <!-- Ubicación de Referencia (si existe) -->
+                  @if (store.locationBreadcrumb().referenceLocation) {
+                    <div>
+                      <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Ubicación de Referencia
+                      </dt>
+                      <dd class="mt-1 flex items-center gap-2">
+                        <i class="pi pi-map-marker text-sky-600"></i>
+                        <span class="text-sm italic text-gray-900">
+                          {{ store.locationBreadcrumb().referenceLocation }}
+                        </span>
+                      </dd>
+                    </div>
+                  }
+
+                  <!-- Sin ubicación específica (si no tiene ni location ni referenceLocation) -->
+                  @if (!store.locationBreadcrumb().location && !store.locationBreadcrumb().referenceLocation) {
+                    <div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                      <div class="flex items-start gap-3">
+                        <i class="pi pi-info-circle text-lg text-gray-400"></i>
+                        <div class="flex-1">
+                          <p class="text-sm font-medium text-gray-700">
+                            Sin ubicación específica
+                          </p>
+                          <p class="mt-1 text-xs text-gray-600">
+                            El equipo está registrado en el área pero sin una ubicación detallada
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  }
                 </dl>
               }
             </div>
@@ -293,7 +330,7 @@
                 <!-- Tipo Específico -->
                 <div>
                   <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                    {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Panel' }}
+                    {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Tablero' }}
                   </dt>
                   <dd class="mt-1 text-sm font-medium text-gray-900">
                     {{ store.equipment()!.equipmentTypeName || 'No especificado' }}
@@ -605,23 +642,31 @@
               }
               @else {
                 <!-- Empty State -->
-                <div class="flex flex-col items-center justify-center py-12 text-center">
-                  <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-sky-100">
-                    <i class="pi pi-bolt text-4xl text-sky-600"></i>
+                <div class="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-16 text-center">
+                  <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
+                    <i class="pi pi-bolt text-3xl text-gray-500"></i>
                   </div>
-                  <h3 class="text-base font-semibold text-gray-900">
-                    Sin paneles asignados
+
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    Interruptor Principal
                   </h3>
-                  <p class="mt-2 max-w-sm text-sm text-gray-600">
-                    Asigna un panel de distribución eléctrica para gestionar la alimentación de este equipo.
+
+                  <p class="mt-2 max-w-md text-sm text-gray-600">
+                    Este tablero está conectado directamente al interruptor principal
                   </p>
+
+                  <div class="mt-4 flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700">
+                    <i class="pi pi-info-circle text-blue-600"></i>
+                    <span class="font-medium">Sin paneles de distribución asignados</span>
+                  </div>
+
                   <button
                     pRipple
                     type="button"
                     (click)="onAddPowerAssignment()"
                     class="mt-6 flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
                     <i class="pi pi-plus"></i>
-                    Asignar Primer Panel
+                    Asignar Panel
                   </button>
                 </div>
               }
