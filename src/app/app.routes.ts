@@ -275,6 +275,14 @@ export const routes: Routes = [
           }
         ]
       },
+
+      // ==================== SUPERVISORS ====================
+      {
+        path: 'supervisors',
+        title: 'Supervisores',
+        loadComponent: () => import('../page/supervisors/ui/supervisors/supervisors.page').then(m => m.SupervisorsPage)
+      },
+
       // ==================== COLLABORATORS ====================
       {
         path: 'collaborators',
