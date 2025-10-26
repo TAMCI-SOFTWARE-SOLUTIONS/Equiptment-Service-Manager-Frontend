@@ -90,6 +90,8 @@ export class Step2EquipmentComponent implements OnInit {
       this.store.setFilterByPanelTypes(this.selectedPanelTypes);
     }
 
+    this.clearSearch();
+
     this.closeFilters();
   }
 
