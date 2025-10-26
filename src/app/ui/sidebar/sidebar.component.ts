@@ -81,6 +81,11 @@ export class SidebarComponent {
       icon: 'pi-cog',
       children: [
         {
+          label: 'Supervisores',
+          icon: 'pi-id-card',
+          route: '/supervisors'
+        },
+        {
           label: 'Tipos de Tableros',
           icon: 'pi-th-large',
           route: '/panel-types'
