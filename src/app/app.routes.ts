@@ -283,6 +283,13 @@ export const routes: Routes = [
         loadComponent: () => import('../page/supervisors/ui/supervisors/supervisors.page').then(m => m.SupervisorsPage)
       },
 
+      // ==================== BRANDS & MODELS ====================
+      {
+        path: 'brands',
+        title: 'Marcas y Modelos',
+        loadComponent: () => import('../page/brands/ui/brands/brands.page').then(m => m.BrandsPage)
+      },
+
       // ==================== COLLABORATORS ====================
       {
         path: 'collaborators',
