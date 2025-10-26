@@ -118,6 +118,48 @@ export const CreateServiceStore = signalStore(
     const contextStore = inject(ContextStore);
 
     return {
+      titlePage: computed(() => {
+        const step = state.currentStep();
+        const serviceType = state.formData().serviceType;
+
+        const serviceTypeLabel = (() => {
+          if (!serviceType) return '';
+          const labels: Record<ServiceTypeEnum, string> = {
+            [ServiceTypeEnum.MAINTENANCE]: 'Mantenimiento',
+            [ServiceTypeEnum.INSPECTION]: 'Inspección',
+            [ServiceTypeEnum.RAISE_OBSERVATION]: 'Levantamiento de Observaciones'
+          };
+          return labels[serviceType];
+        })();
+
+        const selectedEquipmentTagLabel = (() => {
+          const equipmentId = state.formData().selectedEquipmentId;
+          const equipmentType = state.formData().selectedEquipmentType;
+          if (!equipmentId || !equipmentType) return '';
+
+          let equipment: CabinetEntity | PanelEntity | null;
+
+          if (equipmentType === EquipmentTypeEnum.CABINET) {
+            equipment = state.cabinets().find(c => c.id === equipmentId) || null;
+          } else {
+            equipment = state.panels().find(p => p.id === equipmentId) || null;
+          }
+
+          return equipment ? equipment.tag : '';
+        })();
+
+        switch (step) {
+          case 1:
+            return 'Crear Nuevo Servicio';
+          case 2:
+            return 'Crear Nuevo Servicio';
+          case 3:
+            return `${serviceTypeLabel} | ${selectedEquipmentTagLabel}`;
+          default:
+            return 'Crear Nuevo Servicio';
+        }
+      }),
+
       /**
        * Step validation
        */
@@ -287,6 +329,7 @@ export const CreateServiceStore = signalStore(
 
         return labels[type];
       }),
+
       /**
        * Indica si hay power assignments
        */
