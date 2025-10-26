@@ -1,4 +1,4 @@
-import { InspectableItemTypeEnum } from '../../../entities/inspectable-item/model';
+import { InspectableItemTypeEnum } from '../../model/enums';
 
 export class InspectableItemTypeMapper {
   static fromStringToEnum(type: string): InspectableItemTypeEnum {
