@@ -8,6 +8,7 @@ import { CreateBrandRequest } from '../types/create-brand-request.type';
 import { BrandEntityFromResponseMapper } from '../mappers/brand-entity-from-response.mapper';
 import { CreateBrandRequestFromEntityMapper } from '../mappers/create-brand-request-from-entity.mapper';
 import { UpdateBrandRequestFromEntityMapper } from '../mappers/update-brand-request-from-entity.mapper';
+import {ModelEntity, ModelEntityFromResponseMapper, ModelResponse} from '../../../model';
 
 @Injectable({
   providedIn: 'root'
@@ -83,6 +84,19 @@ export class BrandService extends BaseService {
     ).pipe(
       map((responses: BrandResponse[]) =>
         responses.map(r => BrandEntityFromResponseMapper.fromDtoToEntity(r))
+      ),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  getAllModelsByBrandId(brandId: string): Observable<ModelEntity[]> {
+    return this.http.get<ModelResponse[]>(
+      `${this.resourcePath()}/${brandId}/models`,
+      this.httpOptions
+    ).pipe(
+      map((responses: ModelResponse[]) =>
+        responses.map(r => ModelEntityFromResponseMapper.fromDtoToEntity(r))
       ),
       retry(2),
       catchError(this.handleError)
