@@ -77,6 +77,11 @@ export class SidebarComponent {
       route: '/equipments'
     },
     {
+      label: 'Marcas y Modelos',
+      icon: 'pi-tags',
+      route: '/brands'
+    },
+    {
       label: 'Configuración',
       icon: 'pi-cog',
       children: [
