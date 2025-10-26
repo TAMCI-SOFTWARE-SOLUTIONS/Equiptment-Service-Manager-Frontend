@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import {ServiceTypeEnum} from '../../../../shared/model';
 import {CreateServiceStore} from '../../model/store/create-service.store';
+import {NgClass} from '@angular/common';
 
 interface ServiceType {
   id: ServiceTypeEnum;
@@ -13,7 +14,9 @@ interface ServiceType {
 @Component({
   selector: 'app-step1-service-type',
   standalone: true,
-  imports: [],
+  imports: [
+    NgClass
+  ],
   template: `
     <div class="space-y-6">
 
@@ -44,6 +47,10 @@ interface ServiceType {
             <div class="relative h-64">
               <div
                 class="absolute inset-0 bg-cover bg-center"
+                [ngClass]="{
+                  'grayscale transition-all duration-300': !isSelected(service.id),
+                  'grayscale-0': isSelected(service.id)
+                }"
                 [style.background-image]="'url(' + service.imageSrc + ')'">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20"></div>
               </div>
