@@ -21,6 +21,7 @@ import {
   EquipmentPowerDistributionAssignmentService
 } from '../../../../entities/equipment-power-distribution-assignment/api';
 import {PowerDistributionPanelService} from '../../../../entities/power-distribution-panel/api';
+import {SupervisorEntity, SupervisorService} from '../../../../entities/supervisor';
 
 export interface CreateServiceFormData {
   // Step 1
@@ -67,6 +68,13 @@ export interface CreateServiceState {
   isLoadingAreas: boolean;
   isSubmitting: boolean;
 
+  // Supervisor states
+  supervisorId: string | null;
+  supervisors: SupervisorEntity[];
+  isLoadingSupervisors: boolean;
+  filteredSupervisors: SupervisorEntity[];
+  supervisorSearchQuery: string;
+
   // Power assignments (NEW)
   powerAssignments: PowerAssignmentWithPanel[];
   isLoadingPowerAssignments: boolean;
@@ -104,6 +112,11 @@ const initialState: CreateServiceState = {
   isLoadingTypes: false,
   isLoadingAreas: false,
   isSubmitting: false,
+  supervisorId: null,
+  supervisors: [],
+  isLoadingSupervisors: false,
+  filteredSupervisors: [],
+  supervisorSearchQuery: '',
   powerAssignments: [],
   isLoadingPowerAssignments: false,
   powerAssignmentsError: null,
@@ -369,6 +382,36 @@ export const CreateServiceStore = signalStore(
 
         return ranges.join(', ');
       }),
+
+      /**
+       * Supervisor seleccionado completo
+       */
+      selectedSupervisor: computed(() => {
+        const supervisorId = state.supervisorId();
+        const supervisors = state.supervisors();
+        return supervisors.find(s => s.id === supervisorId) || null;
+      }),
+
+      /**
+       * Validar que hay supervisor seleccionado
+       */
+      hasSupervisorSelected: computed(() => {
+        return state.supervisorId() !== null && state.supervisorId() !== '';
+      }),
+
+      /**
+       * Supervisores filtrados por búsqueda
+       */
+      filteredSupervisorsComputed: computed(() => {
+        const query = state.supervisorSearchQuery().toLowerCase().trim();
+        const supervisors = state.supervisors();
+
+        if (!query) return supervisors;
+
+        return supervisors.filter(s =>
+          s.fullName.toLowerCase().includes(query)
+        );
+      })
     };
   }),
 
@@ -381,6 +424,7 @@ export const CreateServiceStore = signalStore(
     const areaService = inject(AreaService);
     const powerAssignmentService = inject(EquipmentPowerDistributionAssignmentService);
     const powerPanelService = inject(PowerDistributionPanelService);
+    const supervisorService = inject(SupervisorService);
 
     return {
       /**
@@ -598,6 +642,57 @@ export const CreateServiceStore = signalStore(
           });
         }
       },
+
+      /**
+       * Cargar supervisores
+       */
+      async loadSupervisors(): Promise<void> {
+        patchState(store, {
+          isLoadingSupervisors: true
+        });
+
+        try {
+          const supervisors = await firstValueFrom(supervisorService.getAll());
+
+          patchState(store, {
+            supervisors: supervisors.sort((a, b) => a.fullName.localeCompare(b.fullName)),
+            filteredSupervisors: supervisors,
+            isLoadingSupervisors: false
+          });
+
+        } catch (error: any) {
+          console.error('❌ Error loading supervisors:', error);
+          patchState(store, {
+            supervisors: [],
+            filteredSupervisors: [],
+            isLoadingSupervisors: false
+          });
+        }
+      },
+
+      /**
+       * Establecer supervisor seleccionado
+       */
+      setSupervisorId(supervisorId: string | null): void {
+        patchState(store, { supervisorId });
+      },
+
+      /**
+       * Buscar supervisores
+       */
+      setSupervisorSearchQuery(query: string): void {
+      patchState(store, { supervisorSearchQuery: query });
+    },
+
+      /**
+       * Limpiar selección de supervisor
+       */
+      clearSupervisor(): void {
+      patchState(store, {
+        supervisorId: null,
+        supervisorSearchQuery: ''
+      });
+    },
 
       // ==================== STEP 1: Service Type ====================
 
