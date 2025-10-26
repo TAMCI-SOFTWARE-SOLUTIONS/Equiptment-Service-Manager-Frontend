@@ -1,6 +1,6 @@
 import { InspectableItemResponse } from '../types';
 import { InspectableItemEntity } from '../../model';
-import { InspectableItemTypeMapper } from './inspectable-item-type.mapper';
+import { InspectableItemTypeMapper } from '../../../../shared/api/mappers/inspectable-item-type.mapper';
 
 export class InspectableItemEntityFromResponseMapper {
   static fromDtoToEntity(dto: InspectableItemResponse): InspectableItemEntity {

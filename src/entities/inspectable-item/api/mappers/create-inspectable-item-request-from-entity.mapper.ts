@@ -1,6 +1,6 @@
 import { InspectableItemEntity } from '../../model';
 import { CreateInspectableItemRequest } from '../types';
-import { InspectableItemTypeMapper } from './inspectable-item-type.mapper';
+import { InspectableItemTypeMapper } from '../../../../shared/api/mappers/inspectable-item-type.mapper';
 
 export class CreateInspectableItemRequestFromEntityMapper {
   static fromEntityToDto(entity: InspectableItemEntity, equipmentId: string): CreateInspectableItemRequest {

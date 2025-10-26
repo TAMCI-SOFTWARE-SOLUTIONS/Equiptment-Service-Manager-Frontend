@@ -1,6 +1,6 @@
 import {InspectableItemEntity} from '../../model';
 import {UpdateInspectableItemRequest} from '../types';
-import {InspectableItemTypeMapper} from './inspectable-item-type.mapper';
+import {InspectableItemTypeMapper} from '../../../../shared/api/mappers/inspectable-item-type.mapper';
 
 export class UpdateInspectableItemRequestFromEntityMapper {
   static fromEntityToDto(entity: InspectableItemEntity): UpdateInspectableItemRequest {
