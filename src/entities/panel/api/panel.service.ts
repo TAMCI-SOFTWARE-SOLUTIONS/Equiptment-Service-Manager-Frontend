@@ -8,6 +8,7 @@ import {CreatePanelRequest} from './create-panel-request.type';
 import {CreatePanelRequestFromEntityMapper} from './create-panel-request-from-entity.mapper';
 import {UpdatePanelRequestFromEntityMapper} from './update-panel-request-from-entity.mapper';
 import {UpdatePanelRequest} from './update-panel-request.type';
+import {InspectableItemEntity} from '../../inspectable-item';
 
 @Injectable({
   providedIn: 'root'
@@ -52,6 +53,13 @@ export class PanelService extends BaseService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getAllInspectableItems(panelId: string): Observable<InspectableItemEntity[]> {
+    return this.http.get<InspectableItemEntity[]>(`${this.resourcePath()}/${panelId}/inspectable-items`, this.httpOptions).pipe(
+      retry(2),
       catchError(this.handleError)
     );
   }

@@ -8,6 +8,7 @@ import {CreateCabinetRequest} from './create-cabinet-request.type';
 import {CreateCabinetRequestFromEntityMapper} from './create-cabinet-request-from-entity.mapper';
 import {UpdateCabinetRequestFromEntityMapper} from './update-cabinet-request-from-entity.mapper';
 import {UpdateCabinetRequest} from './update-cabinet-request.type';
+import {InspectableItemEntity} from '../../inspectable-item';
 
 @Injectable({
   providedIn: 'root'
@@ -52,6 +53,13 @@ export class CabinetService extends BaseService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getAllInspectableItems(cabinetId: string): Observable<InspectableItemEntity[]> {
+    return this.http.get<InspectableItemEntity[]>(`${this.resourcePath()}/${cabinetId}/inspectable-items`, this.httpOptions).pipe(
+      retry(2),
       catchError(this.handleError)
     );
   }
