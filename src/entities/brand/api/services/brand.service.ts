@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 import { BaseService } from '../../../../shared/api';
 import { BrandEntity } from '../../model/entities/brand.entity';
@@ -9,6 +9,7 @@ import { BrandEntityFromResponseMapper } from '../mappers/brand-entity-from-resp
 import { CreateBrandRequestFromEntityMapper } from '../mappers/create-brand-request-from-entity.mapper';
 import { UpdateBrandRequestFromEntityMapper } from '../mappers/update-brand-request-from-entity.mapper';
 import {ModelEntity, ModelEntityFromResponseMapper, ModelResponse} from '../../../model';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -77,14 +78,11 @@ export class BrandService extends BaseService {
   }
 
   batchGetByIds(ids: string[]): Observable<BrandEntity[]> {
-    const params = ids.join(',');
-    return this.http.get<BrandResponse[]>(
-      `${this.resourcePath()}/batch?ids=${params}`,
-      this.httpOptions
-    ).pipe(
-      map((responses: BrandResponse[]) =>
-        responses.map(r => BrandEntityFromResponseMapper.fromDtoToEntity(r))
-      ),
+    if (!ids || ids.length === 0) {return of([]);}
+    const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
+    const options = { ...this.httpOptions, params };
+    return this.http.get<BrandResponse[]>(`${this.resourcePath()}/:batchGet`,options).pipe(
+      map((responses: BrandResponse[]) => responses.map(r => BrandEntityFromResponseMapper.fromDtoToEntity(r))),
       retry(2),
       catchError(this.handleError)
     );

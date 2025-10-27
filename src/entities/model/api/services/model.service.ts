@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 import { BaseService } from '../../../../shared/api';
 import { ModelEntity } from '../../model/entities/model.entity';
@@ -8,6 +8,7 @@ import { CreateModelRequest } from '../types/create-model-request.type';
 import { ModelEntityFromResponseMapper } from '../mappers/model-entity-from-response.mapper';
 import { CreateModelRequestFromEntityMapper } from '../mappers/create-model-request-from-entity.mapper';
 import { UpdateModelRequestFromEntityMapper } from '../mappers/update-model-request-from-entity.mapper';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -76,14 +77,11 @@ export class ModelService extends BaseService {
   }
 
   batchGetByIds(ids: string[]): Observable<ModelEntity[]> {
-    const params = ids.join(',');
-    return this.http.get<ModelResponse[]>(
-      `${this.resourcePath()}/batch?ids=${params}`,
-      this.httpOptions
-    ).pipe(
-      map((responses: ModelResponse[]) =>
-        responses.map(r => ModelEntityFromResponseMapper.fromDtoToEntity(r))
-      ),
+    if (!ids || ids.length === 0) {return of([]);}
+    const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
+    const options = { ...this.httpOptions, params };
+    return this.http.get<ModelResponse[]>(`${this.resourcePath()}/:batchGet`, options).pipe(
+      map((responses: ModelResponse[]) => responses.map(r => ModelEntityFromResponseMapper.fromDtoToEntity(r))),
       retry(2),
       catchError(this.handleError)
     );
