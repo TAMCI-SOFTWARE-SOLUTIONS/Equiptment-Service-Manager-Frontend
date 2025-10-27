@@ -3,6 +3,7 @@ import {EquipmentTypeEnum, ServiceTypeEnum} from '../../../../shared/model';
 
 export interface EquipmentServiceEntity {
   id: string;
+  operatorId: string;
   projectId: string;
   equipmentId: string;
   equipmentType: EquipmentTypeEnum;

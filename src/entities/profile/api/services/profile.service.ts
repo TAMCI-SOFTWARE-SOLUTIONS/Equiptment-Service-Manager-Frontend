@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 import { BaseService } from '../../../../shared/api';
 import { ProfileEntity } from '../../model';
@@ -9,6 +9,7 @@ import {
   ProfileEntityFromResponseMapper,
   UpdateProfileRequestFromEntityMapper
 } from '../mappers';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -98,6 +99,17 @@ export class ProfileService extends BaseService {
       `${this.resourcePath()}/${profileId}`,
       this.httpOptions
     ).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  getAllByUserIds(userIds: string[]): Observable<ProfileEntity[]> {
+    if (!userIds || userIds.length === 0) { return of([]); }
+    const params = userIds.reduce((acc, userIds) => acc.append('userIds', userIds), new HttpParams());
+    const options = { ...this.httpOptions, params };
+    return this.http.get<ProfileResponse[]>(`${this.resourcePath()}/:batchGetByUserIds`, options).pipe(
+      map((response: ProfileResponse[]) => response.map((profile: ProfileResponse) => ProfileEntityFromResponseMapper.fromDtoToEntity(profile))),
       retry(2),
       catchError(this.handleError)
     );

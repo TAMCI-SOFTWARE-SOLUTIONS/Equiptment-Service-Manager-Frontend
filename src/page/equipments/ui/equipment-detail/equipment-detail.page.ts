@@ -18,6 +18,9 @@ import {PowerAssignmentDrawerComponent} from '../power-assignment-drawer/power-a
 import {
   PowerDistributionPanelTypeEnum
 } from '../../../../entities/power-distribution-panel/model/enums/power-distribution-panel-type.enum';
+import {EquipmentInspectableItemsStore} from '../../model/equipment-inspectable-items.store';
+import {InspectableItemDrawerComponent} from '../inspectable-item-drawer/inspectable-item-drawer.component';
+import {InspectableItemCardComponent} from '../inspectable-item-card/inspectable-item-card.component';
 
 @Component({
   selector: 'app-equipment-detail',
@@ -26,24 +29,30 @@ import {
     CommonModule,
     ConfirmationModalComponent,
     PowerAssignmentDrawerComponent,
+    InspectableItemDrawerComponent,
+    InspectableItemCardComponent,
     Ripple
   ],
   providers: [
     EquipmentDetailStore,
-    EquipmentPowerAssignmentsStore  // ← NUEVO: Provider del store
+    EquipmentPowerAssignmentsStore,
+    EquipmentInspectableItemsStore
   ],
   templateUrl: './equipment-detail.page.html'
 })
 export class EquipmentDetailPage implements OnInit, OnDestroy {
   readonly store = inject(EquipmentDetailStore);
-  readonly powerStore = inject(EquipmentPowerAssignmentsStore);  // ← NUEVO
+  readonly powerStore = inject(EquipmentPowerAssignmentsStore);
+  readonly itemsStore = inject(EquipmentInspectableItemsStore);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
   // UI State
   readonly showDeleteModal = signal(false);
-  readonly showDeletePowerModal = signal(false);  // ← NUEVO
-  readonly powerAssignmentToDelete = signal<string | null>(null);  // ← NUEVO
+  readonly showDeletePowerModal = signal(false);
+  readonly showDeleteItemModal = signal(false);
+  readonly powerAssignmentToDelete = signal<string | null>(null);
+  readonly itemToDelete = signal<string | null>(null);
 
   // Expose enums and helpers to the template
   readonly EquipmentTypeEnum = EquipmentTypeEnum;
@@ -65,7 +74,8 @@ export class EquipmentDetailPage implements OnInit, OnDestroy {
 
     if (equipmentId) {
       this.store.loadEquipment(equipmentId, type);
-      this.powerStore.loadAssignments(equipmentId);  // ← NUEVO: Cargar power assignments
+      this.powerStore.loadAssignments(equipmentId);
+      this.itemsStore.initialize(equipmentId, type);
     } else {
       this.router.navigate(['/equipments']).then();
     }
@@ -73,7 +83,8 @@ export class EquipmentDetailPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.store.reset();
-    this.powerStore.reset();  // ← NUEVO
+    this.powerStore.reset();
+    this.itemsStore.reset();
   }
 
   // ==================== EQUIPMENT ACTIONS ====================
@@ -112,7 +123,8 @@ export class EquipmentDetailPage implements OnInit, OnDestroy {
     if (!equipment) return;
 
     this.store.loadEquipment(equipment.id, equipment.type);
-    this.powerStore.loadAssignments(equipment.id);  // ← NUEVO
+    this.powerStore.loadAssignments(equipment.id);
+    this.itemsStore.initialize(equipment.id, equipment.type);
   }
 
   // ==================== POWER ASSIGNMENT ACTIONS ====================
@@ -240,5 +252,60 @@ export class EquipmentDetailPage implements OnInit, OnDestroy {
     }
 
     return ranges.join(', ');
+  }
+
+  // ==================== INSPECTABLE ITEMS ACTIONS ====================
+
+  onAddInspectableItem(): void {
+    this.itemsStore.openDrawerForCreate();
+  }
+
+  onEditInspectableItem(itemId: string): void {
+    this.itemsStore.openDrawerForEdit(itemId);
+  }
+
+  onDeleteItemClick(itemId: string): void {
+    this.itemToDelete.set(itemId);
+    this.showDeleteItemModal.set(true);
+  }
+
+  async confirmDeleteItem(): Promise<void> {
+    const itemId = this.itemToDelete();
+    if (!itemId) return;
+
+    const success = await this.itemsStore.deleteItem(itemId);
+
+    if (success) {
+      this.closeDeleteItemModal();
+    }
+  }
+
+  closeDeleteItemModal(): void {
+    this.showDeleteItemModal.set(false);
+    this.itemToDelete.set(null);
+  }
+
+  onInspectableItemSuccess(): void {
+    console.log('✅ Inspectable item saved successfully');
+  }
+
+  onToggleItemType(type: any): void {
+    this.itemsStore.toggleType(type);
+  }
+
+  onSearchItemsChange(value: string): void {
+    this.itemsStore.setSearchQuery(value);
+  }
+
+  clearItemsSearch(): void {
+    this.itemsStore.clearSearch();
+  }
+
+  onFilterTypeChange(type: any): void {
+    this.itemsStore.setFilterType(type);
+  }
+
+  getItemTypeConfig(type: any) {
+    return this.itemsStore.getTypeConfig()(type);
   }
 }
