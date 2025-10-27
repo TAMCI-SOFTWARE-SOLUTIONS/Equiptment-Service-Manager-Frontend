@@ -1,1 +1,476 @@
-<p>services-active works!</p>
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Title & Actions -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            Servicios Activos
+          </h1>
+          @if (store.hasServices() && !store.isLoading()) {
+            <span class="flex h-6 items-center rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-700">
+              {{ store.statusCounts().all }}
+            </span>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2">
+          <!-- Refresh Button -->
+          @if (store.hasServices() && !store.isLoading()) {
+            <button
+              type="button"
+              (click)="onRefresh()"
+              pRipple
+              class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 lg:h-10 lg:w-10">
+              <i class="pi pi-refresh text-sm"></i>
+            </button>
+          }
+
+          <!-- Create Button (Solo Admin) -->
+          @if (store.canCreateService()) {
+            <button
+              type="button"
+              (click)="onCreateNew()"
+              [disabled]="store.isLoading()"
+              pRipple
+              class="inline-flex items-center gap-2 rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50 lg:px-4">
+              <i class="pi pi-plus text-sm"></i>
+              <span class="hidden sm:inline">Nuevo Servicio</span>
+              <span class="sm:hidden">Nuevo</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Filters & Search -->
+      @if (store.hasServices() && !store.isLoading()) {
+        <div class="mt-4 space-y-3">
+
+          <!-- Quick Filters -->
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              (click)="onStatusFilterChange('all')"
+              [class.bg-sky-100]="store.statusFilter() === 'all'"
+              [class.text-sky-700]="store.statusFilter() === 'all'"
+              [class.font-semibold]="store.statusFilter() === 'all'"
+              [class.bg-white]="store.statusFilter() !== 'all'"
+              [class.text-gray-600]="store.statusFilter() !== 'all'"
+              pRipple
+              class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm transition-colors hover:bg-gray-50">
+              Todos
+              <span class="rounded-full bg-gray-200 px-1.5 py-0.5 text-xs">
+                {{ store.statusCounts().all }}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              (click)="onStatusFilterChange(ServiceStatusEnum.CREATED)"
+              [class.bg-gray-100]="store.statusFilter() === ServiceStatusEnum.CREATED"
+              [class.text-gray-800]="store.statusFilter() === ServiceStatusEnum.CREATED"
+              [class.font-semibold]="store.statusFilter() === ServiceStatusEnum.CREATED"
+              [class.bg-white]="store.statusFilter() !== ServiceStatusEnum.CREATED"
+              [class.text-gray-600]="store.statusFilter() !== ServiceStatusEnum.CREATED"
+              pRipple
+              class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm transition-colors hover:bg-gray-50">
+              <i class="pi pi-circle text-xs"></i>
+              Creados
+              @if (store.statusCounts().created > 0) {
+                <span class="rounded-full bg-gray-200 px-1.5 py-0.5 text-xs">
+                  {{ store.statusCounts().created }}
+                </span>
+              }
+            </button>
+
+            <button
+              type="button"
+              (click)="onStatusFilterChange(ServiceStatusEnum.IN_PROGRESS)"
+              [class.bg-blue-100]="store.statusFilter() === ServiceStatusEnum.IN_PROGRESS"
+              [class.text-blue-800]="store.statusFilter() === ServiceStatusEnum.IN_PROGRESS"
+              [class.font-semibold]="store.statusFilter() === ServiceStatusEnum.IN_PROGRESS"
+              [class.bg-white]="store.statusFilter() !== ServiceStatusEnum.IN_PROGRESS"
+              [class.text-gray-600]="store.statusFilter() !== ServiceStatusEnum.IN_PROGRESS"
+              pRipple
+              class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm transition-colors hover:bg-gray-50">
+              <i class="pi pi-spin pi-spinner text-xs"></i>
+              En Progreso
+              @if (store.statusCounts().in_progress > 0) {
+                <span class="rounded-full bg-blue-200 px-1.5 py-0.5 text-xs">
+                  {{ store.statusCounts().in_progress }}
+                </span>
+              }
+            </button>
+
+            <button
+              type="button"
+              (click)="onStatusFilterChange(ServiceStatusEnum.PAUSED)"
+              [class.bg-amber-100]="store.statusFilter() === ServiceStatusEnum.PAUSED"
+              [class.text-amber-800]="store.statusFilter() === ServiceStatusEnum.PAUSED"
+              [class.font-semibold]="store.statusFilter() === ServiceStatusEnum.PAUSED"
+              [class.bg-white]="store.statusFilter() !== ServiceStatusEnum.PAUSED"
+              [class.text-gray-600]="store.statusFilter() !== ServiceStatusEnum.PAUSED"
+              pRipple
+              class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm transition-colors hover:bg-gray-50">
+              <i class="pi pi-pause text-xs"></i>
+              Pausados
+              @if (store.statusCounts().paused > 0) {
+                <span class="rounded-full bg-amber-200 px-1.5 py-0.5 text-xs">
+                  {{ store.statusCounts().paused }}
+                </span>
+              }
+            </button>
+          </div>
+
+          <!-- Search Bar -->
+          <div class="relative">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <i class="pi pi-search text-sm text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              [value]="store.searchQuery()"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Buscar por equipo, operador o supervisor..."
+              class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+
+            @if (store.searchQuery()) {
+              <button
+                type="button"
+                (click)="clearSearch()"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                <i class="pi pi-times text-xs"></i>
+              </button>
+            }
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="space-y-3">
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="animate-pulse rounded-lg border border-gray-200 bg-white p-4">
+              <div class="flex items-center justify-between">
+                <div class="flex flex-1 items-center gap-4">
+                  <div class="h-10 w-10 rounded-lg bg-gray-200"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-4 w-32 rounded bg-gray-200"></div>
+                    <div class="h-3 w-48 rounded bg-gray-200"></div>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <div class="h-8 w-20 rounded bg-gray-200"></div>
+                  <div class="h-8 w-20 rounded bg-gray-200"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @else if (!store.hasServices()) {
+        <app-empty-state
+          icon="pi-clock"
+          iconBgClass="bg-gradient-to-br from-sky-100 to-cyan-100"
+          iconColorClass="text-sky-600"
+          title="No hay servicios activos"
+          [description]="store.userRole() === 'OPERATOR'
+            ? 'No tienes servicios asignados actualmente.'
+            : 'No hay servicios en progreso en este momento.'"
+          [showButton]="store.canCreateService()"
+          buttonText="Crear Servicio"
+          buttonIcon="pi-plus"
+          (onAction)="onCreateNew()">
+        </app-empty-state>
+      }
+
+      @else if (store.hasNoResults()) {
+        <app-empty-state
+          icon="pi-search"
+          iconBgClass="bg-gradient-to-br from-gray-100 to-gray-200"
+          iconColorClass="text-gray-500"
+          title="No se encontraron resultados"
+          [description]="'No hay servicios que coincidan con tu búsqueda o filtros.'"
+          [showButton]="true"
+          buttonText="Limpiar filtros"
+          buttonIcon="pi-times"
+          (onAction)="clearSearch(); onStatusFilterChange('all')">
+        </app-empty-state>
+      }
+
+      @else {
+        <div class="space-y-4">
+
+          <!-- Desktop Table -->
+          <div class="hidden overflow-hidden rounded-lg border border-gray-200 bg-white lg:block">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    Equipo
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    Tipo Servicio
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    Estado
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    Supervisor
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    Operador
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    Inicio
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    Duración
+                  </th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    Acciones
+                  </th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  @for (service of store.paginatedServices(); track service.id) {
+                    <tr
+                      class="group cursor-pointer transition-colors hover:bg-gray-50"
+                      (click)="onServiceClick(service)">
+
+                      <!-- Equipo -->
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100">
+                            <i [class]="'text-sm text-sky-700 ' + getEquipmentTypeIcon(service.equipmentType)"></i>
+                          </div>
+                          <div>
+                            <p class="font-medium text-gray-900">{{ service.equipmentTag }}</p>
+                            <p class="text-xs text-gray-500">{{ getEquipmentTypeLabel(service.equipmentType) }}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <!-- Tipo Servicio -->
+                      <td class="px-4 py-3">
+                        <span class="text-sm text-gray-700">
+                          {{ getServiceTypeLabel(service.type) }}
+                        </span>
+                      </td>
+
+                      <!-- Estado -->
+                      <td class="px-4 py-3">
+                        <span [class]="getStatusBadgeClass(service.status)">
+                          <i [class]="getStatusIcon(service.status)"></i>
+                          {{ getStatusLabel(service.status) }}
+                        </span>
+                      </td>
+
+                      <!-- Supervisor -->
+                      <td class="px-4 py-3">
+                        <span class="text-sm text-gray-700">
+                          {{ service.supervisorName }}
+                        </span>
+                      </td>
+
+                      <!-- Operador -->
+                      <td class="px-4 py-3">
+                        <span class="text-sm text-gray-700">
+                          {{ service.operatorName }}
+                        </span>
+                      </td>
+
+                      <!-- Inicio -->
+                      <td class="px-4 py-3">
+                        <span class="text-sm text-gray-600">
+                          {{ formatDate(service.startedAt) }}
+                        </span>
+                      </td>
+
+                      <!-- Duración -->
+                      <td class="px-4 py-3">
+                        <span class="text-sm text-gray-600">
+                          {{ formatDuration(service.totalWorkDuration) }}
+                        </span>
+                      </td>
+
+                      <!-- Acciones -->
+                      <td class="px-4 py-3">
+                        <div class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+
+                          <!-- Ver Detalles (Todos) -->
+                          <button
+                            type="button"
+                            (click)="onServiceClick(service)"
+                            pRipple
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                            <i class="pi pi-eye mr-1 text-xs"></i>
+                            {{ store.userRole() === 'OPERATOR' ? 'Continuar' : 'Ver' }}
+                          </button>
+
+                          <!-- Reasignar (Solo Admin) -->
+                          @if (store.canManageServices()) {
+                            <button
+                              type="button"
+                              (click)="onReassignClick(service, $event)"
+                              pRipple
+                              class="rounded-lg border border-blue-300 bg-white px-3 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50">
+                              <i class="pi pi-user-edit mr-1 text-xs"></i>
+                              Reasignar
+                            </button>
+
+                            <!-- Cancelar (Solo Admin) -->
+                            <button
+                              type="button"
+                              (click)="onCancelClick(service, $event)"
+                              pRipple
+                              class="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50">
+                              <i class="pi pi-times mr-1 text-xs"></i>
+                              Cancelar
+                            </button>
+                          }
+                        </div>
+                      </td>
+
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Mobile Cards -->
+          <div class="space-y-3 lg:hidden">
+            @for (service of store.paginatedServices(); track service.id) {
+              <div
+                class="rounded-lg border border-gray-200 bg-white p-4 transition-all hover:shadow-sm"
+                (click)="onServiceClick(service)">
+
+                <!-- Header -->
+                <div class="mb-3 flex items-start justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100">
+                      <i [class]="'text-sm text-sky-700 ' + getEquipmentTypeIcon(service.equipmentType)"></i>
+                    </div>
+                    <div>
+                      <p class="font-semibold text-gray-900">{{ service.equipmentTag }}</p>
+                      <p class="text-xs text-gray-500">{{ getEquipmentTypeLabel(service.equipmentType) }}</p>
+                    </div>
+                  </div>
+                  <span [class]="getStatusBadgeClass(service.status)">
+                    <i [class]="getStatusIcon(service.status)"></i>
+                    {{ getStatusLabel(service.status) }}
+                  </span>
+                </div>
+
+                <!-- Details -->
+                <div class="mb-3 space-y-2 text-sm">
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-500">Tipo:</span>
+                    <span class="font-medium text-gray-900">{{ getServiceTypeLabel(service.type) }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-500">Operador:</span>
+                    <span class="font-medium text-gray-900">{{ service.operatorName }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-500">Inicio:</span>
+                    <span class="text-gray-600">{{ formatDate(service.startedAt) }}</span>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-2 border-t border-gray-100 pt-3">
+                  <button
+                    type="button"
+                    (click)="onServiceClick(service)"
+                    pRipple
+                    class="flex-1 rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600">
+                    <i class="pi pi-eye mr-1.5 text-xs"></i>
+                    {{ store.userRole() === 'OPERATOR' ? 'Continuar' : 'Ver Detalles' }}
+                  </button>
+
+                  @if (store.canManageServices()) {
+                    <button
+                      type="button"
+                      (click)="onCancelClick(service, $event)"
+                      pRipple
+                      class="rounded-lg border border-rose-300 bg-white px-3 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50">
+                      <i class="pi pi-times text-xs"></i>
+                    </button>
+                  }
+                </div>
+
+              </div>
+            }
+          </div>
+
+          <!-- Pagination -->
+          @if (store.totalPages() > 1) {
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3">
+
+              <!-- Info -->
+              <div class="text-sm text-gray-600">
+                Página {{ store.currentPage() }} de {{ store.totalPages() }}
+              </div>
+
+              <!-- Controls -->
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="onPreviousPage()"
+                  [disabled]="store.currentPage() === 1"
+                  pRipple
+                  class="flex h-9 items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+                  <i class="pi pi-chevron-left text-xs"></i>
+                  <span class="hidden sm:inline">Anterior</span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="onNextPage()"
+                  [disabled]="store.currentPage() === store.totalPages()"
+                  pRipple
+                  class="flex h-9 items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+                  <span class="hidden sm:inline">Siguiente</span>
+                  <i class="pi pi-chevron-right text-xs"></i>
+                </button>
+              </div>
+
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<app-confirmation-modal
+  [show]="showCancelModal()"
+  [title]="'¿Cancelar servicio?'"
+  [message]="'Estás a punto de cancelar el servicio:'"
+  [itemName]="serviceToCancelSignal()?.equipmentTag + ' - ' + getServiceTypeLabel(serviceToCancelSignal()?.type || ServiceTypeEnum.INSPECTION)"
+  [warningText]="'Esta acción no se puede deshacer. El servicio quedará marcado como cancelado.'"
+  [confirmText]="'Sí, cancelar servicio'"
+  [isLoading]="isCancelling()"
+  (onConfirm)="confirmCancel()"
+  (onCancel)="closeCancelModal()">
+</app-confirmation-modal>
