@@ -159,46 +159,88 @@
 
   <!-- Footer Actions -->
   <footer class="shrink-0 border-t border-gray-200 bg-white px-4 py-4 lg:px-8">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4">
+    <div class="mx-auto max-w-7xl space-y-3">
 
-      <!-- Previous Button -->
-      <button
-        pRipple
-        type="button"
-        (click)="onPrevious()"
-        [disabled]="!store.canGoBack() || store.isSubmitting()"
-        class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
-        <i class="pi pi-arrow-left text-base"></i>
-        <span>Anterior</span>
-      </button>
-
-      <!-- Next / Submit Button -->
-      @if (store.currentStep() < store.totalSteps()) {
-        <button
-          pRipple
-          type="button"
-          (click)="onNext()"
-          [disabled]="!store.canGoNext() || store.isSubmitting()"
-          class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
-          <span>Siguiente</span>
-          <i class="pi pi-arrow-right text-base"></i>
-        </button>
-      } @else {
-        <button
-          pRipple
-          type="button"
-          (click)="onSubmit()"
-          [disabled]="!store.canSubmit()"
-          class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
-          @if (store.isSubmitting()) {
-            <i class="pi pi-spinner pi-spin text-base"></i>
-            <span>Creando Servicio...</span>
-          } @else {
-            <i class="pi pi-check text-base"></i>
-            <span>Crear Servicio</span>
-          }
-        </button>
+      <!-- Error Message (solo en Step 3) -->
+      @if (store.currentStep() === 3 && store.error()) {
+        <div class="rounded-lg border border-rose-200 bg-rose-50 p-3">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-exclamation-circle mt-0.5 text-sm text-rose-600"></i>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-rose-900">
+                Error al crear el servicio
+              </p>
+              <p class="mt-1 text-xs text-rose-700">
+                {{ store.error() }}
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="store.clearError()"
+              class="text-rose-400 hover:text-rose-600">
+              <i class="pi pi-times text-sm"></i>
+            </button>
+          </div>
+        </div>
       }
+
+      <!-- Validation Warning (Step 3 sin supervisor) -->
+      @if (store.currentStep() === 3 && !store.hasSupervisorSelected()) {
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle mt-0.5 text-sm text-amber-600"></i>
+            <p class="text-sm text-amber-900">
+              Debes seleccionar un supervisor para continuar
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- Buttons -->
+      <div class="flex items-center justify-between gap-4">
+
+        <!-- Previous Button -->
+        <button
+          pRipple
+          type="button"
+          (click)="onPrevious()"
+          [disabled]="!store.canGoBack() || store.isSubmitting()"
+          class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+          <i class="pi pi-arrow-left text-base"></i>
+          <span>Anterior</span>
+        </button>
+
+        <!-- Next / Submit Button -->
+        @if (store.currentStep() < store.totalSteps()) {
+          <!-- Botón Siguiente -->
+          <button
+            pRipple
+            type="button"
+            (click)="onNext()"
+            [disabled]="!store.canGoNext() || store.isSubmitting()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            <span>Siguiente</span>
+            <i class="pi pi-arrow-right text-base"></i>
+          </button>
+        } @else {
+          <!-- Botón Crear Servicio -->
+          <button
+            pRipple
+            type="button"
+            (click)="onSubmit()"
+            [disabled]="!store.canGoNext() || store.isSubmitting()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+            @if (store.isSubmitting()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+              <span>Creando Servicio...</span>
+            } @else {
+              <i class="pi pi-check text-base"></i>
+              <span>Crear Servicio</span>
+            }
+          </button>
+        }
+
+      </div>
 
     </div>
   </footer>
