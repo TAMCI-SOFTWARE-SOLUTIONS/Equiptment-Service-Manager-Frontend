@@ -202,10 +202,6 @@ type Step = 'select-type' | 'enter-name';
     </p-drawer>
   `,
   styles: [`
-    ::ng-deep .p-drawer-content {
-      display: flex;
-      flex-direction: column;
-    }
   `]
 })
 export class SelectBrandTypeDrawerComponent {
