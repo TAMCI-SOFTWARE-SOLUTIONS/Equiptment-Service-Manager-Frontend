@@ -249,8 +249,7 @@
                 <tbody class="divide-y divide-gray-200">
                   @for (service of store.paginatedServices(); track service.id) {
                     <tr
-                      class="group cursor-pointer transition-colors hover:bg-gray-50"
-                      (click)="onServiceClick(service)">
+                      class="group transition-colors hover:bg-gray-50">
 
                       <!-- Equipo -->
                       <td class="px-4 py-3">
@@ -309,40 +308,22 @@
                       </td>
 
                       <!-- Acciones -->
-                      <td class="px-4 py-3">
-                        <div class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-
-                          <!-- Ver Detalles (Todos) -->
+                      <td class="px-4 py-3" (click)="$event.stopPropagation()">
+                        <div class="flex justify-end">
                           <button
+                            #menuButton
                             type="button"
-                            (click)="onServiceClick(service)"
+                            (click)="menu.toggle($event)"
                             pRipple
-                            class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                            <i class="pi pi-eye mr-1 text-xs"></i>
-                            {{ store.userRole() === 'OPERATOR' ? 'Continuar' : 'Ver' }}
+                            class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100">
+                            <i class="pi pi-ellipsis-v text-sm"></i>
                           </button>
-
-                          <!-- Reasignar (Solo Admin) -->
-                          @if (store.canManageServices()) {
-                            <button
-                              type="button"
-                              (click)="onReassignClick(service, $event)"
-                              pRipple
-                              class="rounded-lg border border-blue-300 bg-white px-3 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50">
-                              <i class="pi pi-user-edit mr-1 text-xs"></i>
-                              Reasignar
-                            </button>
-
-                            <!-- Cancelar (Solo Admin) -->
-                            <button
-                              type="button"
-                              (click)="onCancelClick(service, $event)"
-                              pRipple
-                              class="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50">
-                              <i class="pi pi-times mr-1 text-xs"></i>
-                              Cancelar
-                            </button>
-                          }
+                          <p-menu
+                            #menu
+                            [model]="getMenuItems(service)"
+                            [popup]="true"
+                            appendTo="body">
+                          </p-menu>
                         </div>
                       </td>
 
@@ -357,8 +338,7 @@
           <div class="space-y-3 lg:hidden">
             @for (service of store.paginatedServices(); track service.id) {
               <div
-                class="rounded-lg border border-gray-200 bg-white p-4 transition-all hover:shadow-sm"
-                (click)="onServiceClick(service)">
+                class="rounded-lg border border-gray-200 bg-white p-4 transition-all hover:shadow-sm">
 
                 <!-- Header -->
                 <div class="mb-3 flex items-start justify-between">
@@ -404,15 +384,20 @@
                     {{ store.userRole() === 'OPERATOR' ? 'Continuar' : 'Ver Detalles' }}
                   </button>
 
-                  @if (store.canManageServices()) {
-                    <button
-                      type="button"
-                      (click)="onCancelClick(service, $event)"
-                      pRipple
-                      class="rounded-lg border border-rose-300 bg-white px-3 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50">
-                      <i class="pi pi-times text-xs"></i>
-                    </button>
-                  }
+                  <button
+                    #menuButtonMobile
+                    type="button"
+                    (click)="menuMobile.toggle($event)"
+                    pRipple
+                    class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50">
+                    <i class="pi pi-ellipsis-v text-sm"></i>
+                  </button>
+                  <p-menu
+                    #menuMobile
+                    [model]="getMenuItems(service)"
+                    [popup]="true"
+                    appendTo="body">
+                  </p-menu>
                 </div>
 
               </div>

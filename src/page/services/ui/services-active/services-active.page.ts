@@ -8,6 +8,10 @@ import { ServiceTypeEnum, EquipmentTypeEnum } from '../../../../shared/model';
 import { Ripple } from 'primeng/ripple';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { ConfirmationModalComponent } from '../../../../shared/ui/confirmation-modal/confirmation-modal.component';
+import {DurationUtils} from '../../../../shared/utils/DurationUtils';
+import {DateUtils} from '../../../../shared/utils/DateUtils';
+import {Menu} from 'primeng/menu';
+import {MenuItem} from 'primeng/api';
 
 @Component({
   selector: 'app-services-active',
@@ -17,7 +21,8 @@ import { ConfirmationModalComponent } from '../../../../shared/ui/confirmation-m
     FormsModule,
     Ripple,
     EmptyStateComponent,
-    ConfirmationModalComponent
+    ConfirmationModalComponent,
+    Menu // ← NUEVO
   ],
   providers: [ServicesActiveStore],
   templateUrl: './services-active.page.html'
@@ -40,16 +45,51 @@ export class ServicesActivePage implements OnInit {
     this.store.loadServices();
   }
 
+  // ==================== MENU ACTIONS ====================
+
+  /**
+   * Obtener opciones del menú según rol y servicio
+   */
+  getMenuItems(service: ServiceWithDetails): MenuItem[] {
+    const role = this.store.userRole();
+    const items: MenuItem[] = [];
+
+    // Opción principal: Ver/Continuar
+    items.push({
+      label: role === 'OPERATOR' ? 'Continuar servicio' : 'Ver detalles',
+      icon: 'pi pi-eye',
+      command: () => this.onServiceClick(service)
+    });
+
+    // Opciones solo para Admin
+    if (this.store.canManageServices()) {
+      items.push({ separator: true });
+
+      items.push({
+        label: 'Reasignar operador',
+        icon: 'pi pi-user-edit',
+        command: () => this.onReassignClick(service)
+      });
+
+      items.push({
+        label: 'Cancelar servicio',
+        icon: 'pi pi-times',
+        command: () => this.onCancelClickFromMenu(service),
+        styleClass: 'text-rose-600'
+      });
+    }
+
+    return items;
+  }
+
   // ==================== NAVIGATION ====================
 
   onServiceClick(service: ServiceWithDetails): void {
     const role = this.store.userRole();
 
     if (role === 'OPERATOR') {
-      // Operador va al stepper de trabajo
       this.router.navigate(['/services/work', service.id]);
     } else {
-      // Admin y Client Viewer van al detalle
       this.router.navigate(['/services/active', service.id]);
     }
   }
@@ -74,8 +114,7 @@ export class ServicesActivePage implements OnInit {
 
   // ==================== ACTIONS ====================
 
-  onCancelClick(service: ServiceWithDetails, event: Event): void {
-    event.stopPropagation(); // Evitar que se dispare el click del row
+  onCancelClickFromMenu(service: ServiceWithDetails): void {
     this.serviceToCancelSignal.set(service);
     this.showCancelModal.set(true);
   }
@@ -101,8 +140,7 @@ export class ServicesActivePage implements OnInit {
     this.isCancelling.set(false);
   }
 
-  onReassignClick(service: ServiceWithDetails, event: Event): void {
-    event.stopPropagation();
+  onReassignClick(service: ServiceWithDetails): void {
     // TODO: Abrir modal de reasignación
     console.log('🔄 Reasignar operador para servicio:', service.id);
   }
@@ -187,33 +225,11 @@ export class ServicesActivePage implements OnInit {
 
   formatDate(date: Date | null): string {
     if (!date) return '-';
-
-    const now = new Date();
-    const diffMs = now.getTime() - new Date(date).getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffHours < 1) return 'Hace menos de 1h';
-    if (diffHours < 24) return `Hace ${diffHours}h`;
-    if (diffDays === 1) return 'Ayer';
-    if (diffDays < 7) return `Hace ${diffDays} días`;
-
-    return new Date(date).toLocaleDateString('es-PE', {
-      day: '2-digit',
-      month: 'short'
-    });
+    return DateUtils.formatDateTime(date);
   }
 
   formatDuration(duration: string | null): string {
     if (!duration) return '-';
-    // Asumiendo formato "HH:MM:SS"
-    const parts = duration.split(':');
-    if (parts.length !== 3) return duration;
-
-    const hours = parseInt(parts[0]);
-    const minutes = parseInt(parts[1]);
-
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+    return DurationUtils.formatReadable(duration);
   }
 }
