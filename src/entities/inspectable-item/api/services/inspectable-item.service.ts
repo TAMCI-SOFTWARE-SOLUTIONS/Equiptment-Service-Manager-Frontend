@@ -75,31 +75,4 @@ export class InspectableItemService extends BaseService {
       catchError(this.handleError)
     );
   }
-
-  getByCabinetId(cabinetId: string): Observable<InspectableItemEntity[]> {
-    return this.http.get<InspectableItemResponse[]>(
-      `cabinets/${cabinetId}/inspectable-items`,
-      this.httpOptions
-    ).pipe(
-      map((responses: InspectableItemResponse[]) =>
-        responses.map(r => InspectableItemEntityFromResponseMapper.fromDtoToEntity(r))
-      ),
-      retry(2),
-      catchError(this.handleError)
-    );
-  }
-
-
-  getByPanelId(panelId: string): Observable<InspectableItemEntity[]> {
-    return this.http.get<InspectableItemResponse[]>(
-      `panels/${panelId}/inspectable-items`,
-      this.httpOptions
-    ).pipe(
-      map((responses: InspectableItemResponse[]) =>
-        responses.map(r => InspectableItemEntityFromResponseMapper.fromDtoToEntity(r))
-      ),
-      retry(2),
-      catchError(this.handleError)
-    );
-  }
 }
