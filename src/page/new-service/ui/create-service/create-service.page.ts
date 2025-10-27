@@ -75,13 +75,9 @@ export class CreateServicePage implements OnInit, OnDestroy {
     const serviceId = await this.store.submit();
 
     if (serviceId) {
-      // Navegar al detalle del servicio creado
-      const serviceType = this.store.formData().serviceType;
-      const serviceTypePath = serviceType?.toLowerCase().replace('_', '-');
-
-      // TODO: Ajustar ruta según tu estructura
-      // Por ahora navegamos a /services/:type/:id
-      this.router.navigate(['/services', serviceTypePath, serviceId]).then();
+      this.router.navigate(['/services', serviceId]).then();
+    } else {
+      console.error('Error creating service');
     }
   }
 
