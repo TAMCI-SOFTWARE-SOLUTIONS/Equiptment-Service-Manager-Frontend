@@ -1,5 +1,6 @@
 export interface EquipmentServiceResponse {
   id: string | null;
+  operatorId: string | null;
   projectId: string | null;
   equipmentId: string | null;
   equipmentType: string | null;

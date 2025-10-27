@@ -8,6 +8,7 @@ export class EquipmentServiceEntityFromResponseMapper {
   static fromDtoToEntity(dto: EquipmentServiceResponse): EquipmentServiceEntity {
     return {
       id: dto.id ?? '',
+      operatorId: dto.operatorId ?? '',
       projectId: dto.projectId ?? '',
       equipmentId: dto.equipmentId ?? '',
       equipmentType: EquipmentTypeMapper.fromStringToEnum(dto.equipmentType ?? ''),

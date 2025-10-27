@@ -27,6 +27,7 @@ import {
   EquipmentServiceService,
   ServiceStatusEnum
 } from '../../../../entities/equipment-service';
+import {AuthStore} from '../../../../shared/stores';
 
 export interface CreateServiceFormData {
   // Step 1
@@ -420,6 +421,7 @@ export const CreateServiceStore = signalStore(
   }),
 
   withMethods((store) => {
+    const authStore = inject(AuthStore);
     const contextStore = inject(ContextStore);
     const cabinetService = inject(CabinetService);
     const panelService = inject(PanelService);
@@ -816,6 +818,7 @@ export const CreateServiceStore = signalStore(
           const supervisorId = store.supervisorId();
           const equipmentId = store.selectedEquipment()?.id;
           const projectId = contextStore.projectId();
+          const operatorId = authStore.user()?.id;
 
           // Validaciones
           if (!projectId) {
@@ -838,9 +841,15 @@ export const CreateServiceStore = signalStore(
             throw new Error('No hay tipo de servicio seleccionado');
           }
 
+          if (!operatorId) {
+            throw new Error('No hay usuario autenticado');
+          }
+
+
           // Construir la entidad para crear el servicio
           const newService: EquipmentServiceEntity = {
-            id: '', // El backend lo genera
+            id: '',
+            operatorId,
             projectId,
             equipmentId,
             equipmentType: formData.selectedEquipmentType,
