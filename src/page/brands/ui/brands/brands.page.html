@@ -88,8 +88,11 @@
           iconBgClass="bg-gradient-to-br from-sky-100 to-cyan-100"
           iconColorClass="text-sky-600"
           title="No hay marcas registradas"
-          description="Las marcas te permiten categorizar los equipos por fabricante y modelo."
-          [showButton]="false">
+          description="Las marcas te permiten categorizar los equipos por fabricante y modelo. Comienza creando tu primera marca."
+          [showButton]="true"
+          buttonText="Crear primera marca"
+          buttonIcon="pi-plus"
+          (onAction)="openDrawer()">
         </app-empty-state>
       }
 
@@ -496,3 +499,8 @@
   </main>
 
 </div>
+
+<app-select-brand-type-drawer
+  [(visible)]="isDrawerVisible"
+  (brandCreated)="onBrandCreatedFromDrawer($event)">
+</app-select-brand-type-drawer>

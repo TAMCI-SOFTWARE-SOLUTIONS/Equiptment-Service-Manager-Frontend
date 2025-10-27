@@ -7,6 +7,7 @@ import {BrandEntity} from '../../../../entities/brand';
 import {ModelEntity} from '../../../../entities/model';
 import {EmptyStateComponent} from '../../../../shared/ui/empty-state/empty-state.component';
 import {Ripple} from 'primeng/ripple';
+import {SelectBrandTypeDrawerComponent} from '../select-brand-type-drawer/select-brand-type-drawer.component';
 
 @Component({
   selector: 'app-brands',
@@ -15,7 +16,8 @@ import {Ripple} from 'primeng/ripple';
     CommonModule,
     FormsModule,
     EmptyStateComponent,
-    Ripple
+    Ripple,
+    SelectBrandTypeDrawerComponent
   ],
   providers: [BrandsStore],
   templateUrl: './brands.page.html'
@@ -26,8 +28,61 @@ export class BrandsPage implements OnInit {
   // Expose enum to template
   readonly InspectableItemTypeEnum = InspectableItemTypeEnum;
 
+  // Drawer state
+  isDrawerVisible = false;
+
   ngOnInit(): void {
     this.store.loadBrands();
+  }
+
+  // ==================== DRAWER ====================
+
+  openDrawer(): void {
+    this.isDrawerVisible = true;
+  }
+
+  async onBrandCreatedFromDrawer(event: { type: InspectableItemTypeEnum; name: string }): Promise<void> {
+    const success = await this.store.createBrand(event.type, event.name);
+
+    if (success) {
+      const drawer = document.querySelector('app-select-brand-type-drawer') as any;
+      drawer?.componentInstance?.resetAfterSuccess();
+
+      const groupId = this.getGroupIdForType(event.type);
+      if (groupId) {
+        if (!this.store.isGroupExpanded()(groupId)) {
+          this.onToggleGroup(groupId);
+        }
+        if (!this.store.isTypeExpanded()(event.type)) {
+          this.onToggleType(event.type);
+        }
+      }
+
+      setTimeout(() => {
+        const brands = this.store.getBrandsByType()(event.type);
+        const newBrand = brands.find(b => b.name === event.name);
+        if (newBrand) {
+          this.onToggleBrand(newBrand.id);
+        }
+      }, 200);
+
+    } else {
+      // Notificar al drawer que hubo error
+      const drawer = document.querySelector('app-select-brand-type-drawer') as any;
+      drawer?.componentInstance?.resetAfterError();
+    }
+  }
+
+  private getGroupIdForType(type: InspectableItemTypeEnum): string | null {
+    const typeToGroup: Record<InspectableItemTypeEnum, string> = {
+      [InspectableItemTypeEnum.COMMUNICATION]: 'COMPONENTES',
+      [InspectableItemTypeEnum.STATE]: 'COMPONENTES',
+      [InspectableItemTypeEnum.POWER_SUPPLY]: 'DISPOSITIVOS',
+      [InspectableItemTypeEnum.POWER_120VAC]: 'DISPOSITIVOS',
+      [InspectableItemTypeEnum.ORDER_AND_CLEANLINESS]: 'ADICIONALES',
+      [InspectableItemTypeEnum.OTHERS]: 'ADICIONALES'
+    };
+    return typeToGroup[type] ?? null;
   }
 
   // ==================== SEARCH ====================
@@ -109,9 +164,9 @@ export class BrandsPage implements OnInit {
     if (event.key === 'Enter') {
       event.preventDefault();
       if (action === 'create') {
-        this.onSaveNewBrand(typeOrId as InspectableItemTypeEnum);
+        this.onSaveNewBrand(typeOrId as InspectableItemTypeEnum).then();
       } else {
-        this.onSaveEditBrand(typeOrId as string);
+        this.onSaveEditBrand(typeOrId as string).then();
       }
     } else if (event.key === 'Escape') {
       event.preventDefault();
