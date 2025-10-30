@@ -1,5 +1,6 @@
 @import "primeicons/primeicons.css";
 @import "tailwindcss";
+@plugin "@iconify/tailwind4";
 
 body {
   margin: 0;
