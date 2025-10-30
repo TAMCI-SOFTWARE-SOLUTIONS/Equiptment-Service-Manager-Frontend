@@ -311,9 +311,10 @@
                     </td>
 
                     <!-- Última Revisión -->
+                    <!--TODO: Show only according to selected service type-->
                     <td class="px-4 py-4">
-                      @if (equipment.lastServiceAt) {
-                        <span class="text-sm text-gray-600">{{ equipment.lastServiceAt | date:'short' }}</span>
+                      @if (equipment.lastMaintenanceAt) {
+                        <span class="text-sm text-gray-600">{{ equipment.lastMaintenanceAt | date:'short' }}</span>
                       } @else {
                         <span class="text-sm text-gray-400">Sin registro</span>
                       }

@@ -1,9 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EquipmentEntity } from '../../../../entities/equipment/model/equipment.entity';
-import { getEquipmentTypeEmoji, getEquipmentTypeLabel } from '../../../../entities/equipment/model/equipment-type.enum';
 import { getEquipmentStatusLabel, getEquipmentStatusColor } from '../../../../entities/equipment/model/equipment-status.enum';
 import { Ripple } from 'primeng/ripple';
+import {getEquipmentTypeEmoji, getEquipmentTypeLabel} from '../../../../shared/model/enums/equipment-type.enum';
 
 @Component({
   selector: 'app-equipment-card',
@@ -84,13 +84,14 @@ import { Ripple } from 'primeng/ripple';
         }
 
         <!-- Última revisión -->
-        @if (equipment.lastServiceAt) {
+        <!--TODO: Change for the service type the user choose and then only show the last service according to service type-->
+        @if (equipment.lastInspectionAt) {
           <div class="flex items-start gap-2">
             <i class="pi pi-clock mt-0.5 text-xs text-gray-400"></i>
             <div class="flex-1">
               <p class="text-xs text-gray-500">Última revisión</p>
               <p class="text-sm text-gray-900">
-                {{ equipment.lastServiceAt | date:'short' }}
+                {{ equipment.lastInspectionAt | date:'short' }}
               </p>
             </div>
           </div>

@@ -9,8 +9,9 @@ import {ConfirmationModalComponent} from '../../../../shared/ui/confirmation-mod
 import {EmptyStateComponent} from '../../../../shared/ui/empty-state/empty-state.component';
 import {EquipmentsStore} from '../../model/equipments.store';
 import {EquipmentEntity} from '../../../../entities/equipment/model/equipment.entity';
-import {EquipmentTypeEnum, getEquipmentTypeLabel} from '../../../../entities/equipment/model/equipment-type.enum';
 import {EquipmentStatusEnum, getEquipmentStatusLabel} from '../../../../entities/equipment/model/equipment-status.enum';
+import {EquipmentTypeEnum} from '../../../../shared/model';
+import {getEquipmentTypeLabel} from '../../../../shared/model/enums/equipment-type.enum';
 
 @Component({
   selector: 'app-equipments',

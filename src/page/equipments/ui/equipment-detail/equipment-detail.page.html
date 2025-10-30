@@ -439,13 +439,13 @@
                     Última Revisión
                   </dt>
                   <dd class="mt-1">
-                    @if (store.equipment()!.lastServiceAt) {
+                    @if (store.equipment()!.lastMaintenanceAt) {
                       <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-900">
-                          {{ formatDate(store.equipment()!.lastServiceAt) }}
+                          {{ formatDate(store.equipment()!.lastMaintenanceAt) }}
                         </span>
                         <span class="text-xs text-gray-500">
-                          {{ getTimeSince(store.equipment()!.lastServiceAt) }}
+                          {{ getTimeSince(store.equipment()!.lastMaintenanceAt) }}
                         </span>
                       </div>
                     } @else {
@@ -466,8 +466,9 @@
                   </dd>
                 </div>
 
+                <!--TODO: Show only according to selected service type-->
                 <!-- Timeline Visual (si hay última revisión) -->
-                @if (store.equipment()!.lastServiceAt) {
+                @if (store.equipment()!.lastMaintenanceAt) {
                   <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4">
                     <div class="flex items-center gap-3">
                       <i class="pi pi-check-circle text-lg text-sky-600"></i>
@@ -476,7 +477,7 @@
                           Última revisión registrada
                         </p>
                         <p class="mt-0.5 text-xs text-sky-700">
-                          {{ getTimeSince(store.equipment()!.lastServiceAt) }}
+                          {{ getTimeSince(store.equipment()!.lastMaintenanceAt) }}
                         </p>
                       </div>
                     </div>

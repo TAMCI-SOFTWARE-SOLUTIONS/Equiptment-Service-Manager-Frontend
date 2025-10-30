@@ -15,11 +15,11 @@ import { AreaEntity } from '../../../entities/area/model';
 import { LocationEntity } from '../../../entities/location';
 import { CabinetTypeEntity } from '../../../entities/cabinet-type/model';
 import { CommunicationProtocolEntity } from '../../../entities/communication-protocol/model';
-import { EquipmentTypeEnum } from '../../../entities/equipment/model/equipment-type.enum';
 import { EquipmentStatusEnum } from '../../../entities/equipment/model/equipment-status.enum';
 import { firstValueFrom } from 'rxjs';
 import {PanelTypeEntity} from '../../../entities/panel-type/model/panel-type.entity';
 import {PanelTypeService} from '../../../entities/panel-type/api/panel-type.service';
+import {EquipmentTypeEnum} from '../../../shared/model';
 
 export interface EquipmentFormData {
   type: EquipmentTypeEnum;

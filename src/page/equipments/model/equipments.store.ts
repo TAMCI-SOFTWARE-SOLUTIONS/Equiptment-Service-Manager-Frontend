@@ -7,13 +7,13 @@ import { PlantService } from '../../../entities/plant';
 import { AreaService } from '../../../entities/area/api';
 import { LocationService } from '../../../entities/location';
 import { EquipmentEntity, cabinetToEquipment, panelToEquipment } from '../../../entities/equipment/model/equipment.entity';
-import { EquipmentTypeEnum } from '../../../entities/equipment/model/equipment-type.enum';
 import { EquipmentStatusEnum } from '../../../entities/equipment/model/equipment-status.enum';
 import { ClientEntity } from '../../../entities/client/model';
 import { PlantEntity } from '../../../entities/plant';
 import { AreaEntity } from '../../../entities/area/model';
 import { LocationEntity } from '../../../entities/location';
 import { firstValueFrom } from 'rxjs';
+import {EquipmentTypeEnum} from '../../../shared/model';
 
 export interface EquipmentsFilters {
   typeFilter: 'all' | 'cabinet' | 'panel';

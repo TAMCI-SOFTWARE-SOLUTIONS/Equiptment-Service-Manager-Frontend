@@ -6,11 +6,6 @@ import { ConfirmationModalComponent } from '../../../../shared/ui/confirmation-m
 import { EquipmentDetailStore } from '../../model/equipment-detail.store';
 import { EquipmentPowerAssignmentsStore } from '../../model/equipment-power-assignments.store';
 import {
-  EquipmentTypeEnum,
-  getEquipmentTypeEmoji,
-  getEquipmentTypeLabel
-} from '../../../../entities/equipment/model/equipment-type.enum';
-import {
   getEquipmentStatusColor,
   getEquipmentStatusLabel
 } from '../../../../entities/equipment/model/equipment-status.enum';
@@ -21,6 +16,8 @@ import {
 import {EquipmentInspectableItemsStore} from '../../model/equipment-inspectable-items.store';
 import {InspectableItemDrawerComponent} from '../inspectable-item-drawer/inspectable-item-drawer.component';
 import {InspectableItemCardComponent} from '../inspectable-item-card/inspectable-item-card.component';
+import {EquipmentTypeEnum} from '../../../../shared/model';
+import {getEquipmentTypeEmoji, getEquipmentTypeLabel} from '../../../../shared/model/enums/equipment-type.enum';
 
 @Component({
   selector: 'app-equipment-detail',

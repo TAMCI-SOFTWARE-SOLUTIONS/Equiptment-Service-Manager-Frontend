@@ -4,10 +4,10 @@ import {InspectableItemEntity, InspectableItemService} from '../../../entities/i
 import {BrandEntity, BrandService} from '../../../entities/brand';
 import {ModelEntity, ModelService} from '../../../entities/model';
 import {InspectableItemTypeEnum} from '../../../shared/model/enums';
-import {EquipmentTypeEnum} from '../../../entities/equipment/model/equipment-type.enum';
 import {firstValueFrom} from 'rxjs';
 import {CabinetService} from '../../../entities/cabinet/api';
 import {PanelService} from '../../../entities/panel/api';
+import {EquipmentTypeEnum} from '../../../shared/model';
 
 interface TypeConfig {
   enum: InspectableItemTypeEnum;

@@ -1,7 +1,7 @@
 import { CabinetEntity } from '../../cabinet/model';
 import { PanelEntity } from '../../panel/model';
-import {EquipmentTypeEnum} from './equipment-type.enum';
 import {EquipmentStatusEnum} from './equipment-status.enum';
+import {EquipmentTypeEnum} from '../../../shared/model';
 
 /**
  * Unified Equipment Entity
