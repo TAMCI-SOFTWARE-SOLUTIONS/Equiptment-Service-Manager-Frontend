@@ -1,0 +1,38 @@
+<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+
+  <!-- Group Header -->
+  <button
+    type="button"
+    (click)="onToggleGroup()"
+    pRipple
+    class="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-gray-50">
+
+    <div class="flex items-center gap-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-cyan-500">
+        <i [class]="'icon-'+group.icon + ' text-2xl text-white'"></i>
+      </div>
+
+      <div>
+        <h2 class="font-semibold text-gray-900">{{ group.label }}</h2>
+        <p class="text-sm text-gray-500">
+          {{ group.types.length }} categoría{{ group.types.length !== 1 ? 's' : '' }}
+        </p>
+      </div>
+    </div>
+
+    <div class="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-100">
+      <i [class]="'pi text-sm text-gray-400 transition-transform duration-200 ' + (isExpanded ? 'pi-minus' : 'pi-plus')"></i>
+    </div>
+  </button>
+
+  @if (isExpanded) {
+    <div class="border-t border-gray-100 bg-gray-50 p-4">
+      <div class="space-y-3">
+        @for (type of group.types; track type.enum) {
+          <app-brands-type-item [type]="type" />
+        }
+      </div>
+    </div>
+  }
+
+</div>

@@ -1,0 +1,108 @@
+<div class="rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow">
+
+  <div class="flex items-center justify-between p-3">
+
+    <!-- EDITING MODE -->
+    @if (isEditing) {
+      <div class="flex flex-1 items-center gap-2">
+        <div class="flex-1">
+          <input
+            [id]="'edit-' + config.type + '-input-' + config.id"
+            type="text"
+            [value]="localEditValue"
+            (input)="onInputChange($any($event.target).value)"
+            (keydown.enter)="onSave()"
+            (keydown.escape)="onCancel()"
+            [placeholder]="'Nombre de ' + (config.type === 'brand' ? 'la marca' : 'el modelo')"
+            class="block w-full rounded-lg border border-sky-500 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+            [class.border-rose-500]="showMinError">
+
+          @if (showMinError) {
+            <p class="mt-1 flex items-center gap-1 text-xs text-rose-500">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>Mínimo 2 caracteres</span>
+            </p>
+          }
+          @if (showMaxError) {
+            <p class="mt-1 flex items-center gap-1 text-xs text-rose-500">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>Máximo 50 caracteres</span>
+            </p>
+          }
+        </div>
+
+        <div class="flex shrink-0 gap-2">
+          <button
+            type="button"
+            (click)="onCancel()"
+            pRipple
+            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="onSave()"
+            [disabled]="!isValid"
+            pRipple
+            class="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50">
+            Guardar
+          </button>
+        </div>
+      </div>
+    }
+
+    @else {
+      <button
+        type="button"
+        (click)="onToggle()"
+        pRipple
+        class="flex flex-1 items-center gap-3 text-left transition-colors hover:bg-gray-50">
+
+        <i [class]="'pi ' + config.icon + ' text-sm ' + config.iconColor"></i>
+
+        <div class="flex flex-1 items-center justify-between">
+          <div>
+            <p class="font-medium text-gray-900">{{ config.name }}</p>
+            <p class="text-xs text-gray-500">{{ config.badge }}</p>
+          </div>
+
+          <i [class]="'pi text-xs text-gray-400 transition-transform duration-200 ' + (isExpanded ? 'pi-minus' : 'pi-plus')"></i>
+        </div>
+      </button>
+
+      <!-- Edit Button -->
+      <button
+        type="button"
+        (click)="onEdit()"
+        pRipple
+        class="ml-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
+        <i class="pi pi-pencil mr-1 text-xs"></i>
+        Editar
+      </button>
+    }
+
+  </div>
+
+  <!-- EXPANDED CONTENT (Children) -->
+  @if (isExpanded && !isEditing) {
+    <div class="border-t border-gray-100 bg-gray-50/30 p-3">
+
+      <!-- Loading State -->
+      @if (isLoading) {
+        <div class="space-y-2">
+          @for (i of [1,2,3]; track i) {
+            <div class="flex animate-pulse items-center gap-2 rounded-lg bg-white p-2">
+              <div class="h-4 w-32 rounded bg-gray-200"></div>
+            </div>
+          }
+        </div>
+      }
+
+      @else {
+        <ng-content></ng-content>
+      }
+
+    </div>
+  }
+
+</div>

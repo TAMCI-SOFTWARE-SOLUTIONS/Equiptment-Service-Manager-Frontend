@@ -1,0 +1,76 @@
+<p-drawer
+  [(visible)]="visible"
+  [position]="'right'"
+  [modal]="true"
+  [dismissible]="true"
+  (onHide)="onClose()"
+  [styleClass]="'!w-full sm:!w-[500px]'"
+>
+  <ng-template #header>
+    <div class="flex items-center gap-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-cyan-500">
+        <i class="pi pi-bolt text-sm text-white"></i>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900">
+          Atajos de teclado
+        </h2>
+        <p class="text-sm text-gray-500">
+          Trabaja más rápido con estos atajos
+        </p>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Content -->
+  <div class="space-y-6 py-4">
+    @for (category of categories; track category) {
+      <div>
+        <!-- Category Title -->
+        <h3 class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          {{ category }}
+        </h3>
+
+        <!-- Shortcuts -->
+        <div class="space-y-2">
+          @for (shortcut of groupedShortcuts[category]; track shortcut.description) {
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50">
+              <!-- Description -->
+              <span class="text-sm text-gray-700">
+                {{ shortcut.description }}
+              </span>
+
+              <!-- Keys -->
+              <div class="flex items-center gap-1">
+                @for (key of shortcut.keys; track key; let isLast = $last) {
+                  <kbd class="inline-flex h-6 min-w-[24px] items-center justify-center rounded border border-gray-300 bg-gray-50 px-2 font-mono text-xs font-semibold text-gray-700 shadow-sm">
+                    {{ key }}
+                  </kbd>
+                  @if (!isLast) {
+                    <span class="text-xs text-gray-400">+</span>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Footer -->
+  <ng-template #footer>
+    <div class="flex items-center justify-between border-t border-gray-200 pt-4">
+      <p class="text-xs text-gray-500">
+        Presiona <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700">?</kbd> en cualquier momento
+      </p>
+      <button
+        type="button"
+        (click)="onClose()"
+        pRipple
+        class="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600">
+        Entendido
+      </button>
+    </div>
+  </ng-template>
+</p-drawer>
