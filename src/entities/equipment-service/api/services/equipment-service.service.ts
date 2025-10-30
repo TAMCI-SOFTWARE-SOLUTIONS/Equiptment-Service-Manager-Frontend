@@ -8,6 +8,7 @@ import { CreateEquipmentServiceRequest } from '../types/create-equipment-service
 import { EquipmentServiceEntityFromResponseMapper } from '../mappers/equipment-service-entity-from-response.mapper';
 import { CreateEquipmentServiceRequestFromEntityMapper } from '../mappers/create-equipment-service-request-from-entity.mapper';
 import { UpdateEquipmentServiceRequestFromEntityMapper } from '../mappers/update-equipment-service-request-from-entity.mapper';
+import {ItemInspectionEntity} from '../../../item-inspection';
 
 @Injectable({
   providedIn: 'root'
@@ -70,6 +71,13 @@ export class EquipmentServiceService extends BaseService {
       map((response: EquipmentServiceResponse) =>
         EquipmentServiceEntityFromResponseMapper.fromDtoToEntity(response)
       ),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  getAllItemInspections(equipmentServiceId: string): Observable<ItemInspectionEntity[]> {
+    return this.http.get<ItemInspectionEntity[]>(`${this.resourcePath()}/${equipmentServiceId}/item-inspections`, this.httpOptions).pipe(
       retry(2),
       catchError(this.handleError)
     );
