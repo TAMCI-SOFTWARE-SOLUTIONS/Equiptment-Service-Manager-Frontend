@@ -1,65 +1,15 @@
 <div class="flex h-full flex-col bg-gray-50">
 
   <!-- Header -->
-  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
-    <div class="mx-auto max-w-7xl">
-
-      <!-- Title & Actions -->
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
-            Marcas y Modelos
-          </h1>
-          @if (store.hasBrands() && !store.isLoadingBrands()) {
-            <span class="flex h-6 items-center rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-700">
-              {{ store.totalBrandsCount() }}
-            </span>
-          }
-        </div>
-
-        <!-- Actions -->
-        <div class="flex items-center gap-2">
-          <!-- Refresh Button -->
-          @if (store.hasBrands() && !store.isLoadingBrands()) {
-            <button
-              type="button"
-              (click)="onRefresh()"
-              pRipple
-              class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 lg:h-10 lg:w-10">
-              <i class="pi pi-refresh text-sm"></i>
-            </button>
-          }
-        </div>
-      </div>
-
-      <!-- Search Bar -->
-      @if (store.hasBrands() && !store.isLoadingBrands()) {
-        <div class="mt-4">
-          <div class="relative">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <i class="pi pi-search text-sm text-gray-400"></i>
-            </div>
-            <input
-              type="text"
-              [value]="store.searchQuery()"
-              (input)="onSearchChange($any($event.target).value)"
-              placeholder="Buscar marca o modelo..."
-              class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-
-            @if (store.searchQuery()) {
-              <button
-                type="button"
-                (click)="clearSearch()"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
-                <i class="pi pi-times text-xs"></i>
-              </button>
-            }
-          </div>
-        </div>
-      }
-
-    </div>
-  </header>
+  <app-brands-header
+    [totalCount]="store.totalBrandsCount()"
+    [searchQuery]="store.searchQuery()"
+    [isLoading]="store.isLoadingBrands()"
+    (searchChange)="onSearchChange($event)"
+    (clearSearch)="onClearSearch()"
+    (refresh)="onRefresh()"
+    (showHelp)="onShowHelp()"
+  />
 
   <!-- Main Content -->
   <main class="flex-1 overflow-y-auto px-4 py-6 lg:px-8">
@@ -67,432 +17,40 @@
 
       <!-- Loading State -->
       @if (store.isLoadingBrands()) {
-        <div class="space-y-4">
-          @for (i of [1,2,3]; track i) {
-            <div class="animate-pulse rounded-lg border border-gray-200 bg-white p-4">
-              <div class="flex items-center gap-3">
-                <div class="h-10 w-10 rounded-lg bg-gray-200"></div>
-                <div class="flex-1">
-                  <div class="h-5 w-40 rounded bg-gray-200"></div>
-                  <div class="mt-2 h-3 w-24 rounded bg-gray-200"></div>
-                </div>
-              </div>
-            </div>
-          }
-        </div>
+        <app-brands-loading />
       }
 
       @else if (!store.hasBrands()) {
-        <app-empty-state
-          icon="pi-box"
-          iconBgClass="bg-gradient-to-br from-sky-100 to-cyan-100"
-          iconColorClass="text-sky-600"
-          title="No hay marcas registradas"
-          description="Las marcas te permiten categorizar los equipos por fabricante y modelo. Comienza creando tu primera marca."
-          [showButton]="true"
-          buttonText="Crear primera marca"
-          buttonIcon="pi-plus"
-          (onAction)="openDrawer()">
-        </app-empty-state>
+        <app-brands-empty-state />
       }
 
-      @else if (store.hasNoSearchResults()) {
-        <app-empty-state
-          icon="pi-search"
-          iconBgClass="bg-gradient-to-br from-gray-100 to-gray-200"
-          iconColorClass="text-gray-500"
-          title="No se encontraron resultados"
-          [description]="'No hay marcas ni modelos que coincidan con ' + store.searchQuery() + '.'"
-          [showButton]="true"
-          buttonText="Limpiar búsqueda"
-          buttonIcon="pi-times"
-          (onAction)="clearSearch()">
-        </app-empty-state>
+      @else if (hasNoSearchResults) {
+        <div class="flex min-h-[400px] flex-col items-center justify-center px-4 py-12">
+          <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200">
+            <i class="pi pi-search text-3xl text-gray-500"></i>
+          </div>
+
+          <h3 class="mb-2 text-xl font-semibold text-gray-900">
+            No se encontraron resultados
+          </h3>
+
+          <p class="mb-8 max-w-md text-center text-sm text-gray-500">
+            No hay marcas, modelos ni descripciones que coincidan con
+            <span class="font-medium text-gray-700">"{{ store.searchQuery() }}"</span>
+          </p>
+
+          <button
+            type="button"
+            (click)="onClearSearch()"
+            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+            <i class="pi pi-times text-sm"></i>
+            <span>Limpiar búsqueda</span>
+          </button>
+        </div>
       }
 
       @else {
-        <div class="space-y-4">
-
-          <!-- Group Item -->
-          @for (group of store.groups(); track group.id) {
-            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
-
-              <!-- Group Header -->
-              <button
-                type="button"
-                (click)="onToggleGroup(group.id)"
-                pRipple
-                class="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50">
-                <div class="flex items-center gap-3">
-                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-cyan-500">
-                    <i [class]="'pi ' + group.icon + ' text-sm text-white'"></i>
-                  </div>
-                  <div>
-                    <h2 class="font-semibold text-gray-900">{{ group.label }}</h2>
-                    <p class="text-sm text-gray-500">
-                      {{ group.types.length }} categoría{{ group.types.length !== 1 ? 's' : '' }}
-                    </p>
-                  </div>
-                </div>
-                <i [class]="'pi transition-transform ' + (store.isGroupExpanded()(group.id) ? 'pi-chevron-down' : 'pi-chevron-right')"></i>
-              </button>
-
-              <!-- Types List (Expandible) -->
-              @if (store.isGroupExpanded()(group.id)) {
-                <div class="border-t border-gray-200 bg-gray-50 p-4">
-                  <div class="space-y-3">
-
-                    <!-- Type Item -->
-                    @for (type of group.types; track type.enum) {
-                      <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
-
-                        <!-- Type Header -->
-                        <button
-                          type="button"
-                          (click)="onToggleType(type.enum)"
-                          pRipple
-                          [class]="'flex w-full items-center justify-between p-3 text-left transition-colors hover:bg-gray-50 ' + getColorClasses(type.color).border + ' border-l-4'">
-                          <div class="flex items-center gap-3">
-                            <div [class]="'flex h-8 w-8 items-center justify-center rounded-lg ' + getColorClasses(type.color).bg">
-                              <i [class]="'pi ' + type.icon + ' text-xs ' + getColorClasses(type.color).text"></i>
-                            </div>
-                            <div class="flex items-center gap-2">
-                              <span class="font-medium text-gray-900">{{ type.label }}</span>
-                              <span [class]="'flex h-5 items-center rounded-full px-2 py-0.5 text-xs font-medium ' + getColorClasses(type.color).bg + ' ' + getColorClasses(type.color).text">
-                                {{ store.getBrandsCountByType()(type.enum) }}
-                              </span>
-                            </div>
-                          </div>
-                          <i [class]="'pi text-xs transition-transform ' + (store.isTypeExpanded()(type.enum) ? 'pi-chevron-down' : 'pi-chevron-right')"></i>
-                        </button>
-
-                        <!-- Brands List (Expandible) -->
-                        @if (store.isTypeExpanded()(type.enum)) {
-                          <div class="border-t border-gray-100 bg-gray-50/50 p-3">
-
-                            <!-- Create Brand Form (Inline) -->
-                            @if (isCreatingBrandForType(type.enum)) {
-                              <div class="mb-3 rounded-lg border-2 border-sky-500 bg-white p-3">
-                                <div class="flex items-center gap-2">
-                                  <div class="flex-1">
-                                    <input
-                                      [id]="'new-brand-input-' + type.enum"
-                                      type="text"
-                                      [value]="store.newBrandName()"
-                                      (input)="store.setNewBrandName($any($event.target).value)"
-                                      (keydown)="onKeyDownBrand($event, 'create', type.enum)"
-                                      placeholder="Nombre de la marca (ej: Siemens)"
-                                      class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
-                                      [class.border-rose-500]="store.newBrandName().trim().length > 0 && store.newBrandName().trim().length < 2">
-
-                                    @if (store.newBrandName().trim().length > 0 && store.newBrandName().trim().length < 2) {
-                                      <p class="mt-1 text-xs text-rose-500">Mínimo 2 caracteres</p>
-                                    }
-                                    @if (store.newBrandName().trim().length > 50) {
-                                      <p class="mt-1 text-xs text-rose-500">Máximo 50 caracteres</p>
-                                    }
-                                  </div>
-
-                                  <div class="flex shrink-0 gap-2">
-                                    <button
-                                      type="button"
-                                      (click)="onCancelCreatingBrand()"
-                                      pRipple
-                                      class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                                      Cancelar
-                                    </button>
-                                    <button
-                                      type="button"
-                                      (click)="onSaveNewBrand(type.enum)"
-                                      [disabled]="store.newBrandName().trim().length < 2 || store.newBrandName().trim().length > 50"
-                                      pRipple
-                                      class="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50">
-                                      Guardar
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <p class="mt-2 hidden text-xs text-gray-500 lg:block">
-                                  Presiona <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700">Enter</kbd> para guardar o <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700">Esc</kbd> para cancelar
-                                </p>
-                              </div>
-                            }
-
-                            <!-- Brands -->
-                            <div class="space-y-2">
-                              @for (brand of store.getBrandsByType()(type.enum); track brand.id) {
-                                <div class="rounded-lg border border-gray-200 bg-white">
-
-                                  <!-- Brand Header -->
-                                  <div class="flex items-center justify-between p-3">
-
-                                    <!-- Editing Mode -->
-                                    @if (isEditingBrand(brand.id)) {
-                                      <div class="flex flex-1 items-center gap-2">
-                                        <div class="flex-1">
-                                          <input
-                                            [id]="'edit-brand-input-' + brand.id"
-                                            type="text"
-                                            [value]="store.editBrandName()"
-                                            (input)="store.setEditBrandName($any($event.target).value)"
-                                            (keydown)="onKeyDownBrand($event, 'edit', brand.id)"
-                                            placeholder="Nombre de la marca"
-                                            class="block w-full rounded-lg border border-sky-500 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
-                                            [class.border-rose-500]="store.editBrandName().trim().length > 0 && store.editBrandName().trim().length < 2">
-
-                                          @if (store.editBrandName().trim().length > 0 && store.editBrandName().trim().length < 2) {
-                                            <p class="mt-1 text-xs text-rose-500">Mínimo 2 caracteres</p>
-                                          }
-                                          @if (store.editBrandName().trim().length > 50) {
-                                            <p class="mt-1 text-xs text-rose-500">Máximo 50 caracteres</p>
-                                          }
-                                        </div>
-
-                                        <div class="flex shrink-0 gap-2">
-                                          <button
-                                            type="button"
-                                            (click)="onCancelEditingBrand()"
-                                            pRipple
-                                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                                            Cancelar
-                                          </button>
-                                          <button
-                                            type="button"
-                                            (click)="onSaveEditBrand(brand.id)"
-                                            [disabled]="store.editBrandName().trim().length < 2 || store.editBrandName().trim().length > 50"
-                                            pRipple
-                                            class="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50">
-                                            Guardar
-                                          </button>
-                                        </div>
-                                      </div>
-                                    }
-
-                                    @else {
-                                      <button
-                                        type="button"
-                                        (click)="onToggleBrand(brand.id)"
-                                        pRipple
-                                        class="flex flex-1 items-center gap-3 text-left">
-                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-cyan-500">
-                                          <i class="pi pi-tag text-xs text-white"></i>
-                                        </div>
-                                        <div class="flex flex-1 items-center justify-between">
-                                          <div>
-                                            <p class="font-medium text-gray-900">{{ brand.name }}</p>
-                                            @if (brand.modelsLoaded) {
-                                              <p class="text-xs text-gray-500">
-                                                {{ store.getModelsCountByBrand()(brand.id) }} modelo{{ store.getModelsCountByBrand()(brand.id) !== 1 ? 's' : '' }}
-                                              </p>
-                                            }
-                                          </div>
-                                          <i [class]="'pi text-xs transition-transform ' + (store.isBrandExpanded()(brand.id) ? 'pi-chevron-down' : 'pi-chevron-right')"></i>
-                                        </div>
-                                      </button>
-
-                                      <!-- Edit Button (Only Admin - TODO) -->
-                                      <button
-                                        type="button"
-                                        (click)="onStartEditingBrand(brand)"
-                                        pRipple
-                                        class="ml-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                                        <i class="pi pi-pencil mr-1 text-xs"></i>
-                                        Editar
-                                      </button>
-                                    }
-
-                                  </div>
-
-                                  <!-- Models List (Expandible) -->
-                                  @if (store.isBrandExpanded()(brand.id)) {
-                                    <div class="border-t border-gray-100 bg-gray-50/30 p-3">
-
-                                      <!-- Loading Models -->
-                                      @if (brand.isLoadingModels) {
-                                        <div class="space-y-2">
-                                          @for (i of [1,2,3]; track i) {
-                                            <div class="flex animate-pulse items-center gap-2 rounded-lg bg-white p-2">
-                                              <div class="h-4 w-32 rounded bg-gray-200"></div>
-                                            </div>
-                                          }
-                                        </div>
-                                      }
-
-                                      @else {
-
-                                        <!-- Create Model Form (Inline) -->
-                                        @if (isCreatingModelForBrand(brand.id)) {
-                                          <div class="mb-2 rounded-lg border-2 border-sky-500 bg-white p-2">
-                                            <div class="flex items-center gap-2">
-                                              <div class="flex-1">
-                                                <input
-                                                  [id]="'new-model-input-' + brand.id"
-                                                  type="text"
-                                                  [value]="store.newModelName()"
-                                                  (input)="store.setNewModelName($any($event.target).value)"
-                                                  (keydown)="onKeyDownModel($event, 'create', brand.id)"
-                                                  placeholder="Nombre del modelo (ej: S7-1200)"
-                                                  class="block w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
-                                                  [class.border-rose-500]="store.newModelName().trim().length > 0 && store.newModelName().trim().length < 2">
-
-                                                @if (store.newModelName().trim().length > 0 && store.newModelName().trim().length < 2) {
-                                                  <p class="mt-1 text-xs text-rose-500">Mínimo 2 caracteres</p>
-                                                }
-                                                @if (store.newModelName().trim().length > 50) {
-                                                  <p class="mt-1 text-xs text-rose-500">Máximo 50 caracteres</p>
-                                                }
-                                              </div>
-
-                                              <div class="flex shrink-0 gap-1">
-                                                <button
-                                                  type="button"
-                                                  (click)="onCancelCreatingModel()"
-                                                  pRipple
-                                                  class="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                                                  Cancelar
-                                                </button>
-                                                <button
-                                                  type="button"
-                                                  (click)="onSaveNewModel(brand.id)"
-                                                  [disabled]="store.newModelName().trim().length < 2 || store.newModelName().trim().length > 50"
-                                                  pRipple
-                                                  class="rounded-lg bg-sky-500 px-2 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50">
-                                                  Guardar
-                                                </button>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        }
-
-                                        <!-- Models -->
-                                        @if (brand.models.length > 0) {
-                                          <div class="space-y-1.5">
-                                            @for (model of brand.models; track model.id) {
-                                              <div class="flex items-center justify-between rounded-lg bg-white p-2">
-
-                                                <!-- Editing Mode -->
-                                                @if (isEditingModel(model.id)) {
-                                                  <div class="flex flex-1 items-center gap-2">
-                                                    <div class="flex-1">
-                                                      <input
-                                                        [id]="'edit-model-input-' + model.id"
-                                                        type="text"
-                                                        [value]="store.editModelName()"
-                                                        (input)="store.setEditModelName($any($event.target).value)"
-                                                        (keydown)="onKeyDownModel($event, 'edit', brand.id, model.id)"
-                                                        placeholder="Nombre del modelo"
-                                                        class="block w-full rounded-lg border border-sky-500 px-2 py-1.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
-                                                        [class.border-rose-500]="store.editModelName().trim().length > 0 && store.editModelName().trim().length < 2">
-
-                                                      @if (store.editModelName().trim().length > 0 && store.editModelName().trim().length < 2) {
-                                                        <p class="mt-1 text-xs text-rose-500">Mínimo 2 caracteres</p>
-                                                      }
-                                                      @if (store.editModelName().trim().length > 50) {
-                                                        <p class="mt-1 text-xs text-rose-500">Máximo 50 caracteres</p>
-                                                      }
-                                                    </div>
-
-                                                    <div class="flex shrink-0 gap-1">
-                                                      <button
-                                                        type="button"
-                                                        (click)="onCancelEditingModel()"
-                                                        pRipple
-                                                        class="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                                                        Cancelar
-                                                      </button>
-                                                      <button
-                                                        type="button"
-                                                        (click)="onSaveEditModel(brand.id, model.id)"
-                                                        [disabled]="store.editModelName().trim().length < 2 || store.editModelName().trim().length > 50"
-                                                        pRipple
-                                                        class="rounded-lg bg-sky-500 px-2 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50">
-                                                        Guardar
-                                                      </button>
-                                                    </div>
-                                                  </div>
-                                                }
-
-                                                @else {
-                                                  <div class="flex items-center gap-2">
-                                                    <i class="pi pi-circle-fill text-[6px] text-gray-400"></i>
-                                                    <span class="text-sm text-gray-700">{{ model.name }}</span>
-                                                  </div>
-
-                                                  <!-- Edit Button (Only Admin - TODO) -->
-                                                  <button
-                                                    type="button"
-                                                    (click)="onStartEditingModel(model)"
-                                                    pRipple
-                                                    class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                                                    <i class="pi pi-pencil text-xs"></i>
-                                                  </button>
-                                                }
-
-                                              </div>
-                                            }
-                                          </div>
-                                        }
-
-                                        <!-- Empty Models + Add Button -->
-                                        @if (brand.models.length === 0 && !isCreatingModelForBrand(brand.id)) {
-                                          <p class="mb-2 text-center text-sm text-gray-500">
-                                            No hay modelos registrados
-                                          </p>
-                                        }
-
-                                        <!-- Add Model Button -->
-                                        @if (!isCreatingModelForBrand(brand.id)) {
-                                          <button
-                                            type="button"
-                                            (click)="onStartCreatingModel(brand.id)"
-                                            pRipple
-                                            class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-sky-400 hover:bg-sky-50 hover:text-sky-600">
-                                            <i class="pi pi-plus text-xs"></i>
-                                            Agregar modelo
-                                          </button>
-                                        }
-
-                                      }
-                                    </div>
-                                  }
-
-                                </div>
-                              }
-
-                              <!-- Empty Brands for Type -->
-                              @if (store.getBrandsByType()(type.enum).length === 0 && !isCreatingBrandForType(type.enum)) {
-                                <p class="py-3 text-center text-sm text-gray-500">
-                                  No hay marcas en esta categoría
-                                </p>
-                              }
-
-                              <!-- Add Brand Button -->
-                              @if (!isCreatingBrandForType(type.enum)) {
-                                <button
-                                  type="button"
-                                  (click)="onStartCreatingBrand(type.enum)"
-                                  pRipple
-                                  class="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-sky-400 hover:bg-sky-50 hover:text-sky-600">
-                                  <i class="pi pi-plus text-xs"></i>
-                                  Nueva marca en {{ type.label }}
-                                </button>
-                              }
-                            </div>
-
-                          </div>
-                        }
-
-                      </div>
-                    }
-
-                  </div>
-                </div>
-              }
-
-            </div>
-          }
-
-        </div>
+        <app-brands-group-list />
       }
 
     </div>
@@ -500,7 +58,16 @@
 
 </div>
 
+<!-- Keyboard Shortcuts Help Drawer -->
+<app-keyboard-shortcuts-help
+  [(visible)]="isHelpVisible"
+/>
+
+<!-- Create Brand Drawer -->
 <app-select-brand-type-drawer
   [(visible)]="isDrawerVisible"
-  (brandCreated)="onBrandCreatedFromDrawer($event)">
-</app-select-brand-type-drawer>
+  (brandCreated)="onBrandCreatedFromDrawer($event)"
+/>
+
+<!-- Toast Notifications -->
+<p-toast position="top-right" />

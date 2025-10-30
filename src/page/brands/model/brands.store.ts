@@ -1,9 +1,11 @@
 import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import {BrandEntity, BrandService} from '../../../entities/brand';
-import {ModelEntity, ModelService} from '../../../entities/model';
+import { BrandEntity, BrandService } from '../../../entities/brand';
+import { ModelEntity, ModelService } from '../../../entities/model';
 import { InspectableItemTypeEnum } from '../../../shared/model/enums';
 import { firstValueFrom } from 'rxjs';
+import {DescriptionEntity} from '../../../entities/description/model/entities/description.entity';
+import {DescriptionService} from '../../../entities/description/api/services/description.service';
 
 // ==================== CONFIGURACIÓN DE GRUPOS Y TIPOS ====================
 
@@ -25,7 +27,7 @@ const CATEGORY_GROUPS: GroupConfig[] = [
   {
     id: 'COMPONENTES',
     label: 'Componentes',
-    icon: 'pi-microchip',
+    icon: '[material-symbols--device-hub]',
     types: [
       {
         enum: InspectableItemTypeEnum.COMMUNICATION,
@@ -44,7 +46,7 @@ const CATEGORY_GROUPS: GroupConfig[] = [
   {
     id: 'DISPOSITIVOS',
     label: 'Dispositivos',
-    icon: 'pi-bolt',
+    icon: '[material-symbols--device-hub]',
     types: [
       {
         enum: InspectableItemTypeEnum.POWER_SUPPLY,
@@ -55,7 +57,7 @@ const CATEGORY_GROUPS: GroupConfig[] = [
       {
         enum: InspectableItemTypeEnum.POWER_120VAC,
         label: 'Alimentación 120VAC',
-        icon: 'pi-lightbulb\n',
+        icon: 'pi-lightbulb',
         color: 'cyan'
       }
     ]
@@ -63,7 +65,7 @@ const CATEGORY_GROUPS: GroupConfig[] = [
   {
     id: 'ADICIONALES',
     label: 'Adicionales',
-    icon: 'pi-ellipsis-h',
+    icon: '[material-symbols--device-hub]',
     types: [
       {
         enum: InspectableItemTypeEnum.ORDER_AND_CLEANLINESS,
@@ -83,17 +85,21 @@ const CATEGORY_GROUPS: GroupConfig[] = [
 
 // ==================== STATE INTERFACES ====================
 
-interface BrandWithModels extends BrandEntity {
-  models: ModelEntity[];
+interface BrandWithState extends BrandEntity {
   isLoadingModels: boolean;
   modelsLoaded: boolean;
 }
 
+interface ModelWithState extends ModelEntity {
+  isLoadingDescriptions: boolean;
+  descriptionsLoaded: boolean;
+}
+
 export interface BrandsState {
   // Data
-  brands: BrandWithModels[];
+  brands: BrandWithState[];
 
-  // Loading
+  // Loading states
   isLoadingBrands: boolean;
   error: string | null;
 
@@ -101,14 +107,17 @@ export interface BrandsState {
   expandedGroups: Set<string>;
   expandedTypes: Set<InspectableItemTypeEnum>;
   expandedBrands: Set<string>;
+  expandedModels: Set<string>;
 
   // Editing state
   editingBrandId: string | null;
   editingModelId: string | null;
+  editingDescriptionId: string | null;
 
   // Creating state
   creatingBrandForType: InspectableItemTypeEnum | null;
   creatingModelForBrandId: string | null;
+  creatingDescriptionForModelId: string | null;
 
   // Search
   searchQuery: string;
@@ -116,8 +125,10 @@ export interface BrandsState {
   // Form values
   editBrandName: string;
   editModelName: string;
+  editDescriptionName: string;
   newBrandName: string;
   newModelName: string;
+  newDescriptionName: string;
 }
 
 const initialState: BrandsState = {
@@ -127,15 +138,20 @@ const initialState: BrandsState = {
   expandedGroups: new Set(),
   expandedTypes: new Set(),
   expandedBrands: new Set(),
+  expandedModels: new Set(),
   editingBrandId: null,
   editingModelId: null,
+  editingDescriptionId: null,
   creatingBrandForType: null,
   creatingModelForBrandId: null,
+  creatingDescriptionForModelId: null,
   searchQuery: '',
   editBrandName: '',
   editModelName: '',
+  editDescriptionName: '',
   newBrandName: '',
-  newModelName: ''
+  newModelName: '',
+  newDescriptionName: ''
 };
 
 // ==================== STORE ====================
@@ -150,7 +166,7 @@ export const BrandsStore = signalStore(
     groups: computed(() => CATEGORY_GROUPS),
 
     /**
-     * Marcas filtradas por búsqueda
+     * Marcas filtradas por búsqueda (Brand + Model + Description)
      */
     filteredBrands: computed(() => {
       const query = state.searchQuery().toLowerCase().trim();
@@ -158,13 +174,23 @@ export const BrandsStore = signalStore(
 
       if (!query) return brands;
 
-      // Buscar en nombre de marca O en nombres de modelos
       return brands.filter(brand => {
+        // Buscar en nombre de marca
         const brandNameMatch = brand.name.toLowerCase().includes(query);
+
+        // Buscar en nombres de modelos
         const modelNameMatch = brand.models.some(model =>
           model.name.toLowerCase().includes(query)
         );
-        return brandNameMatch || modelNameMatch;
+
+        // Buscar en nombres de descripciones
+        const descriptionNameMatch = brand.models.some(model =>
+          model.descriptions.some(desc =>
+            desc.name.toLowerCase().includes(query)
+          )
+        );
+
+        return brandNameMatch || modelNameMatch || descriptionNameMatch;
       });
     }),
 
@@ -183,12 +209,17 @@ export const BrandsStore = signalStore(
           const modelNameMatch = brand.models.some(model =>
             model.name.toLowerCase().includes(query)
           );
-          return brandNameMatch || modelNameMatch;
+          const descriptionNameMatch = brand.models.some(model =>
+            model.descriptions.some(desc =>
+              desc.name.toLowerCase().includes(query)
+            )
+          );
+          return brandNameMatch || modelNameMatch || descriptionNameMatch;
         });
       }
 
       // Agrupar por tipo
-      return (typeEnum: InspectableItemTypeEnum): BrandWithModels[] => {
+      return (typeEnum: InspectableItemTypeEnum): BrandWithState[] => {
         return filtered
           .filter(b => b.type === typeEnum)
           .sort((a, b) => a.name.localeCompare(b.name));
@@ -207,7 +238,6 @@ export const BrandsStore = signalStore(
       const query = state.searchQuery().toLowerCase().trim();
       const brands = state.brands();
 
-      // Filtrar por búsqueda
       let filtered = brands;
       if (query) {
         filtered = brands.filter(brand => {
@@ -215,7 +245,12 @@ export const BrandsStore = signalStore(
           const modelNameMatch = brand.models.some(model =>
             model.name.toLowerCase().includes(query)
           );
-          return brandNameMatch || modelNameMatch;
+          const descriptionNameMatch = brand.models.some(model =>
+            model.descriptions.some(desc =>
+              desc.name.toLowerCase().includes(query)
+            )
+          );
+          return brandNameMatch || modelNameMatch || descriptionNameMatch;
         });
       }
 
@@ -225,23 +260,12 @@ export const BrandsStore = signalStore(
     }),
 
     /**
-     * Contador de modelos por marca
-     */
-    getModelsCountByBrand: computed(() => {
-      const brands = state.brands();
-      return (brandId: string): number => {
-        const brand = brands.find(b => b.id === brandId);
-        return brand?.models.length ?? 0;
-      };
-    }),
-
-    /**
      * Verificar si hay marcas
      */
     hasBrands: computed(() => state.brands().length > 0),
 
     /**
-     * Verificar si no hay resultados de búsqueda (DUPLICA lógica de filteredBrands)
+     * Verificar si no hay resultados de búsqueda
      */
     hasNoSearchResults: computed(() => {
       const query = state.searchQuery().toLowerCase().trim();
@@ -249,13 +273,17 @@ export const BrandsStore = signalStore(
 
       if (query === '') return false;
 
-      // Filtrar por búsqueda
       const filtered = brands.filter(brand => {
         const brandNameMatch = brand.name.toLowerCase().includes(query);
         const modelNameMatch = brand.models.some(model =>
           model.name.toLowerCase().includes(query)
         );
-        return brandNameMatch || modelNameMatch;
+        const descriptionNameMatch = brand.models.some(model =>
+          model.descriptions.some(desc =>
+            desc.name.toLowerCase().includes(query)
+          )
+        );
+        return brandNameMatch || modelNameMatch || descriptionNameMatch;
       });
 
       return filtered.length === 0;
@@ -266,9 +294,7 @@ export const BrandsStore = signalStore(
      */
     isGroupExpanded: computed(() => {
       const expanded = state.expandedGroups();
-      return (groupId: string): boolean => {
-        return expanded.has(groupId);
-      };
+      return (groupId: string): boolean => expanded.has(groupId);
     }),
 
     /**
@@ -276,9 +302,7 @@ export const BrandsStore = signalStore(
      */
     isTypeExpanded: computed(() => {
       const expanded = state.expandedTypes();
-      return (typeEnum: InspectableItemTypeEnum): boolean => {
-        return expanded.has(typeEnum);
-      };
+      return (typeEnum: InspectableItemTypeEnum): boolean => expanded.has(typeEnum);
     }),
 
     /**
@@ -286,9 +310,15 @@ export const BrandsStore = signalStore(
      */
     isBrandExpanded: computed(() => {
       const expanded = state.expandedBrands();
-      return (brandId: string): boolean => {
-        return expanded.has(brandId);
-      };
+      return (brandId: string): boolean => expanded.has(brandId);
+    }),
+
+    /**
+     * Verificar si un modelo está expandido
+     */
+    isModelExpanded: computed(() => {
+      const expanded = state.expandedModels();
+      return (modelId: string): boolean => expanded.has(modelId);
     }),
 
     /**
@@ -296,8 +326,22 @@ export const BrandsStore = signalStore(
      */
     getBrandById: computed(() => {
       const brands = state.brands();
-      return (brandId: string): BrandWithModels | undefined => {
+      return (brandId: string): BrandWithState | undefined => {
         return brands.find(b => b.id === brandId);
+      };
+    }),
+
+    /**
+     * Obtener modelo por ID (busca en todas las marcas)
+     */
+    getModelById: computed(() => {
+      const brands = state.brands();
+      return (modelId: string): ModelWithState | undefined => {
+        for (const brand of brands) {
+          const model = brand.models.find(m => m.id === modelId);
+          if (model) return model as ModelWithState;
+        }
+        return undefined;
       };
     }),
 
@@ -318,12 +362,13 @@ export const BrandsStore = signalStore(
   withMethods((store) => {
     const brandService = inject(BrandService);
     const modelService = inject(ModelService);
+    const descriptionService = inject(DescriptionService);
 
     return {
       // ==================== LOAD DATA ====================
 
       /**
-       * Cargar todas las marcas (sin modelos)
+       * Cargar todas las marcas (sin modelos ni descriptions)
        */
       async loadBrands(): Promise<void> {
         patchState(store, {
@@ -334,7 +379,7 @@ export const BrandsStore = signalStore(
         try {
           const brands = await firstValueFrom(brandService.getAll());
 
-          const brandsWithModels: BrandWithModels[] = brands.map(brand => ({
+          const brandsWithState: BrandWithState[] = brands.map(brand => ({
             ...brand,
             models: [],
             isLoadingModels: false,
@@ -342,10 +387,12 @@ export const BrandsStore = signalStore(
           }));
 
           patchState(store, {
-            brands: brandsWithModels.sort((a, b) => a.name.localeCompare(b.name)),
+            brands: brandsWithState.sort((a, b) => a.name.localeCompare(b.name)),
             isLoadingBrands: false,
             error: null
           });
+
+          console.log('✅ Brands loaded:', brandsWithState.length);
 
         } catch (error: any) {
           console.error('❌ Error loading brands:', error);
@@ -358,7 +405,7 @@ export const BrandsStore = signalStore(
       },
 
       /**
-       * Cargar modelos de una marca específica
+       * Cargar modelos de una marca específica (lazy load)
        */
       async loadModelsForBrand(brandId: string): Promise<void> {
         const brand = store.brands().find(b => b.id === brandId);
@@ -376,12 +423,19 @@ export const BrandsStore = signalStore(
             brandService.getAllModelsByBrandId(brandId)
           );
 
+          const modelsWithState: ModelWithState[] = models.map(model => ({
+            ...model,
+            descriptions: [],
+            isLoadingDescriptions: false,
+            descriptionsLoaded: false
+          }));
+
           patchState(store, (state) => ({
             brands: state.brands.map(b =>
               b.id === brandId
                 ? {
                   ...b,
-                  models: models.sort((a, b) => a.name.localeCompare(b.name)),
+                  models: modelsWithState.sort((a, b) => a.name.localeCompare(b.name)),
                   isLoadingModels: false,
                   modelsLoaded: true
                 }
@@ -389,12 +443,88 @@ export const BrandsStore = signalStore(
             )
           }));
 
+          console.log(`✅ Models loaded for brand ${brandId}:`, modelsWithState.length);
+
         } catch (error: any) {
           console.error(`❌ Error loading models for brand ${brandId}:`, error);
           patchState(store, (state) => ({
             brands: state.brands.map(b =>
               b.id === brandId
                 ? { ...b, isLoadingModels: false, modelsLoaded: false }
+                : b
+            )
+          }));
+        }
+      },
+
+      /**
+       * Cargar descripciones de un modelo específico (lazy load)
+       */
+      async loadDescriptionsForModel(brandId: string, modelId: string): Promise<void> {
+        const brand = store.brands().find(b => b.id === brandId);
+        if (!brand) return;
+
+        const model = brand.models.find(m => m.id === modelId) as ModelWithState | undefined;
+        if (!model || model.descriptionsLoaded || model.isLoadingDescriptions) return;
+
+        // Marcar como cargando
+        patchState(store, (state) => ({
+          brands: state.brands.map(b =>
+            b.id === brandId
+              ? {
+                ...b,
+                models: b.models.map(m =>
+                  m.id === modelId
+                    ? { ...m, isLoadingDescriptions: true }
+                    : m
+                )
+              }
+              : b
+          )
+        }));
+
+        try {
+          const descriptions = await firstValueFrom(
+            modelService.getAllDescriptionsByModelId(modelId)
+          );
+
+          patchState(store, (state) => ({
+            brands: state.brands.map(b =>
+              b.id === brandId
+                ? {
+                  ...b,
+                  models: b.models.map(m =>
+                    m.id === modelId
+                      ? {
+                        ...m,
+                        descriptions: descriptions.sort((a, b) =>
+                          a.name.localeCompare(b.name)
+                        ),
+                        isLoadingDescriptions: false,
+                        descriptionsLoaded: true
+                      }
+                      : m
+                  )
+                }
+                : b
+            )
+          }));
+
+          console.log(`✅ Descriptions loaded for model ${modelId}:`, descriptions.length);
+
+        } catch (error: any) {
+          console.error(`❌ Error loading descriptions for model ${modelId}:`, error);
+          patchState(store, (state) => ({
+            brands: state.brands.map(b =>
+              b.id === brandId
+                ? {
+                  ...b,
+                  models: b.models.map(m =>
+                    m.id === modelId
+                      ? { ...m, isLoadingDescriptions: false, descriptionsLoaded: false }
+                      : m
+                  )
+                }
                 : b
             )
           }));
@@ -456,54 +586,35 @@ export const BrandsStore = signalStore(
       },
 
       /**
-       * Expandir todo el camino hasta una marca (para búsqueda)
+       * Toggle modelo expandido/colapsado + cargar descriptions si es necesario
        */
-      expandPathToBrand(brandId: string): void {
-        const brand = store.brands().find(b => b.id === brandId);
-        if (!brand) return;
+      async toggleModel(brandId: string, modelId: string): Promise<void> {
+        const isCurrentlyExpanded = store.expandedModels().has(modelId);
 
-        // Encontrar grupo y tipo
-        let groupId: string | null = null;
-        for (const group of CATEGORY_GROUPS) {
-          if (group.types.some(t => t.enum === brand.type)) {
-            groupId = group.id;
-            break;
-          }
-        }
-
-        if (!groupId) return;
-
-        // Expandir grupo, tipo y marca
         patchState(store, (state) => {
-          const newGroups = new Set(state.expandedGroups);
-          const newTypes = new Set(state.expandedTypes);
-          const newBrands = new Set(state.expandedBrands);
-
-          newGroups.add(groupId!);
-          newTypes.add(brand.type);
-          newBrands.add(brandId);
-
-          return {
-            expandedGroups: newGroups,
-            expandedTypes: newTypes,
-            expandedBrands: newBrands
-          };
+          const newExpanded = new Set(state.expandedModels);
+          if (newExpanded.has(modelId)) {
+            newExpanded.delete(modelId);
+          } else {
+            newExpanded.add(modelId);
+          }
+          return { expandedModels: newExpanded };
         });
 
-        // Cargar modelos
-        this.loadModelsForBrand(brandId);
+        // Si se está expandiendo, cargar descriptions
+        if (!isCurrentlyExpanded) {
+          await this.loadDescriptionsForModel(brandId, modelId);
+        }
       },
 
       // ==================== BRAND CRUD ====================
 
       /**
        * Crear nueva marca
-       * TODO: Agregar validación de rol Admin
        */
       async createBrand(type: InspectableItemTypeEnum, name: string): Promise<boolean> {
         const trimmedName = name.trim();
 
-        // TODO: Agregar más validaciones aquí (ej: nombre único por tipo)
         if (trimmedName.length < 2 || trimmedName.length > 50) {
           patchState(store, {
             error: 'El nombre debe tener entre 2 y 50 caracteres'
@@ -516,13 +627,13 @@ export const BrandsStore = signalStore(
             id: '',
             name: trimmedName,
             type,
-            models: [],
-            totalModels: 0
+            totalModels: 0,
+            models: []
           };
 
           const created = await firstValueFrom(brandService.create(newBrand));
 
-          const brandWithModels: BrandWithModels = {
+          const brandWithState: BrandWithState = {
             ...created,
             models: [],
             isLoadingModels: false,
@@ -530,13 +641,14 @@ export const BrandsStore = signalStore(
           };
 
           patchState(store, (state) => ({
-            brands: [...state.brands, brandWithModels].sort((a, b) =>
+            brands: [...state.brands, brandWithState].sort((a, b) =>
               a.name.localeCompare(b.name)
             ),
             creatingBrandForType: null,
             newBrandName: ''
           }));
 
+          console.log('✅ Brand created:', created.name);
           return true;
 
         } catch (error: any) {
@@ -550,12 +662,10 @@ export const BrandsStore = signalStore(
 
       /**
        * Actualizar marca
-       * TODO: Agregar validación de rol Admin
        */
       async updateBrand(brandId: string, name: string): Promise<boolean> {
         const trimmedName = name.trim();
 
-        // TODO: Agregar más validaciones aquí
         if (trimmedName.length < 2 || trimmedName.length > 50) {
           patchState(store, {
             error: 'El nombre debe tener entre 2 y 50 caracteres'
@@ -579,6 +689,7 @@ export const BrandsStore = signalStore(
             editBrandName: ''
           }));
 
+          console.log('✅ Brand updated:', updated.name);
           return true;
 
         } catch (error: any) {
@@ -594,12 +705,10 @@ export const BrandsStore = signalStore(
 
       /**
        * Crear nuevo modelo
-       * TODO: Agregar validación de rol Admin
        */
       async createModel(brandId: string, name: string): Promise<boolean> {
         const trimmedName = name.trim();
 
-        // TODO: Agregar más validaciones aquí
         if (trimmedName.length < 2 || trimmedName.length > 50) {
           patchState(store, {
             error: 'El nombre debe tener entre 2 y 50 caracteres'
@@ -612,18 +721,26 @@ export const BrandsStore = signalStore(
             id: '',
             name: trimmedName,
             brandId,
-            descriptions: [],
-            totalDescriptions: 0
+            totalDescriptions: 0,
+            descriptions: []
           };
 
           const created = await firstValueFrom(modelService.create(newModel));
+
+          const modelWithState: ModelWithState = {
+            ...created,
+            descriptions: [],
+            isLoadingDescriptions: false,
+            descriptionsLoaded: false
+          };
 
           patchState(store, (state) => ({
             brands: state.brands.map(b =>
               b.id === brandId
                 ? {
                   ...b,
-                  models: [...b.models, created].sort((a, b) =>
+                  totalModels: b.totalModels + 1,
+                  models: [...b.models, modelWithState].sort((a, b) =>
                     a.name.localeCompare(b.name)
                   )
                 }
@@ -633,6 +750,7 @@ export const BrandsStore = signalStore(
             newModelName: ''
           }));
 
+          console.log('✅ Model created:', created.name);
           return true;
 
         } catch (error: any) {
@@ -646,7 +764,6 @@ export const BrandsStore = signalStore(
 
       /**
        * Actualizar modelo
-       * TODO: Agregar validación de rol Admin
        */
       async updateModel(
         brandId: string,
@@ -655,7 +772,6 @@ export const BrandsStore = signalStore(
       ): Promise<boolean> {
         const trimmedName = name.trim();
 
-        // TODO: Agregar más validaciones aquí
         if (trimmedName.length < 2 || trimmedName.length > 50) {
           patchState(store, {
             error: 'El nombre debe tener entre 2 y 50 caracteres'
@@ -687,6 +803,7 @@ export const BrandsStore = signalStore(
             editModelName: ''
           }));
 
+          console.log('✅ Model updated:', updated.name);
           return true;
 
         } catch (error: any) {
@@ -698,23 +815,143 @@ export const BrandsStore = signalStore(
         }
       },
 
+      // ==================== DESCRIPTION CRUD ====================
+
+      /**
+       * Crear nueva descripción
+       */
+      async createDescription(
+        brandId: string,
+        modelId: string,
+        name: string
+      ): Promise<boolean> {
+        const trimmedName = name.trim();
+
+        if (trimmedName.length < 2 || trimmedName.length > 50) {
+          patchState(store, {
+            error: 'El nombre debe tener entre 2 y 50 caracteres'
+          });
+          return false;
+        }
+
+        try {
+          const newDescription: DescriptionEntity = {
+            id: '',
+            name: trimmedName,
+            modelId,
+            brandId
+          };
+
+          const created = await firstValueFrom(descriptionService.create(newDescription));
+
+          patchState(store, (state) => ({
+            brands: state.brands.map(b =>
+              b.id === brandId
+                ? {
+                  ...b,
+                  models: b.models.map(m =>
+                    m.id === modelId
+                      ? {
+                        ...m,
+                        totalDescriptions: m.totalDescriptions + 1,
+                        descriptions: [...m.descriptions, created].sort((a, b) =>
+                          a.name.localeCompare(b.name)
+                        )
+                      }
+                      : m
+                  )
+                }
+                : b
+            ),
+            creatingDescriptionForModelId: null,
+            newDescriptionName: ''
+          }));
+
+          console.log('✅ Description created:', created.name);
+          return true;
+
+        } catch (error: any) {
+          console.error('❌ Error creating description:', error);
+          patchState(store, {
+            error: error.message || 'Error al crear la descripción'
+          });
+          return false;
+        }
+      },
+
+      /**
+       * Actualizar descripción
+       */
+      async updateDescription(
+        brandId: string,
+        modelId: string,
+        descriptionId: string,
+        name: string
+      ): Promise<boolean> {
+        const trimmedName = name.trim();
+
+        if (trimmedName.length < 2 || trimmedName.length > 50) {
+          patchState(store, {
+            error: 'El nombre debe tener entre 2 y 50 caracteres'
+          });
+          return false;
+        }
+
+        try {
+          const brand = store.brands().find(b => b.id === brandId);
+          const model = brand?.models.find(m => m.id === modelId);
+          const description = model?.descriptions.find(d => d.id === descriptionId);
+          if (!description) return false;
+
+          const updated = await firstValueFrom(descriptionService.update(
+              descriptionId,
+              { ...description, name: trimmedName }
+            )
+          );
+
+          patchState(store, (state) => ({
+            brands: state.brands.map(b =>
+              b.id === brandId
+                ? {
+                  ...b,
+                  models: b.models.map(m =>
+                    m.id === modelId
+                      ? {
+                        ...m,
+                        descriptions: m.descriptions
+                          .map(d =>
+                            d.id === descriptionId ? { ...d, name: updated.name } : d
+                          )
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                      }
+                      : m
+                  )
+                }
+                : b
+            ),
+            editingDescriptionId: null,
+            editDescriptionName: ''
+          }));
+
+          console.log('✅ Description updated:', updated.name);
+          return true;
+
+        } catch (error: any) {
+          console.error('❌ Error updating description:', error);
+          patchState(store, {
+            error: error.message || 'Error al actualizar la descripción'
+          });
+          return false;
+        }
+      },
+
       // ==================== UI STATE ====================
 
       /**
-       * Establecer búsqueda y auto-expandir resultados
+       * Establecer búsqueda
        */
       setSearchQuery(query: string): void {
         patchState(store, { searchQuery: query });
-
-        // Si hay búsqueda, auto-expandir primer resultado
-        if (query.trim() !== '') {
-          setTimeout(() => {
-            const filtered = store.filteredBrands();
-            if (filtered.length > 0) {
-              this.expandPathToBrand(filtered[0].id);
-            }
-          }, 100);
-        }
       },
 
       /**
@@ -759,6 +996,23 @@ export const BrandsStore = signalStore(
       },
 
       /**
+       * Modo crear descripción
+       */
+      startCreatingDescription(modelId: string): void {
+        patchState(store, {
+          creatingDescriptionForModelId: modelId,
+          newDescriptionName: ''
+        });
+      },
+
+      cancelCreatingDescription(): void {
+        patchState(store, {
+          creatingDescriptionForModelId: null,
+          newDescriptionName: ''
+        });
+      },
+
+      /**
        * Modo editar marca
        */
       startEditingBrand(brandId: string, currentName: string): void {
@@ -793,6 +1047,23 @@ export const BrandsStore = signalStore(
       },
 
       /**
+       * Modo editar descripción
+       */
+      startEditingDescription(descriptionId: string, currentName: string): void {
+        patchState(store, {
+          editingDescriptionId: descriptionId,
+          editDescriptionName: currentName
+        });
+      },
+
+      cancelEditingDescription(): void {
+        patchState(store, {
+          editingDescriptionId: null,
+          editDescriptionName: ''
+        });
+      },
+
+      /**
        * Actualizar valores de formularios
        */
       setNewBrandName(name: string): void {
@@ -803,12 +1074,20 @@ export const BrandsStore = signalStore(
         patchState(store, { newModelName: name });
       },
 
+      setNewDescriptionName(name: string): void {
+        patchState(store, { newDescriptionName: name });
+      },
+
       setEditBrandName(name: string): void {
         patchState(store, { editBrandName: name });
       },
 
       setEditModelName(name: string): void {
         patchState(store, { editModelName: name });
+      },
+
+      setEditDescriptionName(name: string): void {
+        patchState(store, { editDescriptionName: name });
       },
 
       /**
