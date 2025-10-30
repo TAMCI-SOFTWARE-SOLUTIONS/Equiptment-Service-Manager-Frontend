@@ -792,7 +792,9 @@ export const EquipmentFormStore = signalStore(
               status: formData.status as any,
               createdAt: new Date(),
               updatedAt: null,
-              lastServiceAt: null
+              lastInspectionAt: null,
+              lastMaintenanceAt: null,
+              lastRaiseObservationsAt: null
             };
 
             if (store.isEditing()) {
@@ -816,7 +818,9 @@ export const EquipmentFormStore = signalStore(
               status: formData.status as any,
               createdAt: new Date(),
               updatedAt: null,
-              lastServiceAt: null
+              lastInspectionAt: null,
+              lastMaintenanceAt: null,
+              lastRaiseObservationsAt: null
             };
 
             if (store.isEditing()) {

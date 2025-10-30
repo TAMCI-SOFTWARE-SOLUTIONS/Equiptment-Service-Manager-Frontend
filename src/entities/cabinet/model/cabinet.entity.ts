@@ -15,5 +15,7 @@ export interface CabinetEntity {
   status: CabinetStatusEnum;
   createdAt: Date;
   updatedAt: Date | null;
-  lastServiceAt: Date | null;
+  lastInspectionAt: Date | null;
+  lastMaintenanceAt: Date | null;
+  lastRaiseObservationsAt: Date | null;
 }

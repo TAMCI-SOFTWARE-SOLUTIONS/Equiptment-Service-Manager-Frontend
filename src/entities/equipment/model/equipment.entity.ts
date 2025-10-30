@@ -35,7 +35,9 @@ export interface EquipmentEntity {
   // Timestamps
   createdAt: Date;
   updatedAt: Date | null;
-  lastServiceAt: Date | null;
+  lastInspectionAt: Date | null;
+  lastMaintenanceAt: Date | null;
+  lastRaiseObservationsAt: Date | null;
 }
 
 /**
@@ -58,7 +60,9 @@ export function cabinetToEquipment(cabinet: CabinetEntity): EquipmentEntity {
     equipmentTypeName: cabinet.cabinetType,
     createdAt: cabinet.createdAt,
     updatedAt: cabinet.updatedAt,
-    lastServiceAt: cabinet.lastServiceAt
+    lastInspectionAt: cabinet.lastInspectionAt,
+    lastMaintenanceAt: cabinet.lastMaintenanceAt,
+    lastRaiseObservationsAt: cabinet.lastRaiseObservationsAt,
   };
 }
 
@@ -82,6 +86,8 @@ export function panelToEquipment(panel: PanelEntity): EquipmentEntity {
     equipmentTypeName: panel.panelType,
     createdAt: panel.createdAt,
     updatedAt: panel.updatedAt,
-    lastServiceAt: panel.lastServiceAt
+    lastInspectionAt: panel.lastInspectionAt,
+    lastMaintenanceAt: panel.lastMaintenanceAt,
+    lastRaiseObservationsAt: panel.lastRaiseObservationsAt,
   };
 }

@@ -19,7 +19,9 @@ export class CabinetEntityFromResponseMapper {
       status: this.mapStatusStringToEnum(dto.status ?? ''),
       createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
       updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : null,
-      lastServiceAt: dto.lastServiceAt ? new Date(dto.lastServiceAt) : null
+      lastInspectionAt: dto.lastInspectionAt ? new Date(dto.lastInspectionAt) : null,
+      lastMaintenanceAt: dto.lastMaintenanceAt ? new Date(dto.lastMaintenanceAt) : null,
+      lastRaiseObservationsAt: dto.lastRaiseObservationsAt ? new Date(dto.lastRaiseObservationsAt) : null,
     };
   }
 
