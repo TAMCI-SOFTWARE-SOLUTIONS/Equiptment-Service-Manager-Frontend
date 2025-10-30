@@ -1,7 +1,8 @@
 import { InspectableItemResponse } from '../types';
 import { InspectableItemEntity } from '../../model';
 import { InspectableItemTypeMapper } from '../../../../shared/api/mappers/inspectable-item-type.mapper';
-import {CriticalityMapper, ItemConditionMapper} from '../../../item-inspection';
+import {ItemConditionMapper} from '../../../../shared/api/mappers/item-condition.mapper';
+import {CriticalityMapper} from '../../../../shared/api/mappers/criticality.mapper';
 
 export class InspectableItemEntityFromResponseMapper {
   static fromDtoToEntity(dto: InspectableItemResponse): InspectableItemEntity {

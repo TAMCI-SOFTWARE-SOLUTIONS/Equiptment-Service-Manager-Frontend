@@ -1,4 +1,5 @@
-import { ItemConditionEnum } from '../../model';
+import {ItemConditionEnum} from '../../model/enums/item-condition.enum';
+
 
 export class ItemConditionMapper {
   static fromStringToEnum(condition: string): ItemConditionEnum {

@@ -1,5 +1,6 @@
 import { InspectableItemTypeEnum } from '../../../../shared/model/enums';
-import {CriticalityEnum, ItemConditionEnum} from '../../../item-inspection';
+import {ItemConditionEnum} from '../../../../shared/model/enums/item-condition.enum';
+import {CriticalityEnum} from '../../../../shared/model/enums/criticality.enum';
 
 export interface InspectableItemEntity {
   id: string;

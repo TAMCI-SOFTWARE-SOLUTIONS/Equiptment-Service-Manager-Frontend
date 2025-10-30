@@ -131,13 +131,14 @@
               </div>
             }
 
-            @if (store.selectedEquipment()?.lastServiceAt) {
+            <!--TODO: Change this date-->
+            @if (store.selectedEquipment()?.lastInspectionAt) {
               <div>
                 <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                   Última Revisión
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900">
-                  {{ store.selectedEquipment()?.lastServiceAt | date:'medium' }}
+                  {{ store.selectedEquipment()?.lastInspectionAt | date:'medium' }}
                 </dd>
               </div>
             } @else {

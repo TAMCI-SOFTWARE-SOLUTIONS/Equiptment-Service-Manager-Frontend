@@ -12,8 +12,6 @@ import {PanelEntity} from '../../../../entities/panel/model';
 import {SupervisorEntity, SupervisorService} from '../../../../entities/supervisor';
 import {InspectableItemWithDetails} from '../interfaces/inspectable-item-with-details.interface';
 import {
-  CriticalityEnum,
-  ItemConditionEnum,
   ItemInspectionEntity,
   ItemInspectionService
 } from '../../../../entities/item-inspection';
@@ -33,6 +31,8 @@ import {
   EquipmentPowerDistributionAssignmentService
 } from '../../../../entities/equipment-power-distribution-assignment/api';
 import {PowerDistributionPanelService} from '../../../../entities/power-distribution-panel/api';
+import {ItemConditionEnum} from '../../../../shared/model/enums/item-condition.enum';
+import {CriticalityEnum} from '../../../../shared/model/enums/criticality.enum';
 
 // ==================== INTERFACES ====================
 

@@ -1,4 +1,4 @@
-import { CriticalityEnum } from '../../model';
+import {CriticalityEnum} from '../../model/enums/criticality.enum';
 
 
 export class CriticalityMapper {

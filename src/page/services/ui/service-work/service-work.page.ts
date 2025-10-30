@@ -11,7 +11,6 @@ import {ServiceWorkStore} from '../../model/store/service-work.store';
 import {ServiceStatusEnum} from '../../../../entities/equipment-service';
 import {EquipmentTypeEnum, ServiceTypeEnum} from '../../../../shared/model';
 import {InspectableItemTypeEnum} from '../../../../shared/model/enums';
-import {CriticalityEnum, ItemConditionEnum} from '../../../../entities/item-inspection';
 import {
   CONDITION_BY_TYPE,
   CONDITION_LABELS,
@@ -19,6 +18,8 @@ import {
   INSPECTABLE_TYPE_LABELS, isItemCompleted, requiresCriticality
 } from '../../utils/service-work-validation.helpers';
 import {InspectableItemWithDetails} from '../../model/interfaces/inspectable-item-with-details.interface';
+import {ItemConditionEnum} from '../../../../shared/model/enums/item-condition.enum';
+import {CriticalityEnum} from '../../../../shared/model/enums/criticality.enum';
 
 @Component({
   selector: 'app-service-work',
