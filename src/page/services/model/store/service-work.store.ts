@@ -674,8 +674,15 @@ export const ServiceWorkStore = signalStore(
             itemId: item.id,
             itemType: item.type,
             condition: data.condition || item.inspection?.condition || ItemConditionEnum.OPERATIONAL,
+            criticality: data.criticality !== undefined ? data.criticality : item.inspection?.criticality || null,
             observation: data.observation || item.inspection?.observation || '',
-            criticality: data.criticality !== undefined ? data.criticality : item.inspection?.criticality || null
+            previousBrandId: null,
+            previousCondition: null,
+            previousCriticality: null,
+            previousDescriptionId: null,
+            previousModelId: null,
+            previousObservation: null,
+            previousTag: null,
           };
 
           let savedInspection: ItemInspectionEntity;

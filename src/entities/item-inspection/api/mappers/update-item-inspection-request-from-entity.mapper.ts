@@ -4,7 +4,7 @@ import { UpdateItemInspectionRequest } from '../types/update-item-inspection-req
 export class UpdateItemInspectionRequestFromEntityMapper {
   static fromEntityToDto(entity: ItemInspectionEntity): UpdateItemInspectionRequest {
     return {
-      condition: entity.condition.toString(),
+      condition: entity.condition?.toString() ?? null,
       observation: entity.observation,
       criticality: entity.criticality?.toString() ?? null,
     };

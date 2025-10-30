@@ -7,9 +7,9 @@ export class CreateItemInspectionRequestFromEntityMapper {
       serviceId: '', // This would need to be provided from context
       itemId: entity.itemId,
       itemType: entity.itemType.toString(),
-      condition: entity.condition.toString(),
-      observation: entity.observation,
+      condition: entity.condition?.toString() ?? null,
       criticality: entity.criticality?.toString() ?? null,
+      observation: entity.observation,
     };
   }
 }
