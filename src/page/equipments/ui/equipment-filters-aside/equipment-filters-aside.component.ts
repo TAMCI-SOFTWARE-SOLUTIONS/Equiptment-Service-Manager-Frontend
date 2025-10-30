@@ -34,18 +34,6 @@ interface LocalFilters {
   standalone: true,
   imports: [CommonModule, FormsModule, Ripple, Drawer],
   templateUrl: './equipment-filters-aside.component.html',
-  styles: [`
-    :host ::ng-deep .p-drawer {
-      width: 420px !important;
-      max-width: 90vw;
-    }
-
-    :host ::ng-deep .p-drawer-content {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-  `]
 })
 export class EquipmentFiltersAsideComponent {
   readonly store = inject(EquipmentsStore);

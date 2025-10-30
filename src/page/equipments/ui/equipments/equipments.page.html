@@ -43,93 +43,43 @@
         </div>
       </div>
 
-      <!-- Search & Filters (Desktop) -->
-      @if (store.hasEquipments() && !store.isLoading()) {
-        <div class="mt-4 hidden items-center gap-3 lg:flex">
-          <!-- Search -->
-          <div class="relative flex-1 max-w-md">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <i class="pi pi-search text-sm text-gray-400"></i>
-            </div>
-            <input
-              type="text"
-              [value]="store.filters().searchQuery"
-              (input)="onSearchChange($any($event.target).value)"
-              placeholder="Buscar por tag..."
-              class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-
-            @if (store.filters().searchQuery) {
-              <button
-                type="button"
-                (click)="clearSearch()"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
-                <i class="pi pi-times text-xs"></i>
-              </button>
-            }
+      <!-- Search & Filters -->
+      <div class="mt-4 flex items-center gap-2">
+        <div class="relative flex-1">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="pi pi-search text-sm text-gray-400"></i>
           </div>
+          <input
+            type="text"
+            [value]="store.filters().searchQuery"
+            (input)="onSearchChange($any($event.target).value)"
+            placeholder="Buscar..."
+            class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
 
-          <!-- Plant Filter -->
-          <select
-            [value]="store.filters().plantId || ''"
-            (change)="store.setPlantFilter($any($event.target).value || null)"
-            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-            <option value="">Todas las plantas</option>
-            @for (plant of store.uniquePlants(); track plant.id) {
-              <option [value]="plant.id">{{ plant.name }}</option>
-            }
-          </select>
-
-          <!-- Status Filter -->
-          <select
-            [value]="store.filters().statusFilter || ''"
-            (change)="store.setStatusFilter($any($event.target).value || null)"
-            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-            <option value="">Todos los estados</option>
-            <option [value]="EquipmentStatusEnum.OPERATIVE">{{ getEquipmentStatusLabel(EquipmentStatusEnum.OPERATIVE) }}</option>
-            <option [value]="EquipmentStatusEnum.STAND_BY">{{ getEquipmentStatusLabel(EquipmentStatusEnum.STAND_BY) }}</option>
-            <option [value]="EquipmentStatusEnum.INOPERATIVE">{{ getEquipmentStatusLabel(EquipmentStatusEnum.INOPERATIVE) }}</option>
-            <option [value]="EquipmentStatusEnum.RETIRED">{{ getEquipmentStatusLabel(EquipmentStatusEnum.RETIRED) }}</option>
-          </select>
+          @if (store.filters().searchQuery) {
+            <button
+              type="button"
+              (click)="clearSearch()"
+              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+              <i class="pi pi-times text-xs"></i>
+            </button>
+          }
         </div>
 
-        <!-- Search (Mobile) -->
-        <div class="mt-4 flex items-center gap-2 lg:hidden">
-          <div class="relative flex-1">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <i class="pi pi-search text-sm text-gray-400"></i>
-            </div>
-            <input
-              type="text"
-              [value]="store.filters().searchQuery"
-              (input)="onSearchChange($any($event.target).value)"
-              placeholder="Buscar..."
-              class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-
-            @if (store.filters().searchQuery) {
-              <button
-                type="button"
-                (click)="clearSearch()"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
-                <i class="pi pi-times text-xs"></i>
-              </button>
-            }
-          </div>
-
-          <!-- Filters Button (Mobile) -->
-          <button
-            pRipple
-            type="button"
-            (click)="onOpenFilters()"
-            class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50">
-            <i class="pi pi-filter text-base"></i>
-            @if (store.hasActiveFilters()) {
-              <span class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-[10px] font-bold text-white">
+        <!-- Filters Button (Mobile) -->
+        <button
+          pRipple
+          type="button"
+          (click)="onOpenFilters()"
+          class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50">
+          <i class="pi pi-filter text-base"></i>
+          @if (store.hasActiveFilters()) {
+            <span class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-[10px] font-bold text-white">
                 !
               </span>
-            }
-          </button>
-        </div>
-      }
+          }
+        </button>
+      </div>
 
       <!-- Type Pills -->
       @if (store.hasEquipments() && !store.isLoading()) {

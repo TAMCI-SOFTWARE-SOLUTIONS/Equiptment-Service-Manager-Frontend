@@ -79,9 +79,9 @@ function filterByDateRange(
     if (!date || !(date instanceof Date)) return true;
 
     if (range.from && date < range.from) return false;
-    if (range.to && date > range.to) return false;
+    return !(range.to && date > range.to);
 
-    return true;
+
   });
 }
 
