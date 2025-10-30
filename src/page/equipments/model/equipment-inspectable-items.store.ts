@@ -83,7 +83,7 @@ interface InspectableItemsState {
     type: InspectableItemTypeEnum | null;
     brandId: string | null;
     modelId: string | null;
-    descripcion: string;
+    descriptionId: string;
   };
 
   // UI state
@@ -101,7 +101,7 @@ const initialFormData = {
   type: null,
   brandId: null,
   modelId: null,
-  descripcion: ''
+  descriptionId: ''
 };
 
 const initialState: InspectableItemsState = {
@@ -152,7 +152,7 @@ export const EquipmentInspectableItemsStore = signalStore(
       if (query) {
         filtered = filtered.filter(item => {
           const tagMatch = item.tag.toLowerCase().includes(query);
-          const descMatch = item.descripcion.toLowerCase().includes(query);
+          const descMatch = item.descriptionId.toLowerCase().includes(query);
           // TODO: Agregar búsqueda por marca/modelo cuando se carguen
           return tagMatch || descMatch;
         });
@@ -179,7 +179,7 @@ export const EquipmentInspectableItemsStore = signalStore(
       if (query) {
         filtered = filtered.filter(item => {
           const tagMatch = item.tag.toLowerCase().includes(query);
-          const descMatch = item.descripcion.toLowerCase().includes(query);
+          const descMatch = item.descriptionId.toLowerCase().includes(query);
           return tagMatch || descMatch;
         });
       }
@@ -223,7 +223,7 @@ export const EquipmentInspectableItemsStore = signalStore(
       if (query) {
         filtered = filtered.filter(item => {
           const tagMatch = item.tag.toLowerCase().includes(query);
-          const descMatch = item.descripcion.toLowerCase().includes(query);
+          const descMatch = item.descriptionId.toLowerCase().includes(query);
           return tagMatch || descMatch;
         });
       }
@@ -266,7 +266,7 @@ export const EquipmentInspectableItemsStore = signalStore(
       if (query) {
         filtered = filtered.filter(item => {
           const tagMatch = item.tag.toLowerCase().includes(query);
-          const descMatch = item.descripcion.toLowerCase().includes(query);
+          const descMatch = item.descriptionId.toLowerCase().includes(query);
           return tagMatch || descMatch;
         });
       }
@@ -299,7 +299,7 @@ export const EquipmentInspectableItemsStore = signalStore(
         const lowerQuery = query.toLowerCase();
         filtered = filtered.filter(item => {
           const tagMatch = item.tag.toLowerCase().includes(lowerQuery);
-          const descMatch = item.descripcion.toLowerCase().includes(lowerQuery);
+          const descMatch = item.descriptionId.toLowerCase().includes(lowerQuery);
           return tagMatch || descMatch;
         });
       }
@@ -529,7 +529,7 @@ export const EquipmentInspectableItemsStore = signalStore(
             type: item.type,
             brandId: item.brandId,
             modelId: item.modelId,
-            descripcion: item.descripcion
+            descriptionId: item.descriptionId
           },
           error: null
         });
@@ -644,7 +644,12 @@ export const EquipmentInspectableItemsStore = signalStore(
             type: form.type!,
             brandId: form.brandId!,
             modelId: form.modelId!,
-            descripcion: form.descripcion.trim()
+            descriptionId: form.descriptionId.trim(),
+            currentCondition: null,
+            currentCriticality: null,
+            lastObservation: null,
+            createdAt: new Date(),
+            updatedAt: null,
           };
 
           const created = await firstValueFrom(
@@ -695,7 +700,12 @@ export const EquipmentInspectableItemsStore = signalStore(
             type: form.type!,
             brandId: form.brandId!,
             modelId: form.modelId!,
-            descripcion: form.descripcion.trim()
+            descriptionId: form.descriptionId.trim(),
+            currentCondition: null,
+            currentCriticality: null,
+            lastObservation: null,
+            createdAt: new Date(),
+            updatedAt: null,
           };
 
           const updated = await firstValueFrom(

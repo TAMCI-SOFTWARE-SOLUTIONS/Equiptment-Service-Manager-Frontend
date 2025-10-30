@@ -9,7 +9,7 @@ export class CreateInspectableItemRequestFromEntityMapper {
       type: InspectableItemTypeMapper.fromEnumToString(entity.type),
       brandId: entity.brandId,
       modelId: entity.modelId,
-      descripcion: entity.descripcion,
+      descripcion: entity.descriptionId,
       equipmentId: equipmentId,
     };
   }

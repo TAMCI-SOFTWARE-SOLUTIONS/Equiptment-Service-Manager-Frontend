@@ -1,4 +1,5 @@
 import { InspectableItemTypeEnum } from '../../../../shared/model/enums';
+import {CriticalityEnum, ItemConditionEnum} from '../../../item-inspection';
 
 export interface InspectableItemEntity {
   id: string;
@@ -6,5 +7,10 @@ export interface InspectableItemEntity {
   type: InspectableItemTypeEnum;
   brandId: string;
   modelId: string;
-  descripcion: string;
+  descriptionId: string;
+  currentCondition: ItemConditionEnum | null;
+  currentCriticality: CriticalityEnum | null;
+  lastObservation: string | null;
+  createdAt: Date;
+  updatedAt: Date | null;
 }
