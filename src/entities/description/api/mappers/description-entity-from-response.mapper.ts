@@ -7,8 +7,8 @@ export class DescriptionEntityFromResponseMapper {
       // IDs and strings (required, provide defaults)
       id: dto.id ?? '',
       name: dto.name ?? '',
-      modelId: dto.modelId ?? '', // From CreateDescriptionResource
-      brandId: dto.brandId ?? '', // From CreateDescriptionResource
+      modelId: '',
+      brandId: '',
     };
   }
 }

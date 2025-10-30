@@ -610,7 +610,8 @@ export const BrandsStore = signalStore(
           const newModel: ModelEntity = {
             id: '',
             name: trimmedName,
-            brandId
+            brandId,
+            descriptions: []
           };
 
           const created = await firstValueFrom(modelService.create(newModel));
