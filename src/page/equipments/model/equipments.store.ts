@@ -2,7 +2,6 @@ import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { CabinetService } from '../../../entities/cabinet/api';
 import { PanelService } from '../../../entities/panel/api';
-import { ClientService } from '../../../entities/client/api';
 import { PlantService } from '../../../entities/plant';
 import { AreaService } from '../../../entities/area/api';
 import { LocationService } from '../../../entities/location';
@@ -22,6 +21,13 @@ export interface EquipmentsFilters {
   searchQuery: string;
 }
 
+export interface EquipmentsPagination {
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  totalItems: number;
+}
+
 export interface EquipmentsState {
   // Data
   equipments: EquipmentEntity[];
@@ -34,6 +40,9 @@ export interface EquipmentsState {
 
   // Filters
   filters: EquipmentsFilters;
+
+  // Pagination
+  pagination: EquipmentsPagination;
 
   // UI State
   isLoading: boolean;
@@ -52,6 +61,12 @@ const initialState: EquipmentsState = {
     statusFilter: null,
     searchQuery: ''
   },
+  pagination: {
+    currentPage: 1,
+    pageSize: 10,
+    totalPages: 1,
+    totalItems: 0
+  },
   isLoading: false,
   error: null
 };
@@ -62,7 +77,7 @@ export const EquipmentsStore = signalStore(
 
   withComputed((state) => ({
     /**
-     * Equipos filtrados
+     * Equipos filtrados (SIN paginación)
      */
     filteredEquipments: computed(() => {
       let equipments = state.equipments();
@@ -94,6 +109,97 @@ export const EquipmentsStore = signalStore(
       }
 
       return equipments;
+    }),
+
+    /**
+     * Equipos paginados (CON paginación)
+     */
+    paginatedEquipments: computed(() => {
+      const filtered = state.equipments();
+      const filters = state.filters();
+      const pagination = state.pagination();
+
+      // Aplicar filtros
+      let equipments = filtered;
+
+      // Filtro por tipo
+      if (filters.typeFilter === 'cabinet') {
+        equipments = equipments.filter(e => e.type === EquipmentTypeEnum.CABINET);
+      } else if (filters.typeFilter === 'panel') {
+        equipments = equipments.filter(e => e.type === EquipmentTypeEnum.PANEL);
+      }
+
+      // Filtro por planta
+      if (filters.plantId) {
+        equipments = equipments.filter(e => e.plantId === filters.plantId);
+      }
+
+      // Filtro por estado
+      if (filters.statusFilter) {
+        equipments = equipments.filter(e => e.status === filters.statusFilter);
+      }
+
+      // Filtro por búsqueda (tag)
+      if (filters.searchQuery.trim()) {
+        const query = filters.searchQuery.toLowerCase().trim();
+        equipments = equipments.filter(e =>
+          e.tag.toLowerCase().includes(query)
+        );
+      }
+
+      // Calcular paginación
+      //const totalItems = equipments.length;
+      //const totalPages = Math.ceil(totalItems / pagination.pageSize);
+      const startIndex = (pagination.currentPage - 1) * pagination.pageSize;
+      const endIndex = startIndex + pagination.pageSize;
+
+      // Retornar solo la página actual
+      return equipments.slice(startIndex, endIndex);
+    }),
+
+    /**
+     * Información de paginación actualizada
+     */
+    paginationInfo: computed(() => {
+      const filtered = state.equipments();
+      const filters = state.filters();
+      const pagination = state.pagination();
+
+      // Aplicar filtros para contar items
+      let equipments = filtered;
+
+      if (filters.typeFilter === 'cabinet') {
+        equipments = equipments.filter(e => e.type === EquipmentTypeEnum.CABINET);
+      } else if (filters.typeFilter === 'panel') {
+        equipments = equipments.filter(e => e.type === EquipmentTypeEnum.PANEL);
+      }
+
+      if (filters.plantId) {
+        equipments = equipments.filter(e => e.plantId === filters.plantId);
+      }
+
+      if (filters.statusFilter) {
+        equipments = equipments.filter(e => e.status === filters.statusFilter);
+      }
+
+      if (filters.searchQuery.trim()) {
+        const query = filters.searchQuery.toLowerCase().trim();
+        equipments = equipments.filter(e =>
+          e.tag.toLowerCase().includes(query)
+        );
+      }
+
+      const totalItems = equipments.length;
+      const totalPages = Math.ceil(totalItems / pagination.pageSize);
+
+      return {
+        currentPage: pagination.currentPage,
+        pageSize: pagination.pageSize,
+        totalPages,
+        totalItems,
+        startItem: totalItems === 0 ? 0 : (pagination.currentPage - 1) * pagination.pageSize + 1,
+        endItem: Math.min(pagination.currentPage * pagination.pageSize, totalItems)
+      };
     }),
 
     /**
@@ -142,7 +248,7 @@ export const EquipmentsStore = signalStore(
   withMethods((store) => {
     const cabinetService = inject(CabinetService);
     const panelService = inject(PanelService);
-    const clientService = inject(ClientService);
+    //const clientService = inject(ClientService);
     const plantService = inject(PlantService);
     const areaService = inject(AreaService);
     const locationService = inject(LocationService);
@@ -274,7 +380,8 @@ export const EquipmentsStore = signalStore(
        */
       setTypeFilter(filter: 'all' | 'cabinet' | 'panel'): void {
         patchState(store, (state) => ({
-          filters: { ...state.filters, typeFilter: filter }
+          filters: { ...state.filters, typeFilter: filter },
+          pagination: { ...state.pagination, currentPage: 1 } // Reset a página 1
         }));
       },
 
@@ -283,7 +390,8 @@ export const EquipmentsStore = signalStore(
        */
       setPlantFilter(plantId: string | null): void {
         patchState(store, (state) => ({
-          filters: { ...state.filters, plantId }
+          filters: { ...state.filters, plantId },
+          pagination: { ...state.pagination, currentPage: 1 } // Reset a página 1
         }));
       },
 
@@ -292,7 +400,8 @@ export const EquipmentsStore = signalStore(
        */
       setStatusFilter(status: EquipmentStatusEnum | null): void {
         patchState(store, (state) => ({
-          filters: { ...state.filters, statusFilter: status }
+          filters: { ...state.filters, statusFilter: status },
+          pagination: { ...state.pagination, currentPage: 1 } // Reset a página 1
         }));
       },
 
@@ -301,8 +410,54 @@ export const EquipmentsStore = signalStore(
        */
       setSearchQuery(query: string): void {
         patchState(store, (state) => ({
-          filters: { ...state.filters, searchQuery: query }
+          filters: { ...state.filters, searchQuery: query },
+          pagination: { ...state.pagination, currentPage: 1 } // Reset a página 1
         }));
+      },
+
+      /**
+       * Cambiar página
+       */
+      setPage(page: number): void {
+        const info = store.paginationInfo();
+        if (page < 1 || page > info.totalPages) return;
+
+        patchState(store, (state) => ({
+          pagination: { ...state.pagination, currentPage: page }
+        }));
+      },
+
+      /**
+       * Cambiar tamaño de página
+       */
+      setPageSize(pageSize: number): void {
+        patchState(store, (state) => ({
+          pagination: {
+            ...state.pagination,
+            pageSize,
+            currentPage: 1 // Reset a página 1
+          }
+        }));
+      },
+
+      /**
+       * Ir a página anterior
+       */
+      previousPage(): void {
+        const currentPage = store.pagination().currentPage;
+        if (currentPage > 1) {
+          this.setPage(currentPage - 1);
+        }
+      },
+
+      /**
+       * Ir a página siguiente
+       */
+      nextPage(): void {
+        const info = store.paginationInfo();
+        if (info.currentPage < info.totalPages) {
+          this.setPage(info.currentPage + 1);
+        }
       },
 
       /**
@@ -310,7 +465,8 @@ export const EquipmentsStore = signalStore(
        */
       clearFilters(): void {
         patchState(store, (_) => ({
-          filters: { ...initialState.filters }
+          filters: { ...initialState.filters },
+          pagination: { ...initialState.pagination } // Reset paginación también
         }));
       },
 

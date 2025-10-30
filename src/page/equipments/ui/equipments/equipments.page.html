@@ -158,7 +158,8 @@
           [class.bg-gray-100]="!isTypeFilterActive('cabinet')"
           [class.text-gray-700]="!isTypeFilterActive('cabinet')"
           class="flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all hover:shadow-md">
-          <span>📦 Gabinetes</span>
+          <span class="text-xl pi pi-server"></span>
+          <span> Gabinetes</span>
           <span class="opacity-75">{{ store.cabinetCount() }}</span>
           </button>
 
@@ -172,7 +173,8 @@
           [class.bg-gray-100]="!isTypeFilterActive('panel')"
           [class.text-gray-700]="!isTypeFilterActive('panel')"
           class="flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all hover:shadow-md">
-          <span>📋 Tableros</span>
+          <span class="text-xl pi pi-th-large"></span>
+          <span> Tableros</span>
           <span class="opacity-75">{{ store.panelCount() }}</span>
           </button>
         </div>
@@ -242,12 +244,11 @@
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Ubicación</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Protocolo</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Estado</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">Última Revisión</th>
                 <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-700">Acciones</th>
               </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
-                @for (equipment of store.filteredEquipments(); track equipment.id) {
+                @for (equipment of store.paginatedEquipments(); track equipment.id) {
                   <tr class="transition-colors hover:bg-gray-50">
                     <!-- Tag -->
                     <td class="px-4 py-4">
@@ -259,7 +260,10 @@
                     <!-- Tipo -->
                     <td class="px-4 py-4">
                       <div class="flex items-center gap-2">
-                        <span class="text-xl">{{ equipment.type === EquipmentTypeEnum.CABINET ? '📦' : '📋' }}</span>
+                <span class="text-xl pi" [class]="{
+                  'pi-server': equipment.type === EquipmentTypeEnum.CABINET,
+                  'pi-th-large': equipment.type === EquipmentTypeEnum.PANEL
+                }"></span>
                         <div>
                           <p class="text-sm font-medium text-gray-900">{{ equipment.equipmentTypeName }}</p>
                           <p class="text-xs text-gray-500">{{ getEquipmentTypeLabel(equipment.type) }}</p>
@@ -292,32 +296,22 @@
 
                     <!-- Estado -->
                     <td class="px-4 py-4">
-                      <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-                            [ngClass]="{
-                              'bg-green-50 text-green-700': equipment.status === EquipmentStatusEnum.OPERATIVE,
-                              'bg-yellow-50 text-yellow-700': equipment.status === EquipmentStatusEnum.STAND_BY,
-                              'bg-red-50 text-red-700': equipment.status === EquipmentStatusEnum.INOPERATIVE,
-                              'bg-gray-50 text-gray-700': equipment.status === EquipmentStatusEnum.RETIRED
-                            }">
-                        <span class="h-1.5 w-1.5 rounded-full"
-                              [ngClass]="{
-                                'bg-green-500': equipment.status === EquipmentStatusEnum.OPERATIVE,
-                                'bg-yellow-500': equipment.status === EquipmentStatusEnum.STAND_BY,
-                                'bg-red-500': equipment.status === EquipmentStatusEnum.INOPERATIVE,
-                                'bg-gray-500': equipment.status === EquipmentStatusEnum.RETIRED
-                              }"></span>
-                        {{ getEquipmentStatusLabel(equipment.status) }}
-                      </span>
-                    </td>
-
-                    <!-- Última Revisión -->
-                    <!--TODO: Show only according to selected service type-->
-                    <td class="px-4 py-4">
-                      @if (equipment.lastMaintenanceAt) {
-                        <span class="text-sm text-gray-600">{{ equipment.lastMaintenanceAt | date:'short' }}</span>
-                      } @else {
-                        <span class="text-sm text-gray-400">Sin registro</span>
-                      }
+              <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                    [ngClass]="{
+                      'bg-green-50 text-green-700': equipment.status === EquipmentStatusEnum.OPERATIVE,
+                      'bg-yellow-50 text-yellow-700': equipment.status === EquipmentStatusEnum.STAND_BY,
+                      'bg-red-50 text-red-700': equipment.status === EquipmentStatusEnum.INOPERATIVE,
+                      'bg-gray-50 text-gray-700': equipment.status === EquipmentStatusEnum.RETIRED
+                    }">
+                <span class="h-1.5 w-1.5 rounded-full"
+                      [ngClass]="{
+                        'bg-green-500': equipment.status === EquipmentStatusEnum.OPERATIVE,
+                        'bg-yellow-500': equipment.status === EquipmentStatusEnum.STAND_BY,
+                        'bg-red-500': equipment.status === EquipmentStatusEnum.INOPERATIVE,
+                        'bg-gray-500': equipment.status === EquipmentStatusEnum.RETIRED
+                      }"></span>
+                {{ getEquipmentStatusLabel(equipment.status) }}
+              </span>
                     </td>
 
                     <!-- Acciones -->
@@ -340,21 +334,84 @@
                           class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-600">
                           <i class="pi pi-pencil text-sm"></i>
                         </button>
-
-                        <button
-                          pRipple
-                          type="button"
-                          (click)="onDeleteClick(equipment)"
-                          title="Eliminar"
-                          class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600">
-                          <i class="pi pi-trash text-sm"></i>
-                        </button>
                       </div>
                     </td>
                   </tr>
                 }
               </tbody>
             </table>
+          </div>
+
+          <!-- PAGINATION CONTROLS -->
+          <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3">
+            <!-- Info -->
+            <div class="flex items-center gap-2">
+              <p class="text-sm text-gray-700">
+                Mostrando
+                <span class="font-medium">{{ store.paginationInfo().startItem }}</span>
+                -
+                <span class="font-medium">{{ store.paginationInfo().endItem }}</span>
+                de
+                <span class="font-medium">{{ store.paginationInfo().totalItems }}</span>
+                equipos
+              </p>
+
+              <!-- Page Size Selector -->
+              <select
+                [value]="store.pagination().pageSize"
+                (change)="onPageSizeChange($any($event.target).value)"
+                class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                <option [value]="10">10 por página</option>
+                <option [value]="20">20 por página</option>
+                <option [value]="50">50 por página</option>
+                <option [value]="100">100 por página</option>
+              </select>
+            </div>
+
+            <!-- Navigation -->
+            <div class="flex items-center gap-2">
+              <!-- Previous Button -->
+              <button
+                pRipple
+                type="button"
+                (click)="store.previousPage()"
+                [disabled]="store.paginationInfo().currentPage === 1"
+                class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+                <i class="pi pi-chevron-left text-sm"></i>
+              </button>
+
+              <!-- Page Numbers -->
+              <div class="flex items-center gap-1">
+                @for (page of getPageNumbers(); track page) {
+                  @if (page === '...') {
+                    <span class="flex h-8 w-8 items-center justify-center text-sm text-gray-500">...</span>
+                  } @else {
+                    <button
+                      pRipple
+                      type="button"
+                      (click)="store.setPage(+page)"
+                      [class.bg-sky-500]="store.paginationInfo().currentPage === +page"
+                      [class.text-white]="store.paginationInfo().currentPage === +page"
+                      [class.font-semibold]="store.paginationInfo().currentPage === +page"
+                      [class.bg-white]="store.paginationInfo().currentPage !== +page"
+                      [class.text-gray-700]="store.paginationInfo().currentPage !== +page"
+                      class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 text-sm transition-all hover:bg-gray-50">
+                      {{ page }}
+                    </button>
+                  }
+                }
+              </div>
+
+              <!-- Next Button -->
+              <button
+                pRipple
+                type="button"
+                (click)="store.nextPage()"
+                [disabled]="store.paginationInfo().currentPage === store.paginationInfo().totalPages"
+                class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+                <i class="pi pi-chevron-right text-sm"></i>
+              </button>
+            </div>
           </div>
         </div>
 
