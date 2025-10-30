@@ -1,8 +1,7 @@
-<div class="flex items-center justify-between rounded-lg bg-white p-2 transition-colors hover:bg-gray-50">
-
-  <!-- EDITING MODE -->
-  @if (isEditing) {
-    <div class="flex flex-1 items-center gap-2">
+<!-- EDITING MODE -->
+@if (isEditing) {
+  <div class="rounded-lg border-2 border-sky-500 bg-white p-2 shadow-sm">
+    <div class="flex items-center gap-2">
       <div class="flex-1">
         <input
           [id]="'edit-' + config.type + '-input-' + config.id"
@@ -12,7 +11,7 @@
           (keydown.enter)="onSave()"
           (keydown.escape)="onCancel()"
           placeholder="Nombre de la descripción"
-          class="block w-full rounded-lg border border-sky-500 px-2 py-1.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+          class="block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
           [class.border-rose-500]="showMinError">
 
         @if (showMinError) {
@@ -47,15 +46,16 @@
         </button>
       </div>
     </div>
-  }
+  </div>
+}
 
-  @else {
+@else {
+  <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 transition-all hover:bg-gray-50 hover:shadow-sm">
     <div class="flex items-center gap-2">
-      <i class="pi pi-circle-fill text-[6px] text-gray-400"></i>
+      <div class="flex h-2 w-2 items-center justify-center rounded-full bg-gray-400"></div>
       <span class="text-sm text-gray-700">{{ config.name }}</span>
     </div>
 
-    <!-- Edit Button -->
     <button
       type="button"
       (click)="onEdit()"
@@ -63,6 +63,5 @@
       class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
       <i class="pi pi-pencil text-xs"></i>
     </button>
-  }
-
-</div>
+  </div>
+}

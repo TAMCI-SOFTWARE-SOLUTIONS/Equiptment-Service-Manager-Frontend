@@ -40,6 +40,7 @@ export class BrandsModelItemComponent {
       name: this.model.name,
       icon: 'pi-cog',
       iconColor: 'text-cyan-600',
+      iconBg: 'bg-cyan-100',
       badge: `${this.model.totalDescriptions}`,
       type: 'model'
     };

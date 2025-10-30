@@ -8,6 +8,7 @@ export interface ExpandableItemConfig {
   name: string;
   icon: string;
   iconColor: string;
+  iconBg?: string; // ← NUEVO: background personalizado del icono
   badge: string;
   type: 'brand' | 'model';
 }
@@ -78,6 +79,10 @@ export class ExpandableItemComponent {
   onInputChange(value: string): void {
     this.localEditValue = value;
     this.editValueChange.emit(value);
+  }
+
+  getIconBgClass(): string {
+    return this.config.iconBg || 'bg-sky-100'; // Default si no se especifica
   }
 
   get isValid(): boolean {

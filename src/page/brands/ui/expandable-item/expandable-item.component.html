@@ -1,9 +1,8 @@
-<div class="rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow">
+<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow">
 
-  <div class="flex items-center justify-between p-3">
-
-    <!-- EDITING MODE -->
-    @if (isEditing) {
+  <!-- EDITING MODE -->
+  @if (isEditing) {
+    <div class="p-3">
       <div class="flex flex-1 items-center gap-2">
         <div class="flex-1">
           <input
@@ -49,54 +48,62 @@
           </button>
         </div>
       </div>
-    }
+    </div>
+  }
 
-    @else {
-      <button
-        type="button"
-        (click)="onToggle()"
-        pRipple
-        class="flex flex-1 items-center gap-3 text-left transition-colors hover:bg-gray-50">
 
+  @else {
+    <button
+      type="button"
+      (click)="onToggle()"
+      pRipple
+      class="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-gray-50">
+
+      <!-- Icon with background (como el drawer) -->
+      <div [class]="'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ' + getIconBgClass()">
         <i [class]="'pi ' + config.icon + ' text-sm ' + config.iconColor"></i>
+      </div>
 
-        <div class="flex flex-1 items-center justify-between">
-          <div class="flex items-center gap-2">
-            <!-- Badge PRIMERO (a la izquierda del nombre) -->
-            <span class="flex h-5 items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-              {{ config.badge }}
-            </span>
-            <!-- Nombre DESPUÉS -->
-            <p class="font-medium text-gray-900">{{ config.name }}</p>
-          </div>
-
-          <i [class]="'pi text-xs text-gray-400 transition-transform duration-200 ' + (isExpanded ? 'pi-chevron-down' : 'pi-chevron-right')"></i>
+      <!-- Content -->
+      <div class="flex flex-1 items-center justify-between">
+        <div>
+          <h3 class="font-medium text-gray-900">{{ config.name }}</h3>
+          <p class="text-xs text-gray-500">{{ config.badge }}</p>
         </div>
-      </button>
 
-      <!-- Edit Button -->
-      <button
-        type="button"
-        (click)="onEdit()"
-        pRipple
-        class="ml-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
-        <i class="pi pi-pencil mr-1 text-xs"></i>
-        Editar
-      </button>
-    }
+        <!-- Actions -->
+        <div class="flex items-center gap-2">
+          <!-- Edit Button (inline, no separado) -->
+          <button
+            type="button"
+            (click)="onEdit(); $event.stopPropagation()"
+            pRipple
+            class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
+            <i class="pi pi-pencil mr-1 text-xs"></i>
+            Editar
+          </button>
 
-  </div>
+          <!-- Chevron -->
+          <i [class]="'pi text-sm text-gray-400 transition-transform duration-200 ' + (isExpanded ? 'pi-chevron-down' : 'pi-chevron-right')"></i>
+        </div>
+      </div>
+    </button>
+  }
 
   <!-- EXPANDED CONTENT (Children) -->
   @if (isExpanded && !isEditing) {
-    <div class="border-t border-gray-100 bg-gray-50/30 p-3">
+    <div class="border-t border-gray-100 bg-gray-50/50 p-4">
 
       <!-- Loading State -->
       @if (isLoading) {
         <div class="space-y-2">
           @for (i of [1,2,3]; track i) {
-            <div class="flex animate-pulse items-center gap-2 rounded-lg bg-white p-2">
-              <div class="h-4 w-32 rounded bg-gray-200"></div>
+            <div class="flex animate-pulse items-center gap-3 rounded-lg bg-white p-3">
+              <div class="h-8 w-8 rounded-lg bg-gray-200"></div>
+              <div class="flex-1">
+                <div class="mb-2 h-4 w-32 rounded bg-gray-200"></div>
+                <div class="h-3 w-20 rounded bg-gray-200"></div>
+              </div>
             </div>
           }
         </div>

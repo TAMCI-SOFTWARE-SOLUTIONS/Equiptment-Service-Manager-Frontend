@@ -39,6 +39,7 @@ export class BrandsBrandItemComponent {
       name: this.brand.name,
       icon: 'pi-tag',
       iconColor: 'text-sky-600',
+      iconBg: 'bg-sky-100',
       badge: `${this.brand.totalModels}`,
       type: 'brand'
     };
