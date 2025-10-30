@@ -1,0 +1,70 @@
+<header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+
+    <!-- Title & Actions -->
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+          Marcas y Modelos
+        </h1>
+        @if (totalCount > 0 && !isLoading) {
+          <span class="flex h-6 items-center rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-700">
+            {{ totalCount }}
+          </span>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2">
+        <!-- Help Button -->
+        <button
+          type="button"
+          (click)="onShowHelp()"
+          pRipple
+          title="Keyboard shortcuts (presiona ?)"
+          class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 lg:h-10 lg:w-10">
+          <i class="pi pi-question-circle text-sm"></i>
+        </button>
+
+        <!-- Refresh Button -->
+        @if (totalCount > 0 && !isLoading) {
+          <button
+            type="button"
+            (click)="onRefresh()"
+            pRipple
+            title="Actualizar (Ctrl+R)"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 lg:h-10 lg:w-10">
+            <i class="pi pi-refresh text-sm"></i>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    @if (totalCount > 0 && !isLoading) {
+      <div class="mt-4">
+        <div class="relative">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="pi pi-search text-sm text-gray-400"></i>
+          </div>
+          <input
+            type="text"
+            [value]="searchQuery"
+            (input)="onSearchInput($any($event.target).value)"
+            placeholder="Buscar marca, modelo o descripción... (Ctrl+K)"
+            class="block w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-10 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+
+          @if (searchQuery) {
+            <button
+              type="button"
+              (click)="onClearSearch()"
+              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition-colors hover:text-gray-600">
+              <i class="pi pi-times text-xs"></i>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+</header>

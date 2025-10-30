@@ -224,8 +224,7 @@ export const ServicesActiveStore = signalStore(
         return {
           all: services.length,
           created: services.filter(s => s.status === ServiceStatusEnum.CREATED).length,
-          in_progress: services.filter(s => s.status === ServiceStatusEnum.IN_PROGRESS).length,
-          paused: services.filter(s => s.status === ServiceStatusEnum.PAUSED).length
+          in_progress: services.filter(s => s.status === ServiceStatusEnum.IN_PROGRESS).length
         };
       }),
 

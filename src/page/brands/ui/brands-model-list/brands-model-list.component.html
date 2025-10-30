@@ -1,0 +1,89 @@
+<!-- Create Model Form (Inline) -->
+@if (isCreatingModel) {
+  <div class="mb-3 rounded-lg border-2 border-sky-500 bg-white p-3 shadow-sm">
+    <div class="flex flex-col gap-2 lg:flex-row lg:items-start">
+      <div class="flex-1">
+        <input
+          [id]="'new-model-input-' + brandId"
+          type="text"
+          [value]="store.newModelName()"
+          (input)="store.setNewModelName($any($event.target).value)"
+          (keydown.enter)="onSaveNewModel()"
+          (keydown.escape)="onCancelCreatingModel()"
+          placeholder="Nombre del modelo (ej: S7-1200)"
+          class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+          [class.border-rose-500]="store.newModelName().trim().length > 0 && store.newModelName().trim().length < 2">
+
+        @if (store.newModelName().trim().length > 0 && store.newModelName().trim().length < 2) {
+          <p class="mt-1 flex items-center gap-1 text-xs text-rose-500">
+            <i class="pi pi-exclamation-circle"></i>
+            <span>Mínimo 2 caracteres</span>
+          </p>
+        }
+        @if (store.newModelName().trim().length > 50) {
+          <p class="mt-1 flex items-center gap-1 text-xs text-rose-500">
+            <i class="pi pi-exclamation-circle"></i>
+            <span>Máximo 50 caracteres</span>
+          </p>
+        }
+      </div>
+
+      <div class="flex shrink-0 gap-2">
+        <button
+          type="button"
+          (click)="onCancelCreatingModel()"
+          pRipple
+          class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 lg:flex-none">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="onSaveNewModel()"
+          [disabled]="store.newModelName().trim().length < 2 || store.newModelName().trim().length > 50"
+          pRipple
+          class="flex-1 rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50 lg:flex-none">
+          Guardar
+        </button>
+      </div>
+    </div>
+
+    <p class="mt-2 hidden text-xs text-gray-500 lg:block">
+      Presiona <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700">Enter</kbd> para guardar o <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700">Esc</kbd> para cancelar
+    </p>
+  </div>
+}
+
+<!-- Models -->
+@if (models.length > 0) {
+  <div class="space-y-2">
+    @for (model of models; track model.id) {
+      <app-brands-model-item [brandId]="brandId" [model]="model" />
+    }
+  </div>
+}
+
+<!-- Empty State + Add Button -->
+@if (models.length === 0 && !isCreatingModel) {
+  <div class="py-6 text-center">
+    <div class="mb-3 flex justify-center">
+      <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+        <i class="pi pi-inbox text-xl text-gray-400"></i>
+      </div>
+    </div>
+    <p class="mb-4 text-sm text-gray-500">
+      No hay modelos registrados
+    </p>
+  </div>
+}
+
+<!-- Add Model Button -->
+@if (!isCreatingModel) {
+  <button
+    type="button"
+    (click)="onStartCreatingModel()"
+    pRipple
+    class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-600 transition-all hover:border-sky-400 hover:bg-sky-50 hover:text-sky-600">
+    <i class="pi pi-plus text-xs"></i>
+    <span>Agregar modelo</span>
+  </button>
+}

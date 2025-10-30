@@ -173,8 +173,6 @@ export class ServicesActivePage implements OnInit {
         return `${baseClasses} bg-gray-100 text-gray-700`;
       case ServiceStatusEnum.IN_PROGRESS:
         return `${baseClasses} bg-blue-100 text-blue-700`;
-      case ServiceStatusEnum.PAUSED:
-        return `${baseClasses} bg-amber-100 text-amber-700`;
       case ServiceStatusEnum.COMPLETED:
         return `${baseClasses} bg-green-100 text-green-700`;
       case ServiceStatusEnum.CANCELLED:
@@ -188,7 +186,6 @@ export class ServicesActivePage implements OnInit {
     const labels: Record<ServiceStatusEnum, string> = {
       [ServiceStatusEnum.CREATED]: 'Creado',
       [ServiceStatusEnum.IN_PROGRESS]: 'En Progreso',
-      [ServiceStatusEnum.PAUSED]: 'Pausado',
       [ServiceStatusEnum.COMPLETED]: 'Completado',
       [ServiceStatusEnum.CANCELLED]: 'Cancelado'
     };
@@ -199,7 +196,6 @@ export class ServicesActivePage implements OnInit {
     const icons: Record<ServiceStatusEnum, string> = {
       [ServiceStatusEnum.CREATED]: 'pi pi-circle',
       [ServiceStatusEnum.IN_PROGRESS]: 'pi pi-spin pi-spinner',
-      [ServiceStatusEnum.PAUSED]: 'pi pi-pause',
       [ServiceStatusEnum.COMPLETED]: 'pi pi-check-circle',
       [ServiceStatusEnum.CANCELLED]: 'pi pi-times-circle'
     };

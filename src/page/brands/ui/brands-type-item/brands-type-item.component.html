@@ -1,0 +1,122 @@
+<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow">
+
+  <!-- Type Header (como el drawer - limpio) -->
+  <button
+    type="button"
+    (click)="onToggleType()"
+    pRipple
+    class="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-gray-50">
+
+    <!-- Icon with background -->
+    <div [class]="'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ' + getColorClasses().bg">
+      <i [class]="'pi ' + type.icon + ' text-sm ' + getColorClasses().text"></i>
+    </div>
+
+    <!-- Content -->
+    <div class="flex flex-1 items-center justify-between">
+      <div>
+        <h3 class="font-medium text-gray-900">{{ type.label }}</h3>
+        <p class="text-xs text-gray-500">Agregar marca en {{ type.label }}</p>
+      </div>
+
+      <!-- Badge con contador (a la derecha) -->
+      <div class="flex items-center gap-3">
+        <span [class]="'flex h-6 items-center rounded-full px-2.5 py-0.5 text-xs font-medium ' + getColorClasses().badgeBg + ' ' + getColorClasses().badgeText">
+          {{ brandsCount }}
+        </span>
+        <i [class]="'pi text-sm text-gray-400 transition-transform duration-200 ' + (isExpanded ? 'pi-chevron-down' : 'pi-chevron-right')"></i>
+      </div>
+    </div>
+  </button>
+
+  <!-- Brands List (Expandible) -->
+  @if (isExpanded) {
+    <div class="border-t border-gray-100 bg-gray-50/50 p-3">
+
+      <!-- Create Brand Form (Inline) -->
+      @if (isCreatingBrand) {
+        <div class="mb-3 rounded-lg border-2 border-sky-500 bg-white p-3 shadow-sm">
+          <div class="flex flex-col gap-2 lg:flex-row lg:items-start">
+            <div class="flex-1">
+              <input
+                [id]="'new-brand-input-' + type.enum"
+                type="text"
+                [value]="store.newBrandName()"
+                (input)="store.setNewBrandName($any($event.target).value)"
+                (keydown.enter)="onSaveNewBrand()"
+                (keydown.escape)="onCancelCreatingBrand()"
+                placeholder="Nombre de la marca (ej: Siemens)"
+                class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                [class.border-rose-500]="store.newBrandName().trim().length > 0 && store.newBrandName().trim().length < 2">
+
+              @if (store.newBrandName().trim().length > 0 && store.newBrandName().trim().length < 2) {
+                <p class="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
+                  <i class="pi pi-exclamation-circle"></i>
+                  <span>Mínimo 2 caracteres</span>
+                </p>
+              }
+              @if (store.newBrandName().trim().length > 50) {
+                <p class="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
+                  <i class="pi pi-exclamation-circle"></i>
+                  <span>Máximo 50 caracteres</span>
+                </p>
+              }
+            </div>
+
+            <div class="flex shrink-0 gap-2">
+              <button
+                type="button"
+                (click)="onCancelCreatingBrand()"
+                pRipple
+                class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 lg:flex-none">
+                Cancelar
+              </button>
+              <button
+                type="button"
+                (click)="onSaveNewBrand()"
+                [disabled]="store.newBrandName().trim().length < 2 || store.newBrandName().trim().length > 50"
+                pRipple
+                class="flex-1 rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50 lg:flex-none">
+                Guardar
+              </button>
+            </div>
+          </div>
+
+          <p class="mt-2 hidden text-xs text-gray-500 lg:block">
+            Presiona <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700">Enter</kbd> para guardar o <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700">Esc</kbd> para cancelar
+          </p>
+        </div>
+      }
+
+      <!-- Brands -->
+      @if (brands.length > 0) {
+        <div class="space-y-2">
+          @for (brand of brands; track brand.id) {
+            <app-brands-brand-item [brand]="brand" />
+          }
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (brands.length === 0 && !isCreatingBrand) {
+        <p class="py-4 text-center text-sm text-gray-500">
+          No hay marcas en esta categoría
+        </p>
+      }
+
+      <!-- Add Brand Button -->
+      @if (!isCreatingBrand) {
+        <button
+          type="button"
+          (click)="onStartCreatingBrand()"
+          pRipple
+          class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-600 transition-all hover:border-sky-400 hover:bg-sky-50 hover:text-sky-600">
+          <i class="pi pi-plus text-xs"></i>
+          <span>Nueva marca en {{ type.label }}</span>
+        </button>
+      }
+
+    </div>
+  }
+
+</div>
