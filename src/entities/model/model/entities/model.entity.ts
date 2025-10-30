@@ -4,5 +4,6 @@ export interface ModelEntity {
   id: string;
   name: string;
   brandId: string;
+  totalDescriptions: number;
   descriptions: DescriptionEntity[];
 }

@@ -9,6 +9,11 @@ import { ModelEntityFromResponseMapper } from '../mappers/model-entity-from-resp
 import { CreateModelRequestFromEntityMapper } from '../mappers/create-model-request-from-entity.mapper';
 import { UpdateModelRequestFromEntityMapper } from '../mappers/update-model-request-from-entity.mapper';
 import {HttpParams} from '@angular/common/http';
+import {DescriptionEntity} from '../../../description/model/entities/description.entity';
+import {DescriptionResponse} from '../../../description/api/types/description-response.type';
+import {
+  DescriptionEntityFromResponseMapper
+} from '../../../description/api/mappers/description-entity-from-response.mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -85,5 +90,13 @@ export class ModelService extends BaseService {
       retry(2),
       catchError(this.handleError)
     );
+  }
+
+  getAllDescriptionsByModelId(modelId: string): Observable<DescriptionEntity[]> {
+    return this.http.get<DescriptionResponse[]>(`${this.resourcePath()}/${modelId}/descriptions`, this.httpOptions).pipe(
+      map((responses: DescriptionResponse[]) => responses.map(r => DescriptionEntityFromResponseMapper.fromDtoToEntity(r))),
+      retry(2),
+      catchError(this.handleError)
+    )
   }
 }

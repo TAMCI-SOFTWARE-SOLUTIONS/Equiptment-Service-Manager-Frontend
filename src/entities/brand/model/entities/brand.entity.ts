@@ -5,5 +5,6 @@ export interface BrandEntity {
   id: string;
   name: string;
   type: InspectableItemTypeEnum;
+  totalModels: number;
   models: ModelEntity[];
 }

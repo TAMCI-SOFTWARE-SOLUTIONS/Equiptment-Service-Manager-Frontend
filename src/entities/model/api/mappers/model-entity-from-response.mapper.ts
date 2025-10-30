@@ -7,7 +7,8 @@ export class ModelEntityFromResponseMapper {
       id: dto.id ?? '',
       name: dto.name ?? '',
       brandId: '',
-      descriptions: []
+      descriptions: [],
+      totalDescriptions: dto.totalDescriptions ?? 0,
     };
   }
 }

@@ -516,7 +516,8 @@ export const BrandsStore = signalStore(
             id: '',
             name: trimmedName,
             type,
-            models: []
+            models: [],
+            totalModels: 0
           };
 
           const created = await firstValueFrom(brandService.create(newBrand));
@@ -611,7 +612,8 @@ export const BrandsStore = signalStore(
             id: '',
             name: trimmedName,
             brandId,
-            descriptions: []
+            descriptions: [],
+            totalDescriptions: 0
           };
 
           const created = await firstValueFrom(modelService.create(newModel));

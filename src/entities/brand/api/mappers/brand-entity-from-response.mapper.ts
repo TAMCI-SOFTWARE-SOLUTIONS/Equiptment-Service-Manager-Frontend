@@ -9,6 +9,7 @@ export class BrandEntityFromResponseMapper {
       name: dto.name ?? '',
       type: InspectableItemTypeMapper.fromStringToEnum(dto.type ?? ''),
       models: [],
+      totalModels: dto.totalModels ?? 0,
     };
   }
 }
