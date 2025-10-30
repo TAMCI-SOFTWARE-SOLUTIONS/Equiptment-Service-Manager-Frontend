@@ -27,7 +27,7 @@ const CATEGORY_GROUPS: GroupConfig[] = [
   {
     id: 'COMPONENTES',
     label: 'Componentes',
-    icon: '[material-symbols--device-hub]',
+    icon: 'pi-microchip',
     types: [
       {
         enum: InspectableItemTypeEnum.COMMUNICATION,
@@ -46,7 +46,7 @@ const CATEGORY_GROUPS: GroupConfig[] = [
   {
     id: 'DISPOSITIVOS',
     label: 'Dispositivos',
-    icon: '[material-symbols--device-hub]',
+    icon: 'pi-bolt',
     types: [
       {
         enum: InspectableItemTypeEnum.POWER_SUPPLY,
@@ -65,7 +65,7 @@ const CATEGORY_GROUPS: GroupConfig[] = [
   {
     id: 'ADICIONALES',
     label: 'Adicionales',
-    icon: '[material-symbols--device-hub]',
+    icon: 'pi-ellipsis-h',
     types: [
       {
         enum: InspectableItemTypeEnum.ORDER_AND_CLEANLINESS,

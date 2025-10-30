@@ -39,7 +39,7 @@ export class BrandsBrandItemComponent {
       name: this.brand.name,
       icon: 'pi-tag',
       iconColor: 'text-sky-600',
-      badge: `${this.brand.totalModels} modelo${this.brand.totalModels !== 1 ? 's' : ''}`,
+      badge: `${this.brand.totalModels}`,
       type: 'brand'
     };
   }

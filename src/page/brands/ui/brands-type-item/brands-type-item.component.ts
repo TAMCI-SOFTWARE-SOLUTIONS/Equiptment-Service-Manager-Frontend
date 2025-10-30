@@ -4,6 +4,7 @@ import { Ripple } from 'primeng/ripple';
 import {InspectableItemTypeEnum} from '../../../../shared/model/enums';
 import {BrandsStore} from '../../model/brands.store';
 import {BrandsBrandItemComponent} from '../brands-brand-item/brands-brand-item.component';
+import {FormsModule} from '@angular/forms';
 
 interface TypeConfig {
   enum: InspectableItemTypeEnum;
@@ -11,11 +12,10 @@ interface TypeConfig {
   icon: string;
   color: string;
 }
-
 @Component({
   selector: 'app-brands-type-item',
   standalone: true,
-  imports: [CommonModule, Ripple, BrandsBrandItemComponent],
+  imports: [CommonModule, FormsModule, Ripple, BrandsBrandItemComponent],
   templateUrl: './brands-type-item.component.html'
 })
 export class BrandsTypeItemComponent {
@@ -29,14 +29,19 @@ export class BrandsTypeItemComponent {
 
   onStartCreatingBrand(): void {
     this.store.startCreatingBrand(this.type.enum);
-
-    // Focus en el input después de que se renderice
     setTimeout(() => {
-      const input = document.querySelector<HTMLInputElement>(
-        `#new-brand-input-${this.type.enum}`
-      );
-      input?.focus();
+      document.querySelector<HTMLInputElement>(`#new-brand-input-${this.type.enum}`)?.focus();
     }, 100);
+  }
+
+  async onSaveNewBrand(): Promise<void> {
+    const name = this.store.newBrandName().trim();
+    if (!name || name.length < 2 || name.length > 50) return;
+    await this.store.createBrand(this.type.enum, name);
+  }
+
+  onCancelCreatingBrand(): void {
+    this.store.cancelCreatingBrand();
   }
 
   get isExpanded(): boolean {
@@ -59,34 +64,16 @@ export class BrandsTypeItemComponent {
     if (this.type.color === 'cyan') {
       return {
         bg: 'bg-cyan-100',
-        text: 'text-cyan-700',
-        border: 'border-cyan-300',
-        hover: 'hover:bg-cyan-50'
+        text: 'text-cyan-600',
+        badgeBg: 'bg-cyan-100',
+        badgeText: 'text-cyan-700'
       };
     }
-
     return {
       bg: 'bg-sky-100',
-      text: 'text-sky-700',
-      border: 'border-sky-300',
-      hover: 'hover:bg-sky-50'
+      text: 'text-sky-600',
+      badgeBg: 'bg-sky-100',
+      badgeText: 'text-sky-700'
     };
-  }
-
-  // Agregar estos métodos al BrandsTypeItemComponent:
-
-  async onSaveNewBrand(): Promise<void> {
-    const name = this.store.newBrandName().trim();
-    if (!name || name.length < 2 || name.length > 50) return;
-
-    const success = await this.store.createBrand(this.type.enum, name);
-    if (success) {
-      // Ya se expandió automáticamente en el store
-      console.log('✅ Brand created successfully');
-    }
-  }
-
-  onCancelCreatingBrand(): void {
-    this.store.cancelCreatingBrand();
   }
 }

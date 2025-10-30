@@ -61,12 +61,16 @@
         <i [class]="'pi ' + config.icon + ' text-sm ' + config.iconColor"></i>
 
         <div class="flex flex-1 items-center justify-between">
-          <div>
+          <div class="flex items-center gap-2">
+            <!-- Badge PRIMERO (a la izquierda del nombre) -->
+            <span class="flex h-5 items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+              {{ config.badge }}
+            </span>
+            <!-- Nombre DESPUÉS -->
             <p class="font-medium text-gray-900">{{ config.name }}</p>
-            <p class="text-xs text-gray-500">{{ config.badge }}</p>
           </div>
 
-          <i [class]="'pi text-xs text-gray-400 transition-transform duration-200 ' + (isExpanded ? 'pi-minus' : 'pi-plus')"></i>
+          <i [class]="'pi text-xs text-gray-400 transition-transform duration-200 ' + (isExpanded ? 'pi-chevron-down' : 'pi-chevron-right')"></i>
         </div>
       </button>
 
