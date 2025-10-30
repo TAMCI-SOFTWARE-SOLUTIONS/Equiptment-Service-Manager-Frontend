@@ -14,11 +14,6 @@ interface Shortcut {
   standalone: true,
   imports: [CommonModule, Drawer, Ripple],
   templateUrl: './keyboard-shortcuts-help.component.html',
-  styles: [`
-    :host ::ng-deep .p-drawer {
-      max-width: 500px;
-    }
-  `]
 })
 export class KeyboardShortcutsHelpComponent {
   @Input() visible = false;
