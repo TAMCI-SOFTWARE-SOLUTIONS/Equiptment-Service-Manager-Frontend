@@ -31,6 +31,7 @@ export interface EquipmentEntity {
   communicationProtocol: string | null;
   equipmentTypeId: string | null;  // cabinetTypeId or panelTypeId
   equipmentTypeCode: string | null; // cabinetType or panelType
+  equipmentTypeName?: string | null; // Lazy loaded type name
 
   // Timestamps
   createdAt: Date;

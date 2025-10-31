@@ -13,6 +13,8 @@ import { AreaEntity } from '../../../entities/area/model';
 import { LocationEntity } from '../../../entities/location';
 import { firstValueFrom } from 'rxjs';
 import {EquipmentTypeEnum} from '../../../shared/model';
+import {CabinetTypeService} from '../../../entities/cabinet-type/api';
+import {PanelTypeService} from '../../../entities/panel-type/api/panel-type.service';
 
 export interface EquipmentDetailState {
   equipment: EquipmentEntity | null;
@@ -131,6 +133,8 @@ export const EquipmentDetailStore = signalStore(
     const plantService = inject(PlantService);
     const areaService = inject(AreaService);
     const locationService = inject(LocationService);
+    const cabinetTypeService = inject(CabinetTypeService);
+    const panelTypeService = inject(PanelTypeService);
 
     return {
       /**
@@ -148,9 +152,17 @@ export const EquipmentDetailStore = signalStore(
           if (type === EquipmentTypeEnum.CABINET) {
             const cabinet = await firstValueFrom(cabinetService.getById(equipmentId));
             equipment = cabinetToEquipment(cabinet);
+            if (cabinet.cabinetTypeId) {
+              const cabinetType = await firstValueFrom(cabinetTypeService.getById(cabinet.cabinetTypeId));
+              equipment.equipmentTypeName = cabinetType.name;
+            }
           } else {
             const panel = await firstValueFrom(panelService.getById(equipmentId));
             equipment = panelToEquipment(panel);
+            if (panel.panelTypeId) {
+              const panelType = await firstValueFrom(panelTypeService.getById(panel.panelTypeId));
+              equipment.equipmentTypeName = panelType.name;
+            }
           }
 
           patchState(store, {
