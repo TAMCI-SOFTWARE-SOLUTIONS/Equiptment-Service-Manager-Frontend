@@ -3,6 +3,6 @@ export interface CreateInspectableItemRequest {
   type: string | null;
   brandId: string | null;
   modelId: string | null;
-  descripcion: string | null;
+  descriptionId: string | null;
   equipmentId: string | null;
 }
