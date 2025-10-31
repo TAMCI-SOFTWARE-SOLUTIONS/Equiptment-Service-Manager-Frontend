@@ -88,7 +88,7 @@ export class ServicesActivePage implements OnInit {
   // ==================== NAVIGATION ====================
 
   onServiceClick(service: ServiceWithDetails): void {
-    if (this.store.isOperator() && service.status === ServiceStatusEnum.IN_PROGRESS) {
+    if (this.store.isOperator()) {
       this.router.navigate(['/services/work', service.id]).then();
     } else {
       this.router.navigate(['/services/active', service.id]).then();
