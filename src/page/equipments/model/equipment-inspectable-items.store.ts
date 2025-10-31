@@ -317,8 +317,8 @@ export const EquipmentInspectableItemsStore = signalStore(
      */
     drawerTitle: computed(() => {
       return state.drawerMode() === 'create'
-        ? 'Agregar Componente o Equipo'
-        : 'Editar Componente o Equipo';
+        ? 'Agregar Componente o Dispositivo'
+        : 'Editar Componente o Dispositivo';
     }),
 
     /**
