@@ -103,6 +103,13 @@ export const ServicesActiveStore = signalStore(
       }
 
       return services;
+    }),
+    searchQueryPlaceholder: computed(() => {
+      if (store.isOperator()) {
+        return 'Buscar por equipo o supervisor...';
+      } else {
+        return 'Buscar por equipo, operador o supervisor...';
+      }
     })
   })),
 
