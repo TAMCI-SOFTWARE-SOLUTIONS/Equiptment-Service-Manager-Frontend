@@ -62,6 +62,11 @@ export const routes: Routes = [
             path: ':serviceId',
             title: 'Detalle de Servicio',
             loadComponent: () => import('../page/services/ui').then(m => m.ServiceDetailPage)
+          },
+          {
+            path: 'work/:id',
+            title: 'Orden de Trabajo',
+            loadComponent: () => import('../page/services/ui').then(m => m.ServiceWorkPage)
           }
         ]
       },

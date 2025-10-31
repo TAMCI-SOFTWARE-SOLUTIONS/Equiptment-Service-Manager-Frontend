@@ -86,10 +86,11 @@ export class ServiceWorkPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const serviceId = this.route.snapshot.paramMap.get('id');
+    console.log('serviceId', serviceId);
     if (serviceId) {
       this.store.loadService(serviceId);
     } else {
-      this.router.navigate(['/services']);
+      this.router.navigate(['/services/active']).then();
     }
   }
 

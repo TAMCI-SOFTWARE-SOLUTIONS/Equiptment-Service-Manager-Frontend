@@ -5,16 +5,11 @@ import {EquipmentServiceEntity, EquipmentServiceService, ServiceStatusEnum} from
 import {ProfileService} from '../../../entities/profile';
 import {SupervisorService} from '../../../entities/supervisor';
 import {EquipmentTypeEnum} from '../../../shared/model';
-import {RolesEnum} from '../../../entities/role/model';
 import {AuthStore} from '../../../shared/stores';
 import {CabinetService} from '../../../entities/cabinet/api';
 import {PanelService} from '../../../entities/panel/api';
+import {ContextStore} from '../../../shared/model/context.store';
 
-// ==================== INTERFACES ====================
-
-/**
- * Servicio enriquecido con nombres para mostrar en la UI
- */
 export interface ServiceWithDetails extends EquipmentServiceEntity {
   operatorName: string;
   supervisorName: string;
@@ -57,219 +52,168 @@ const initialState: ServicesActiveState = {
   statusFilter: 'all',
   searchQuery: '',
   currentPage: 1,
-  pageSize: 10
+  pageSize: 5
 };
-
-// ==================== STORE ====================
 
 export const ServicesActiveStore = signalStore(
   withState<ServicesActiveState>(initialState),
 
-  withComputed((state) => {
+  withComputed((store) => {
     const authStore = inject(AuthStore);
 
     return {
-      /**
-       * Rol del usuario actual
-       */
-      userRole: computed(() => {
-        const roles = authStore.userRoles();
-        if (roles.some(r => r.name === RolesEnum.ROLE_ADMIN)) return 'ADMIN';
-        if (roles.some(r => r.name === RolesEnum.ROLE_OPERATOR)) return 'OPERATOR';
-        return 'CLIENT_VIEWER';
-      }),
-
-      /**
-       * ID del usuario actual
-       */
+      // Auth state
+      isAdmin: computed(() => authStore.isAdmin()),
+      isOperator: computed(() => authStore.isOperator()),
+      isClient: computed(() => authStore.isClient()),
       currentUserId: computed(() => authStore.userId()),
+      userRoles: computed(() => authStore.userRoles()),
 
-      /**
-       * Indica si está cargando
-       */
-      isLoading: computed(() => state.isLoadingServices() || state.isLoadingDetails()),
+      // Loading state
+      isLoading: computed(() =>
+        store.isLoadingServices() || store.isLoadingDetails()
+      ),
 
-      /**
-       * Puede crear servicios (solo ADMIN)
-       */
-      canCreateService: computed(() => {
-        const roles = authStore.userRoles();
-        return roles.some(r => r.name === RolesEnum.ROLE_ADMIN);
-      }),
+      // Basic checks
+      hasServices: computed(() => store.enrichedServices().length > 0),
 
-      /**
-       * Puede gestionar servicios (cancelar, reasignar) - solo ADMIN
-       */
-      canManageServices: computed(() => {
-        const roles = authStore.userRoles();
-        return roles.some(r => r.name === RolesEnum.ROLE_ADMIN);
-      }),
-
-      /**
-       * Servicios filtrados por rol, estado y búsqueda
-       */
-      filteredServices: computed(() => {
-        const roles = authStore.userRoles();
-        const userId = authStore.userId();
-        let services = state.enrichedServices();
-
-        // 1. Filtro por rol (OPERATOR solo ve sus servicios)
-        if (roles.some(r => r.name === RolesEnum.ROLE_OPERATOR) && userId) {
-          services = services.filter(s => s.operatorId === userId);
-        }
-
-        // 2. Filtro por estado
-        const statusFilter = state.statusFilter();
-        if (statusFilter !== 'all') {
-          services = services.filter(s => s.status === statusFilter);
-        }
-
-        // 3. Filtro de búsqueda
-        const searchQuery = state.searchQuery().toLowerCase().trim();
-        if (searchQuery) {
-          services = services.filter(s =>
-            s.equipmentTag.toLowerCase().includes(searchQuery) ||
-            s.operatorName.toLowerCase().includes(searchQuery) ||
-            s.supervisorName.toLowerCase().includes(searchQuery)
-          );
-        }
-
-        return services;
-      }),
-
-      /**
-       * Servicios paginados
-       */
-      paginatedServices: computed(() => {
-        const roles = authStore.userRoles();
-        const userId = authStore.userId();
-        let services = state.enrichedServices();
-
-        // Filtro por rol
-        if (roles.some(r => r.name === RolesEnum.ROLE_OPERATOR) && userId) {
-          services = services.filter(s => s.operatorId === userId);
-        }
-
-        // Filtro por estado
-        const statusFilter = state.statusFilter();
-        if (statusFilter !== 'all') {
-          services = services.filter(s => s.status === statusFilter);
-        }
-
-        // Filtro de búsqueda
-        const searchQuery = state.searchQuery().toLowerCase().trim();
-        if (searchQuery) {
-          services = services.filter(s =>
-            s.equipmentTag.toLowerCase().includes(searchQuery) ||
-            s.operatorName.toLowerCase().includes(searchQuery) ||
-            s.supervisorName.toLowerCase().includes(searchQuery)
-          );
-        }
-
-        // Paginación
-        const page = state.currentPage();
-        const pageSize = state.pageSize();
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-
-        return services.slice(startIndex, endIndex);
-      }),
-
-      /**
-       * Total de páginas
-       */
-      totalPages: computed(() => {
-        const roles = authStore.userRoles();
-        const userId = authStore.userId();
-        let services = state.enrichedServices();
-
-        // Filtro por rol
-        if (roles.some(r => r.name === RolesEnum.ROLE_OPERATOR) && userId) {
-          services = services.filter(s => s.operatorId === userId);
-        }
-
-        // Filtro por estado
-        const statusFilter = state.statusFilter();
-        if (statusFilter !== 'all') {
-          services = services.filter(s => s.status === statusFilter);
-        }
-
-        // Filtro de búsqueda
-        const searchQuery = state.searchQuery().toLowerCase().trim();
-        if (searchQuery) {
-          services = services.filter(s =>
-            s.equipmentTag.toLowerCase().includes(searchQuery) ||
-            s.operatorName.toLowerCase().includes(searchQuery) ||
-            s.supervisorName.toLowerCase().includes(searchQuery)
-          );
-        }
-
-        const pageSize = state.pageSize();
-        return Math.ceil(services.length / pageSize);
-      }),
-
-      /**
-       * Contador de servicios por estado (para filtros rápidos)
-       */
-      statusCounts: computed(() => {
-        const roles = authStore.userRoles();
-        const userId = authStore.userId();
-        let services = state.enrichedServices();
-
-        // Filtro por rol
-        if (roles.some(r => r.name === RolesEnum.ROLE_OPERATOR) && userId) {
-          services = services.filter(s => s.operatorId === userId);
-        }
-
-        return {
-          all: services.length,
-          created: services.filter(s => s.status === ServiceStatusEnum.CREATED).length,
-          in_progress: services.filter(s => s.status === ServiceStatusEnum.IN_PROGRESS).length
-        };
-      }),
-
-      /**
-       * Indica si hay servicios
-       */
-      hasServices: computed(() => state.enrichedServices().length > 0),
-
-      /**
-       * Indica si no hay resultados de búsqueda/filtro
-       */
-      hasNoResults: computed(() => {
-        const roles = authStore.userRoles();
-        const userId = authStore.userId();
-        let services = state.enrichedServices();
-
-        if (services.length === 0) return false;
-
-        // Filtro por rol
-        if (roles.some(r => r.name === RolesEnum.ROLE_OPERATOR) && userId) {
-          services = services.filter(s => s.operatorId === userId);
-        }
-
-        // Filtro por estado
-        const statusFilter = state.statusFilter();
-        if (statusFilter !== 'all') {
-          services = services.filter(s => s.status === statusFilter);
-        }
-
-        // Filtro de búsqueda
-        const searchQuery = state.searchQuery().toLowerCase().trim();
-        if (searchQuery) {
-          services = services.filter(s =>
-            s.equipmentTag.toLowerCase().includes(searchQuery) ||
-            s.operatorName.toLowerCase().includes(searchQuery) ||
-            s.supervisorName.toLowerCase().includes(searchQuery)
-          );
-        }
-
-        return services.length === 0;
-      })
+      // Search query normalizado
+      normalizedSearchQuery: computed(() =>
+        store.searchQuery().toLowerCase().trim()
+      )
     };
   }),
 
+  withComputed((store) => ({
+    filteredServices: computed(() => {
+      let services = store.enrichedServices();
+
+      const statusFilter = store.statusFilter();
+      if (statusFilter !== 'all') {
+        services = services.filter(s => s.status === statusFilter);
+      }
+
+      const searchQuery = store.normalizedSearchQuery();
+      if (searchQuery) {
+        services = services.filter(s =>
+          s.equipmentTag.toLowerCase().includes(searchQuery) ||
+          s.operatorName.toLowerCase().includes(searchQuery) ||
+          s.supervisorName.toLowerCase().includes(searchQuery)
+        );
+      }
+
+      return services;
+    }),
+    searchQueryPlaceholder: computed(() => {
+      if (store.isOperator()) {
+        return 'Buscar por equipo o supervisor...';
+      } else {
+        return 'Buscar por equipo, operador o supervisor...';
+      }
+    })
+  })),
+
+  withComputed((store) => ({
+    paginatedServices: computed(() => {
+      const services = store.filteredServices();
+      const page = store.currentPage();
+      const pageSize = store.pageSize();
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+
+      return services.slice(startIndex, endIndex);
+    }),
+
+    totalPages: computed(() => {
+      const services = store.filteredServices();
+      const pageSize = store.pageSize();
+      return Math.ceil(services.length / pageSize);
+    }),
+
+    totalFilteredResults: computed(() => store.filteredServices().length),
+
+    hasNoResults: computed(() => {
+      const hasData = store.hasServices();
+      const filteredCount = store.filteredServices().length;
+      return hasData && filteredCount === 0;
+    }),
+
+    statusCounts: computed(() => {
+      let services = store.enrichedServices();
+
+      if (store.isOperator() && store.currentUserId()) {
+        services = services.filter(s => s.operatorId === store.currentUserId());
+      }
+
+      return {
+        all: services.length,
+        created: services.filter(s => s.status === ServiceStatusEnum.CREATED).length,
+        inProgress: services.filter(s => s.status === ServiceStatusEnum.IN_PROGRESS).length,
+        completed: services.filter(s => s.status === ServiceStatusEnum.COMPLETED).length,
+        cancelled: services.filter(s => s.status === ServiceStatusEnum.CANCELLED).length
+      };
+    }),
+
+    paginationInfo: computed(() => {
+      const page = store.currentPage();
+      const pageSize = store.pageSize();
+      const total = store.filteredServices().length;
+      const totalPages = Math.ceil(total / pageSize);
+      const startIndex = (page - 1) * pageSize + 1;
+      const endIndex = Math.min(page * pageSize, total);
+
+      return {
+        currentPage: page,
+        pageSize,
+        totalPages,
+        totalResults: total,
+        startIndex: total > 0 ? startIndex : 0,
+        endIndex: total > 0 ? endIndex : 0,
+        hasPreviousPage: page > 1,
+        hasNextPage: page < totalPages
+      };
+    }),
+  })),
+
+  withComputed((store) => ({
+    visiblePages: computed(() => {
+      const current = store.currentPage();
+      const total = store.totalPages();
+
+      if (total <= 7) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+      }
+
+      const pages: (number | 'ellipsis')[] = [];
+
+      pages.push(1);
+
+      if (current > 3) {
+        pages.push('ellipsis');
+      }
+
+      const start = Math.max(2, current - 1);
+      const end = Math.min(total - 1, current + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (current < total - 2) {
+        pages.push('ellipsis');
+      }
+
+      if (total > 1) {
+        pages.push(total);
+      }
+
+      return pages;
+    })
+  })),
+
   withMethods((store) => {
+    const contextStore = inject(ContextStore);
+    const authStore = inject(AuthStore);
     const serviceService = inject(EquipmentServiceService);
     const profileService = inject(ProfileService);
     const supervisorService = inject(SupervisorService);
@@ -277,9 +221,6 @@ export const ServicesActiveStore = signalStore(
     const panelService = inject(PanelService);
 
     return {
-      /**
-       * Cargar todos los servicios activos y enriquecerlos con nombres
-       */
       async loadServices(): Promise<void> {
         patchState(store, {
           isLoadingServices: true,
@@ -287,28 +228,17 @@ export const ServicesActiveStore = signalStore(
         });
 
         try {
-          // 1. Cargar servicios
-          const services = await firstValueFrom(serviceService.getAll());
-
-          // TODO: Cuando el backend soporte filtros, descomentar esto:
-          // const services = await firstValueFrom(
-          //   serviceService.getAll({
-          //     status: ['created', 'in_progress', 'paused']
-          //   })
-          // );
-
-          // Filtrar solo servicios activos (excluir COMPLETED y CANCELLED)
-          const activeServices = services.filter(s =>
-            s.status !== ServiceStatusEnum.COMPLETED &&
-            s.status !== ServiceStatusEnum.CANCELLED
-          );
+          const activeServices = await firstValueFrom(serviceService.getAll({
+            projectId: contextStore.projectId() ?? "",
+            operatorId: !store.isOperator() ? "" : authStore.userId() ?? "",
+            statuses: [ServiceStatusEnum.CREATED, ServiceStatusEnum.IN_PROGRESS]
+          }));
 
           patchState(store, {
             services: activeServices,
             isLoadingServices: false
           });
 
-          // 2. Enriquecer con nombres (en paralelo)
           await this.enrichServicesWithNames();
 
         } catch (error: any) {
@@ -322,9 +252,6 @@ export const ServicesActiveStore = signalStore(
         }
       },
 
-      /**
-       * Enriquecer servicios con nombres de operadores, supervisores y equipos
-       */
       async enrichServicesWithNames(): Promise<void> {
         const services = store.services();
         if (services.length === 0) {
@@ -345,7 +272,6 @@ export const ServicesActiveStore = signalStore(
             services.filter(s => s.equipmentType === EquipmentTypeEnum.PANEL).map(s => s.equipmentId)
           )];
 
-          // Batch requests en paralelo
           const [profiles, supervisors, cabinets, panels] = await firstValueFrom(
             forkJoin([
               profileService.getAllByUserIds(operatorIds),
@@ -355,7 +281,6 @@ export const ServicesActiveStore = signalStore(
             ])
           );
 
-          // Crear Maps para lookup rápido
           const operatorNames = new Map<string, string>(
             profiles.map(p => [p.userId, `${p.names} ${p.firstSurname} ${p.secondSurname || ''}`])
           );
@@ -368,7 +293,6 @@ export const ServicesActiveStore = signalStore(
           cabinets.forEach(c => equipmentTags.set(c.id, c.tag));
           panels.forEach(p => equipmentTags.set(p.id, p.tag));
 
-          // Enriquecer servicios
           const enrichedServices: ServiceWithDetails[] = services.map(service => ({
             ...service,
             operatorName: operatorNames.get(service.operatorId) || `ID: ${service.operatorId}`,
@@ -402,11 +326,8 @@ export const ServicesActiveStore = signalStore(
         }
       },
 
-      /**
-       * Cancelar servicio (solo ADMIN)
-       */
       async cancelService(serviceId: string): Promise<boolean> {
-        if (!store.canManageServices()) {
+        if (!store.isAdmin()) {
           console.warn('⚠️ Solo administradores pueden cancelar servicios');
           return false;
         }
@@ -423,7 +344,6 @@ export const ServicesActiveStore = signalStore(
             })
           );
 
-          // Recargar servicios
           await this.loadServices();
           return true;
 
@@ -436,43 +356,6 @@ export const ServicesActiveStore = signalStore(
         }
       },
 
-      /**
-       * Reasignar operador (solo ADMIN)
-       * TODO: Implementar cuando tengas el modal de reasignación
-       */
-      async reassignOperator(serviceId: string, newOperatorId: string): Promise<boolean> {
-        if (!store.canManageServices()) {
-          console.warn('⚠️ Solo administradores pueden reasignar operadores');
-          return false;
-        }
-
-        try {
-          const service = store.services().find(s => s.id === serviceId);
-          if (!service) return false;
-
-          await firstValueFrom(
-            serviceService.update(serviceId, {
-              ...service,
-              operatorId: newOperatorId
-            })
-          );
-
-          // Recargar servicios
-          await this.loadServices();
-          return true;
-
-        } catch (error: any) {
-          console.error('❌ Error reassigning operator:', error);
-          patchState(store, {
-            error: error.message || 'Error al reasignar el operador'
-          });
-          return false;
-        }
-      },
-
-      /**
-       * Establecer filtro de estado
-       */
       setStatusFilter(status: ServiceStatusEnum | 'all'): void {
         patchState(store, {
           statusFilter: status,
@@ -480,9 +363,6 @@ export const ServicesActiveStore = signalStore(
         });
       },
 
-      /**
-       * Establecer búsqueda
-       */
       setSearchQuery(query: string): void {
         patchState(store, {
           searchQuery: query,
@@ -490,16 +370,17 @@ export const ServicesActiveStore = signalStore(
         });
       },
 
-      /**
-       * Limpiar búsqueda
-       */
       clearSearch(): void {
         patchState(store, { searchQuery: '', currentPage: 1 });
       },
 
-      /**
-       * Ir a página específica
-       */
+      setPageSize(size: number): void {
+        patchState(store, {
+          pageSize: size,
+          currentPage: 1
+        });
+      },
+
       goToPage(page: number): void {
         const totalPages = store.totalPages();
         if (page >= 1 && page <= totalPages) {
@@ -507,9 +388,6 @@ export const ServicesActiveStore = signalStore(
         }
       },
 
-      /**
-       * Página anterior
-       */
       previousPage(): void {
         const currentPage = store.currentPage();
         if (currentPage > 1) {
@@ -517,9 +395,6 @@ export const ServicesActiveStore = signalStore(
         }
       },
 
-      /**
-       * Página siguiente
-       */
       nextPage(): void {
         const currentPage = store.currentPage();
         const totalPages = store.totalPages();
@@ -528,16 +403,10 @@ export const ServicesActiveStore = signalStore(
         }
       },
 
-      /**
-       * Limpiar error
-       */
       clearError(): void {
         patchState(store, { error: null });
       },
 
-      /**
-       * Reset del store
-       */
       reset(): void {
         patchState(store, initialState);
       }

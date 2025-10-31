@@ -9,6 +9,8 @@ import { EquipmentServiceEntityFromResponseMapper } from '../mappers/equipment-s
 import { CreateEquipmentServiceRequestFromEntityMapper } from '../mappers/create-equipment-service-request-from-entity.mapper';
 import { UpdateEquipmentServiceRequestFromEntityMapper } from '../mappers/update-equipment-service-request-from-entity.mapper';
 import {ItemInspectionEntity} from '../../../item-inspection';
+import {EquipmentServiceFilters} from '../filters/equipment-service.filters';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +21,39 @@ export class EquipmentServiceService extends BaseService {
     this.resourceEndpoint = 'services';
   }
 
-  getAll(): Observable<EquipmentServiceEntity[]> {
-    return this.http.get<EquipmentServiceResponse[]>(this.resourcePath(), this.httpOptions).pipe(
+  getAll(filters?: EquipmentServiceFilters): Observable<EquipmentServiceEntity[]> {
+    let params = new HttpParams();
+
+    if (filters) {
+      if (filters.operatorId) {
+        params = params.set('operatorId', filters.operatorId);
+      }
+      if (filters.projectId) {
+        params = params.set('projectId', filters.projectId);
+      }
+      if (filters.equipmentId) {
+        params = params.set('equipmentId', filters.equipmentId);
+      }
+      if (filters.status) {
+        params = params.set('status', filters.status);
+      }
+      if (filters.statuses && filters.statuses.length > 0) {
+        filters.statuses.forEach(status => {
+          params = params.append('statuses', status);
+        });
+      }
+      if (filters.supervisorId) {
+        params = params.set('supervisorId', filters.supervisorId);
+      }
+      if (filters.equipmentType) {
+        params = params.set('equipmentType', filters.equipmentType);
+      }
+      if (filters.serviceTypeId) {
+        params = params.set('serviceTypeId', filters.serviceTypeId);
+      }
+    }
+
+    return this.http.get<EquipmentServiceResponse[]>(this.resourcePath(), { ...this.httpOptions, params }).pipe(
       map((responses: EquipmentServiceResponse[]) =>
         responses.map(r => EquipmentServiceEntityFromResponseMapper.fromDtoToEntity(r))
       ),
