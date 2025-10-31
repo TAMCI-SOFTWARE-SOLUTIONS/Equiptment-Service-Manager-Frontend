@@ -10,7 +10,6 @@ import {CabinetService} from '../../../entities/cabinet/api';
 import {PanelService} from '../../../entities/panel/api';
 import {ContextStore} from '../../../shared/model/context.store';
 
-
 export interface ServiceWithDetails extends EquipmentServiceEntity {
   operatorName: string;
   supervisorName: string;
@@ -124,9 +123,7 @@ export const ServicesActiveStore = signalStore(
       return Math.ceil(services.length / pageSize);
     }),
 
-    totalFilteredResults: computed(() =>
-      store.filteredServices().length
-    ),
+    totalFilteredResults: computed(() => store.filteredServices().length),
 
     hasNoResults: computed(() => {
       const hasData = store.hasServices();
@@ -150,7 +147,6 @@ export const ServicesActiveStore = signalStore(
       };
     }),
 
-
     paginationInfo: computed(() => {
       const page = store.currentPage();
       const pageSize = store.pageSize();
@@ -169,6 +165,42 @@ export const ServicesActiveStore = signalStore(
         hasPreviousPage: page > 1,
         hasNextPage: page < totalPages
       };
+    }),
+  })),
+
+  withComputed((store) => ({
+    visiblePages: computed(() => {
+      const current = store.currentPage();
+      const total = store.totalPages();
+
+      if (total <= 7) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+      }
+
+      const pages: (number | 'ellipsis')[] = [];
+
+      pages.push(1);
+
+      if (current > 3) {
+        pages.push('ellipsis');
+      }
+
+      const start = Math.max(2, current - 1);
+      const end = Math.min(total - 1, current + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (current < total - 2) {
+        pages.push('ellipsis');
+      }
+
+      if (total > 1) {
+        pages.push(total);
+      }
+
+      return pages;
     })
   })),
 
@@ -333,6 +365,13 @@ export const ServicesActiveStore = signalStore(
 
       clearSearch(): void {
         patchState(store, { searchQuery: '', currentPage: 1 });
+      },
+
+      setPageSize(size: number): void {
+        patchState(store, {
+          pageSize: size,
+          currentPage: 1
+        });
       },
 
       goToPage(page: number): void {

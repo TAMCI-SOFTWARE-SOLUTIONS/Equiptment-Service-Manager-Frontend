@@ -99,9 +99,9 @@
               class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm transition-colors hover:bg-gray-50">
               <i class="pi pi-spin pi-spinner text-xs"></i>
               En Progreso
-              @if (store.statusCounts().in_progress > 0) {
+              @if (store.statusCounts().inProgress > 0) {
                 <span class="rounded-full bg-blue-200 px-1.5 py-0.5 text-xs">
-                  {{ store.statusCounts().in_progress }}
+                  {{ store.statusCounts().inProgress }}
                 </span>
               }
             </button>
@@ -390,39 +390,160 @@
           </div>
 
           <!-- Pagination -->
-          @if (store.totalPages() > 1) {
-            <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3">
+          <div class="rounded-lg border border-gray-200 bg-white">
 
-              <!-- Info -->
-              <div class="text-sm text-gray-600">
-                Página {{ store.currentPage() }} de {{ store.totalPages() }}
+            <!-- Desktop Pagination -->
+            <div class="hidden items-center justify-between px-4 py-3 lg:flex">
+
+              <!-- Left: Results info -->
+              <div class="flex items-center gap-4">
+                <div class="text-sm text-gray-600">
+                  Mostrando
+                  <span class="font-semibold text-gray-900">{{ store.paginationInfo().startIndex }}</span>
+                  -
+                  <span class="font-semibold text-gray-900">{{ store.paginationInfo().endIndex }}</span>
+                  de
+                  <span class="font-semibold text-gray-900">{{ store.paginationInfo().totalResults }}</span>
+                  resultados
+                </div>
+
+                <!-- Page size selector -->
+                <div class="flex items-center gap-2">
+                  <label class="text-sm text-gray-600">Por página:</label>
+                  <select
+                    [value]="store.pageSize()"
+                    (change)="store.setPageSize(+$any($event.target).value)"
+                    class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                    <option [value]="5">5</option>
+                    <option [value]="10">10</option>
+                    <option [value]="20">20</option>
+                    <option [value]="50">50</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Right: Page controls -->
+              <div class="flex items-center gap-1">
+
+                <!-- First page -->
+                <button
+                  type="button"
+                  (click)="store.goToPage(1)"
+                  [disabled]="!store.paginationInfo().hasPreviousPage"
+                  pRipple
+                  class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">
+                  <i class="pi pi-angle-double-left text-xs"></i>
+                </button>
+
+                <!-- Previous page -->
+                <button
+                  type="button"
+                  (click)="store.previousPage()"
+                  [disabled]="!store.paginationInfo().hasPreviousPage"
+                  pRipple
+                  class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">
+                  <i class="pi pi-chevron-left text-xs"></i>
+                </button>
+
+                <!-- Page numbers -->
+                @for (page of store.visiblePages(); track $index) {
+                  @if (page === 'ellipsis') {
+                    <span class="flex h-9 w-9 items-center justify-center text-gray-400">
+                        <i class="pi pi-ellipsis-h text-xs"></i>
+                      </span>
+                  } @else {
+                    <button
+                      type="button"
+                      (click)="onPageClick(page)"
+                      [class.bg-sky-500]="store.currentPage() === page"
+                      [class.text-white]="store.currentPage() === page"
+                      [class.font-semibold]="store.currentPage() === page"
+                      [class.bg-white]="store.currentPage() !== page"
+                      [class.text-gray-700]="store.currentPage() !== page"
+                      [class.hover:bg-gray-50]="store.currentPage() !== page"
+                      pRipple
+                      class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-sm transition-colors">
+                      {{ page }}
+                    </button>
+                  }
+                }
+
+                <!-- Next page -->
+                <button
+                  type="button"
+                  (click)="store.nextPage()"
+                  [disabled]="!store.paginationInfo().hasNextPage"
+                  pRipple
+                  class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">
+                  <i class="pi pi-chevron-right text-xs"></i>
+                </button>
+
+                <!-- Last page -->
+                <button
+                  type="button"
+                  (click)="store.goToPage(store.totalPages())"
+                  [disabled]="!store.paginationInfo().hasNextPage"
+                  pRipple
+                  class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">
+                  <i class="pi pi-angle-double-right text-xs"></i>
+                </button>
+
+              </div>
+            </div>
+
+            <!-- Mobile Pagination -->
+            <div class="flex flex-col gap-3 px-4 py-3 lg:hidden">
+
+              <!-- Results info -->
+              <div class="text-center text-sm text-gray-600">
+                {{ store.paginationInfo().startIndex }}-{{ store.paginationInfo().endIndex }}
+                de {{ store.paginationInfo().totalResults }}
               </div>
 
               <!-- Controls -->
-              <div class="flex items-center gap-2">
+              <div class="flex items-center justify-between gap-2">
                 <button
                   type="button"
-                  (click)="onPreviousPage()"
-                  [disabled]="store.currentPage() === 1"
+                  (click)="store.previousPage()"
+                  [disabled]="!store.paginationInfo().hasPreviousPage"
                   pRipple
-                  class="flex h-9 items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+                  class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">
                   <i class="pi pi-chevron-left text-xs"></i>
-                  <span class="hidden sm:inline">Anterior</span>
+                  Anterior
                 </button>
+
+                <div class="flex items-center gap-1 text-sm font-medium text-gray-700">
+                  {{ store.currentPage() }} / {{ store.totalPages() }}
+                </div>
 
                 <button
                   type="button"
-                  (click)="onNextPage()"
-                  [disabled]="store.currentPage() === store.totalPages()"
+                  (click)="store.nextPage()"
+                  [disabled]="!store.paginationInfo().hasNextPage"
                   pRipple
-                  class="flex h-9 items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
-                  <span class="hidden sm:inline">Siguiente</span>
+                  class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">
+                  Siguiente
                   <i class="pi pi-chevron-right text-xs"></i>
                 </button>
               </div>
 
+              <!-- Page size selector mobile -->
+              <div class="flex items-center justify-center gap-2">
+                <label class="text-sm text-gray-600">Mostrar:</label>
+                <select
+                  [value]="store.pageSize()"
+                  (change)="store.setPageSize(+$any($event.target).value)"
+                  class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                  <option [value]="5">5</option>
+                  <option [value]="10">10</option>
+                  <option [value]="20">20</option>
+                  <option [value]="50">50</option>
+                </select>
+              </div>
+
             </div>
-          }
+
+          </div>
 
         </div>
       }
