@@ -106,8 +106,8 @@ export const EquipmentPowerAssignmentsStore = signalStore(
      */
     drawerTitle: computed(() =>
       state.editingAssignmentId()
-        ? 'Editar Asignación de Panel'
-        : 'Asignar Panel de Distribución'
+        ? 'Editar Punto de bloqueo'
+        : 'Asignar Punto de bloqueo'
     )
   })),
 
@@ -156,7 +156,7 @@ export const EquipmentPowerAssignmentsStore = signalStore(
           patchState(store, {
             assignments: [],
             isLoading: false,
-            error: error.message || 'Error al cargar las asignaciones de paneles'
+            error: error.message || 'Error al cargar los tableros de alimentación eléctrica'
           });
         }
       },
@@ -375,7 +375,7 @@ export const EquipmentPowerAssignmentsStore = signalStore(
 
           patchState(store, {
             isSubmitting: false,
-            formError: error.message || 'Error al guardar la asignación de panel'
+            formError: error.message || 'Error al guardar el punto de bloqueo'
           });
 
           return false;
@@ -409,7 +409,7 @@ export const EquipmentPowerAssignmentsStore = signalStore(
 
           patchState(store, {
             isLoading: false,
-            error: error.message || 'Error al eliminar la asignación de panel'
+            error: error.message || 'Error al eliminar el punto de bloqueo'
           });
 
           return false;

@@ -48,12 +48,12 @@ const CATEGORY_GROUPS: GroupConfig[] = [
     label: 'Dispositivos',
     icon: 'pi-bolt',
     types: [
-      {
+/*      {
         enum: InspectableItemTypeEnum.POWER_SUPPLY,
         label: 'Fuentes',
         icon: 'pi-bolt',
         color: 'sky'
-      },
+      },*/
       {
         enum: InspectableItemTypeEnum.POWER_120VAC,
         label: 'Alimentación 120VAC',

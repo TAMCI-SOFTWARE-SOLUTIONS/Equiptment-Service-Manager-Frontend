@@ -17,7 +17,11 @@ import {EquipmentInspectableItemsStore} from '../../model/equipment-inspectable-
 import {InspectableItemDrawerComponent} from '../inspectable-item-drawer/inspectable-item-drawer.component';
 import {InspectableItemCardComponent} from '../inspectable-item-card/inspectable-item-card.component';
 import {EquipmentTypeEnum} from '../../../../shared/model';
-import {getEquipmentTypeEmoji, getEquipmentTypeLabel} from '../../../../shared/model/enums/equipment-type.enum';
+import {
+  getEquipmentTypeEmoji,
+  getEquipmentTypeIcon,
+  getEquipmentTypeLabel
+} from '../../../../shared/model/enums/equipment-type.enum';
 
 @Component({
   selector: 'app-equipment-detail',
@@ -54,6 +58,7 @@ export class EquipmentDetailPage implements OnInit, OnDestroy {
   // Expose enums and helpers to the template
   readonly EquipmentTypeEnum = EquipmentTypeEnum;
   readonly PowerDistributionPanelTypeEnum = PowerDistributionPanelTypeEnum;
+  readonly getEquipmentTypeIcon = getEquipmentTypeIcon;
 
   ngOnInit(): void {
     const equipmentId = this.route.snapshot.paramMap.get('id');

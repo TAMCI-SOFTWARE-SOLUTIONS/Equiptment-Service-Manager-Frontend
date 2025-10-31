@@ -246,8 +246,8 @@ export class EquipmentFiltersAsideComponent {
 
     filtered.forEach(equipment => {
       // 🔍 DEBUG
-      if (equipment.equipmentTypeId && equipment.equipmentTypeName) {
-        uniqueTypes.set(equipment.equipmentTypeId, equipment.equipmentTypeName);
+      if (equipment.equipmentTypeId && equipment.equipmentTypeCode) {
+        uniqueTypes.set(equipment.equipmentTypeId, equipment.equipmentTypeCode);
       }
     });
 

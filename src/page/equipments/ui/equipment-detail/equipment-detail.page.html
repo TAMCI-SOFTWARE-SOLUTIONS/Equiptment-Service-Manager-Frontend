@@ -39,14 +39,14 @@
               <span class="hidden sm:inline">Editar</span>
             </button>
 
-            <button
+            <!--<button
               pRipple
               type="button"
               (click)="onDeleteClick()"
               class="flex items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
               <i class="pi pi-trash text-sm"></i>
               <span class="hidden sm:inline">Eliminar</span>
-            </button>
+            </button>-->
           </div>
         }
       </div>
@@ -56,7 +56,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex items-start gap-4">
             <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-100 to-cyan-100">
-              <span class="text-3xl">{{ getEquipmentTypeEmoji(store.equipment()!.type) }}</span>
+              <i class="{{ getEquipmentTypeIcon(store.equipment()!.type)}}" style="font-size: 2rem"></i>
             </div>
 
             <div>
@@ -68,6 +68,9 @@
 
               <p class="mt-1 text-sm text-gray-600">
                 {{ store.equipmentTypeLabel() }}
+                @if (store.equipment()!.equipmentTypeCode) {
+                  • {{ store.equipment()!.equipmentTypeCode }}
+                }
                 @if (store.equipment()!.equipmentTypeName) {
                   • {{ store.equipment()!.equipmentTypeName }}
                 }
@@ -160,9 +163,9 @@
                   <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                     Tag
                   </dt>
-                  <dd class="mt-1 text-base font-semibold text-gray-900">
+                  <div class="mt-1 text-base font-semibold text-gray-900">
                     {{ store.equipment()!.tag }}
-                  </dd>
+                  </div>
                 </div>
 
                 <!-- Tipo de Equipo -->
@@ -170,10 +173,9 @@
                   <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                     Tipo de Equipo
                   </dt>
-                  <dd class="mt-1 flex items-center gap-2 text-sm text-gray-900">
-                    <span class="text-xl">{{ getEquipmentTypeEmoji(store.equipment()!.type) }}</span>
+                  <div class="mt-1 flex items-center gap-2 text-sm text-gray-900">
                     <span class="font-medium">{{ store.equipmentTypeLabel() }}</span>
-                  </dd>
+                  </div>
                 </div>
 
                 <!-- Tipo Específico -->
@@ -181,9 +183,28 @@
                   <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                     {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Tablero' }}
                   </dt>
-                  <dd class="mt-1 text-sm text-gray-900">
-                    {{ store.equipment()!.equipmentTypeName || 'No especificado' }}
-                  </dd>
+                  <div class="mt-1 text-sm text-gray-900">
+                    <span class="font-medium">
+                      {{ store.equipment()!.equipmentTypeName || 'No especificado' }}
+                      ({{ store.equipment()!.equipmentTypeCode || 'No especificado' }})
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Protocolo de Comunicación -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Protocolo de Comunicación
+                  </dt>
+                  <div class="mt-1">
+                    @if (store.equipment()!.communicationProtocol) {
+                      <div class="flex items-center gap-2 text-sm text-gray-900">
+                        <span class="font-medium">{{ store.equipment()!.communicationProtocol }}</span>
+                      </div>
+                    } @else {
+                      <span class="text-sm text-gray-500">Sin protocolo configurado</span>
+                    }
+                  </div>
                 </div>
 
                 <!-- Estado -->
@@ -191,7 +212,7 @@
                   <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                     Estado Actual
                   </dt>
-                  <dd class="mt-1">
+                  <div class="mt-1">
                     <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium"
                           [ngClass]="getEquipmentStatusColor(store.equipment()!.status).bg + ' ' +
                                      getEquipmentStatusColor(store.equipment()!.status).text + ' ' +
@@ -200,7 +221,7 @@
                             [ngClass]="getEquipmentStatusColor(store.equipment()!.status).indicator"></span>
                       {{ getEquipmentStatusLabel(store.equipment()!.status) }}
                     </span>
-                  </dd>
+                  </div>
                 </div>
               </dl>
             </div>
@@ -236,9 +257,9 @@
                     <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                       Cliente
                     </dt>
-                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                    <div class="mt-1 text-sm font-medium text-gray-900">
                       {{ store.locationBreadcrumb().client }}
-                    </dd>
+                    </div>
                   </div>
 
                   <!-- Planta -->
@@ -246,9 +267,9 @@
                     <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                       Planta
                     </dt>
-                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                    <div class="mt-1 text-sm font-medium text-gray-900">
                       {{ store.locationBreadcrumb().plant }}
-                    </dd>
+                    </div>
                   </div>
 
                   <!-- Área -->
@@ -256,9 +277,9 @@
                     <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                       Área
                     </dt>
-                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                    <div class="mt-1 text-sm font-medium text-gray-900">
                       {{ store.locationBreadcrumb().area }}
-                    </dd>
+                    </div>
                   </div>
 
                   <!-- Ubicación Registrada (si existe) -->
@@ -267,12 +288,11 @@
                       <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                         Ubicación Específica
                       </dt>
-                      <dd class="mt-1 flex items-center gap-2">
-                        <i class="pi pi-building text-sky-600"></i>
+                      <div class="mt-1 flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-900">
-                {{ store.locationBreadcrumb().location }}
-              </span>
-                      </dd>
+                          {{ store.locationBreadcrumb().location }}
+                        </span>
+                      </div>
                     </div>
                   }
 
@@ -282,12 +302,11 @@
                       <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                         Ubicación de Referencia
                       </dt>
-                      <dd class="mt-1 flex items-center gap-2">
-                        <i class="pi pi-map-marker text-sky-600"></i>
+                      <div class="mt-1 flex items-center gap-2">
                         <span class="text-sm italic text-gray-900">
                           {{ store.locationBreadcrumb().referenceLocation }}
                         </span>
-                      </dd>
+                      </div>
                     </div>
                   }
 
@@ -295,7 +314,6 @@
                   @if (!store.locationBreadcrumb().location && !store.locationBreadcrumb().referenceLocation) {
                     <div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
                       <div class="flex items-start gap-3">
-                        <i class="pi pi-info-circle text-lg text-gray-400"></i>
                         <div class="flex-1">
                           <p class="text-sm font-medium text-gray-700">
                             Sin ubicación específica
@@ -309,74 +327,6 @@
                   }
                 </dl>
               }
-            </div>
-          </div>
-
-          <!-- Card: Especificaciones Técnicas -->
-          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
-            <div class="border-b border-gray-100 p-6">
-              <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
-                  <i class="pi pi-cog text-lg text-sky-600"></i>
-                </div>
-                <h2 class="text-lg font-semibold text-gray-900">
-                  Especificaciones Técnicas
-                </h2>
-              </div>
-            </div>
-
-            <div class="p-6">
-              <dl class="space-y-4">
-                <!-- Tipo Específico -->
-                <div>
-                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                    {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Tablero' }}
-                  </dt>
-                  <dd class="mt-1 text-sm font-medium text-gray-900">
-                    {{ store.equipment()!.equipmentTypeName || 'No especificado' }}
-                  </dd>
-                </div>
-
-                <!-- Protocolo de Comunicación -->
-                <div>
-                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Protocolo de Comunicación
-                  </dt>
-                  <dd class="mt-1">
-                    @if (store.equipment()!.communicationProtocol) {
-                      <div class="flex items-center gap-2 text-sm text-gray-900">
-                        <i class="pi pi-wifi text-sky-600"></i>
-                        <span class="font-medium">{{ store.equipment()!.communicationProtocol }}</span>
-                      </div>
-                    } @else {
-                      <span class="text-sm text-gray-500">Sin protocolo configurado</span>
-                    }
-                  </dd>
-                </div>
-
-                <!-- IDs Técnicos -->
-                @if (store.equipment()!.communicationProtocolId) {
-                  <div>
-                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                      ID Protocolo
-                    </dt>
-                    <dd class="mt-1 font-mono text-xs text-gray-600">
-                      {{ store.equipment()!.communicationProtocolId }}
-                    </dd>
-                  </div>
-                }
-
-                @if (store.equipment()!.equipmentTypeId) {
-                  <div>
-                    <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                      ID Tipo
-                    </dt>
-                    <dd class="mt-1 font-mono text-xs text-gray-600">
-                      {{ store.equipment()!.equipmentTypeId }}
-                    </dd>
-                  </div>
-                }
-              </dl>
             </div>
           </div>
 
@@ -400,7 +350,7 @@
                   <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                     Fecha de Creación
                   </dt>
-                  <dd class="mt-1">
+                  <div class="mt-1">
                     <div class="flex items-center justify-between">
                       <span class="text-sm text-gray-900">
                         {{ formatDate(store.equipment()!.createdAt) }}
@@ -409,7 +359,7 @@
                         {{ getTimeSince(store.equipment()!.createdAt) }}
                       </span>
                     </div>
-                  </dd>
+                  </div>
                 </div>
 
                 <!-- Última Actualización -->
@@ -417,7 +367,7 @@
                   <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
                     Última Actualización
                   </dt>
-                  <dd class="mt-1">
+                  <div class="mt-1">
                     @if (store.equipment()!.updatedAt) {
                       <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-900">
@@ -430,15 +380,15 @@
                     } @else {
                       <span class="text-sm text-gray-500">Sin actualizaciones</span>
                     }
-                  </dd>
+                  </div>
                 </div>
 
-                <!-- Última Revisión/Servicio -->
+                <!-- Último Mantenimiento -->
                 <div>
                   <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Última Revisión
+                    Último Mantenimiento
                   </dt>
-                  <dd class="mt-1">
+                  <div class="mt-1">
                     @if (store.equipment()!.lastMaintenanceAt) {
                       <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-900">
@@ -463,26 +413,74 @@
                         </div>
                       </div>
                     }
-                  </dd>
+                  </div>
                 </div>
 
-                <!--TODO: Show only according to selected service type-->
-                <!-- Timeline Visual (si hay última revisión) -->
-                @if (store.equipment()!.lastMaintenanceAt) {
-                  <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4">
-                    <div class="flex items-center gap-3">
-                      <i class="pi pi-check-circle text-lg text-sky-600"></i>
-                      <div class="flex-1">
-                        <p class="text-xs font-medium text-sky-900">
-                          Última revisión registrada
-                        </p>
-                        <p class="mt-0.5 text-xs text-sky-700">
-                          {{ getTimeSince(store.equipment()!.lastMaintenanceAt) }}
-                        </p>
+                <!-- Última Inspección -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Última Inspección
+                  </dt>
+                  <div class="mt-1">
+                    @if (store.equipment()!.lastInspectionAt) {
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-900">
+                          {{ formatDate(store.equipment()!.lastInspectionAt) }}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                          {{ getTimeSince(store.equipment()!.lastInspectionAt) }}
+                        </span>
                       </div>
-                    </div>
+                    } @else {
+                      <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                        <div class="flex items-start gap-2">
+                          <i class="pi pi-exclamation-triangle mt-0.5 text-sm text-amber-600"></i>
+                          <div>
+                            <p class="text-xs font-medium text-amber-900">
+                              Sin registro de revisión
+                            </p>
+                            <p class="mt-0.5 text-xs text-amber-700">
+                              Considera programar una revisión técnica
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
                   </div>
-                }
+                </div>
+
+                <!-- Último Levantamiento de Observaciones -->
+                <div>
+                  <dt class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Último Levantamiento de Observaciones
+                  </dt>
+                  <div class="mt-1">
+                    @if (store.equipment()!.lastRaiseObservationsAt) {
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-900">
+                          {{ formatDate(store.equipment()!.lastRaiseObservationsAt) }}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                          {{ getTimeSince(store.equipment()!.lastRaiseObservationsAt) }}
+                        </span>
+                      </div>
+                    } @else {
+                      <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                        <div class="flex items-start gap-2">
+                          <i class="pi pi-exclamation-triangle mt-0.5 text-sm text-amber-600"></i>
+                          <div>
+                            <p class="text-xs font-medium text-amber-900">
+                              Sin registro de revisión
+                            </p>
+                            <p class="mt-0.5 text-xs text-amber-700">
+                              Considera programar una revisión técnica
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
               </dl>
             </div>
           </div>
@@ -493,11 +491,11 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
-                    <i class="pi pi-bolt text-lg text-sky-600"></i>
+                    <i class="pi pi-lock text-lg text-sky-600"></i>
                   </div>
                   <div>
                     <h2 class="text-lg font-semibold text-gray-900">
-                      Paneles de Distribución
+                      Puntos de Bloqueo
                     </h2>
                     @if (powerStore.hasAssignments()) {
                       <p class="text-xs text-gray-600">
@@ -514,7 +512,7 @@
                   [disabled]="powerStore.isLoading()"
                   class="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none sm:justify-start sm:px-4">
                   <i class="pi pi-plus text-sm"></i>
-                  <span class="hidden sm:inline">Asignar Panel</span>
+                  <span class="hidden sm:inline">Asignar Punto de Bloqueo</span>
                 </button>
               </div>
             </div>
@@ -658,7 +656,7 @@
 
                   <div class="mt-4 flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700">
                     <i class="pi pi-info-circle text-blue-600"></i>
-                    <span class="font-medium">Sin paneles de distribución asignados</span>
+                    <span class="font-medium">Sin puntos de bloqueo asignados</span>
                   </div>
 
                   <button
@@ -667,7 +665,7 @@
                     (click)="onAddPowerAssignment()"
                     class="mt-6 flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
                     <i class="pi pi-plus"></i>
-                    Asignar Panel
+                    Asignar Punto de Bloqueo
                   </button>
                 </div>
               }
@@ -702,7 +700,7 @@
                   </div>
                   <div>
                     <h2 class="text-lg font-semibold text-gray-900">
-                      Items Inspeccionables
+                      Componentes y Dispositivos
                     </h2>
                     @if (itemsStore.hasItems()) {
                       <p class="text-xs text-gray-600">
@@ -792,16 +790,16 @@
                   </div>
 
                   <h3 class="text-lg font-semibold text-gray-900">
-                    Sin Items Inspeccionables
+                    Sin Componentes ni Dispositivos
                   </h3>
 
                   <p class="mt-2 max-w-md text-sm text-gray-600">
-                    Este equipo aún no tiene items inspeccionables registrados
+                    Este equipo aún no tiene componentes ni dispositivos registrados
                   </p>
 
                   <div class="mt-4 flex items-center gap-2 rounded-full bg-sky-50 px-4 py-2 text-sm text-sky-700">
                     <i class="pi pi-info-circle text-sky-600"></i>
-                    <span class="font-medium">Agrega items para comenzar</span>
+                    <span class="font-medium">Agrega para comenzar</span>
                   </div>
 
                   <button

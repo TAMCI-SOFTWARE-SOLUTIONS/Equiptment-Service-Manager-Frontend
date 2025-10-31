@@ -337,9 +337,9 @@ export const EquipmentsStore = signalStore(
       const uniqueTypes = new Map<string, string>();
 
       filtered.forEach(equipment => {
-        console.log('Equipment:', equipment.tag, 'TypeID:', equipment.equipmentTypeId, 'TypeName:', equipment.equipmentTypeName);
-        if (equipment.equipmentTypeId && equipment.equipmentTypeName) {
-          uniqueTypes.set(equipment.equipmentTypeId, equipment.equipmentTypeName);
+        console.log('Equipment:', equipment.tag, 'TypeID:', equipment.equipmentTypeId, 'TypeName:', equipment.equipmentTypeCode);
+        if (equipment.equipmentTypeId && equipment.equipmentTypeCode) {
+          uniqueTypes.set(equipment.equipmentTypeId, equipment.equipmentTypeCode);
         }
       });
 

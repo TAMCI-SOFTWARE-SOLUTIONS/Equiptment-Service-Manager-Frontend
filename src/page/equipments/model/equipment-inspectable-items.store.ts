@@ -8,12 +8,14 @@ import {firstValueFrom} from 'rxjs';
 import {CabinetService} from '../../../entities/cabinet/api';
 import {PanelService} from '../../../entities/panel/api';
 import {EquipmentTypeEnum} from '../../../shared/model';
+import {DescriptionEntity} from '../../../entities/description/model/entities/description.entity';
 
 interface TypeConfig {
   enum: InspectableItemTypeEnum;
   label: string;
   icon: string;
   color: string;
+  group: 'component' | 'equipment' | 'other';
 }
 
 const TYPE_CONFIGS: TypeConfig[] = [
@@ -21,37 +23,43 @@ const TYPE_CONFIGS: TypeConfig[] = [
     enum: InspectableItemTypeEnum.COMMUNICATION,
     label: 'Comunicación',
     icon: 'pi-wifi',
-    color: 'sky'
+    color: 'sky',
+    group: 'component'
   },
   {
     enum: InspectableItemTypeEnum.STATE,
     label: 'Estado',
     icon: 'pi-circle',
-    color: 'cyan'
+    color: 'cyan',
+    group: 'component'
   },
-  {
+/*  {
     enum: InspectableItemTypeEnum.POWER_SUPPLY,
     label: 'Fuentes',
     icon: 'pi-bolt',
-    color: 'sky'
-  },
+    color: 'sky',
+    group: 'equipment'
+  },*/
   {
     enum: InspectableItemTypeEnum.POWER_120VAC,
     label: 'Alimentación 120VAC',
-    icon: 'pi-flash',
-    color: 'cyan'
+    icon: 'pi-lightbulb',
+    color: 'cyan',
+    group: 'equipment'
   },
   {
     enum: InspectableItemTypeEnum.ORDER_AND_CLEANLINESS,
     label: 'Orden y Limpieza',
     icon: 'pi-check-circle',
-    color: 'sky'
+    color: 'sky',
+    group: 'other'
   },
   {
     enum: InspectableItemTypeEnum.OTHERS,
     label: 'Otros',
     icon: 'pi-folder',
-    color: 'cyan'
+    color: 'cyan',
+    group: 'other'
   }
 ];
 
@@ -66,11 +74,13 @@ interface InspectableItemsState {
   items: InspectableItemEntity[];
   isLoadingItems: boolean;
 
-  // Brands & Models para el formulario
+  // Brands, Models & Descriptions para el formulario
   brands: BrandEntity[];
   models: ModelEntity[];
+  descriptions: DescriptionEntity[];
   isLoadingBrands: boolean;
   isLoadingModels: boolean;
+  isLoadingDescriptions: boolean;
 
   // Drawer state
   isDrawerOpen: boolean;
@@ -83,7 +93,7 @@ interface InspectableItemsState {
     type: InspectableItemTypeEnum | null;
     brandId: string | null;
     modelId: string | null;
-    descriptionId: string;
+    descriptionId: string | null; // 🔧 Ya no es string, es string | null
   };
 
   // UI state
@@ -101,7 +111,7 @@ const initialFormData = {
   type: null,
   brandId: null,
   modelId: null,
-  descriptionId: ''
+  descriptionId: null
 };
 
 const initialState: InspectableItemsState = {
@@ -111,8 +121,10 @@ const initialState: InspectableItemsState = {
   isLoadingItems: false,
   brands: [],
   models: [],
+  descriptions: [],
   isLoadingBrands: false,
   isLoadingModels: false,
+  isLoadingDescriptions: false,
   isDrawerOpen: false,
   drawerMode: 'create',
   editingItemId: null,
@@ -143,18 +155,13 @@ export const EquipmentInspectableItemsStore = signalStore(
 
       let filtered = items;
 
-      // Filtrar por tipo
       if (filterType) {
         filtered = filtered.filter(item => item.type === filterType);
       }
 
-      // Filtrar por búsqueda
       if (query) {
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(query);
-          const descMatch = item.descriptionId.toLowerCase().includes(query);
-          // TODO: Agregar búsqueda por marca/modelo cuando se carguen
-          return tagMatch || descMatch;
+          return item.tag.toLowerCase().includes(query);
         });
       }
 
@@ -162,14 +169,13 @@ export const EquipmentInspectableItemsStore = signalStore(
     }),
 
     /**
-     * Items agrupados por tipo (DUPLICA lógica de filteredItems)
+     * Items agrupados por tipo
      */
     itemsByType: computed(() => {
       const items = state.items();
       const query = state.searchQuery().toLowerCase().trim();
       const filterType = state.filterType();
 
-      // Duplicar lógica de filtrado
       let filtered = items;
 
       if (filterType) {
@@ -178,13 +184,10 @@ export const EquipmentInspectableItemsStore = signalStore(
 
       if (query) {
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(query);
-          const descMatch = item.descriptionId.toLowerCase().includes(query);
-          return tagMatch || descMatch;
+          return item.tag.toLowerCase().includes(query);
         });
       }
 
-      // Agrupar
       const groups = new Map<InspectableItemTypeEnum, InspectableItemEntity[]>();
 
       TYPE_CONFIGS.forEach(config => {
@@ -206,14 +209,13 @@ export const EquipmentInspectableItemsStore = signalStore(
     }),
 
     /**
-     * Contador de items por tipo (DUPLICA lógica)
+     * Contador de items por tipo
      */
     getItemsCountByType: computed(() => {
       const items = state.items();
       const query = state.searchQuery().toLowerCase().trim();
       const filterType = state.filterType();
 
-      // Duplicar lógica de filtrado
       let filtered = items;
 
       if (filterType) {
@@ -222,13 +224,10 @@ export const EquipmentInspectableItemsStore = signalStore(
 
       if (query) {
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(query);
-          const descMatch = item.descriptionId.toLowerCase().includes(query);
-          return tagMatch || descMatch;
+          return item.tag.toLowerCase().includes(query);
         });
       }
 
-      // Agrupar
       const groups = new Map<InspectableItemTypeEnum, number>();
       TYPE_CONFIGS.forEach(config => {
         groups.set(config.enum, 0);
@@ -250,7 +249,7 @@ export const EquipmentInspectableItemsStore = signalStore(
     totalItemsCount: computed(() => state.items().length),
 
     /**
-     * Items filtrados count (DUPLICA lógica)
+     * Items filtrados count
      */
     filteredItemsCount: computed(() => {
       const items = state.items();
@@ -265,9 +264,7 @@ export const EquipmentInspectableItemsStore = signalStore(
 
       if (query) {
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(query);
-          const descMatch = item.descriptionId.toLowerCase().includes(query);
-          return tagMatch || descMatch;
+          return item.tag.toLowerCase().includes(query);
         });
       }
 
@@ -298,9 +295,7 @@ export const EquipmentInspectableItemsStore = signalStore(
       if (query) {
         const lowerQuery = query.toLowerCase();
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(lowerQuery);
-          const descMatch = item.descriptionId.toLowerCase().includes(lowerQuery);
-          return tagMatch || descMatch;
+          return item.tag.toLowerCase().includes(lowerQuery);
         });
       }
 
@@ -322,8 +317,8 @@ export const EquipmentInspectableItemsStore = signalStore(
      */
     drawerTitle: computed(() => {
       return state.drawerMode() === 'create'
-        ? 'Agregar Item Inspeccionar'
-        : 'Editar Item Inspeccionar';
+        ? 'Agregar Componente o Dispositivo'
+        : 'Editar Componente o Dispositivo';
     }),
 
     /**
@@ -348,18 +343,25 @@ export const EquipmentInspectableItemsStore = signalStore(
     }),
 
     /**
+     * 🆕 Descriptions del modelo seleccionado
+     */
+    availableDescriptions: computed(() => {
+      return state.descriptions().sort((a, b) => a.name.localeCompare(b.name));
+    }),
+
+    /**
      * Validar formulario
      */
     isFormValid: computed(() => {
       const form = state.formData();
 
-      // TODO: Agregar validaciones de formato de tag cuando el cliente las defina
       const hasTag = form.tag.trim().length > 0;
       const hasType = form.type !== null;
       const hasBrand = form.brandId !== null;
       const hasModel = form.modelId !== null;
+      const hasDescription = form.descriptionId !== null; // 🆕
 
-      return hasTag && hasType && hasBrand && hasModel;
+      return hasTag && hasType && hasBrand && hasModel && hasDescription;
     }),
 
     /**
@@ -373,8 +375,9 @@ export const EquipmentInspectableItemsStore = signalStore(
       const hasType = form.type !== null;
       const hasBrand = form.brandId !== null;
       const hasModel = form.modelId !== null;
+      const hasDescription = form.descriptionId !== null; // 🆕
 
-      return hasTag && hasType && hasBrand && hasModel && !isSubmitting;
+      return hasTag && hasType && hasBrand && hasModel && hasDescription && !isSubmitting;
     }),
 
     /**
@@ -392,7 +395,7 @@ export const EquipmentInspectableItemsStore = signalStore(
     const brandService = inject(BrandService);
     const modelService = inject(ModelService);
     const cabinetService = inject(CabinetService);
-    const paneService = inject(PanelService);
+    const panelService = inject(PanelService);
 
     return {
       // ==================== LOAD DATA ====================
@@ -421,11 +424,9 @@ export const EquipmentInspectableItemsStore = signalStore(
           let items: InspectableItemEntity[];
 
           if (equipmentType === EquipmentTypeEnum.CABINET) {
-            items = await firstValueFrom(cabinetService.getAllInspectableItems(equipmentId)
-            );
+            items = await firstValueFrom(cabinetService.getAllInspectableItems(equipmentId));
           } else {
-            items = await firstValueFrom(paneService.getAllInspectableItems(equipmentId)
-            );
+            items = await firstValueFrom(panelService.getAllInspectableItems(equipmentId));
           }
 
           patchState(store, {
@@ -496,6 +497,33 @@ export const EquipmentInspectableItemsStore = signalStore(
         }
       },
 
+      /**
+       * 🆕 Cargar descriptions de un modelo
+       */
+      async loadDescriptionsForModel(modelId: string): Promise<void> {
+        patchState(store, {
+          isLoadingDescriptions: true
+        });
+
+        try {
+          const descriptions = await firstValueFrom(
+            modelService.getAllDescriptionsByModelId(modelId)
+          );
+
+          patchState(store, {
+            descriptions,
+            isLoadingDescriptions: false
+          });
+
+        } catch (error: any) {
+          console.error('❌ Error loading descriptions:', error);
+          patchState(store, {
+            descriptions: [],
+            isLoadingDescriptions: false
+          });
+        }
+      },
+
       // ==================== DRAWER ====================
 
       /**
@@ -509,6 +537,7 @@ export const EquipmentInspectableItemsStore = signalStore(
           formData: initialFormData,
           brands: [],
           models: [],
+          descriptions: [],
           error: null
         });
       },
@@ -534,9 +563,10 @@ export const EquipmentInspectableItemsStore = signalStore(
           error: null
         });
 
-        // Cargar brands y models para edición
+        // Cargar brands, models y descriptions para edición
         await this.loadBrandsForType(item.type);
         await this.loadModelsForBrand(item.brandId);
+        await this.loadDescriptionsForModel(item.modelId);
       },
 
       /**
@@ -550,6 +580,7 @@ export const EquipmentInspectableItemsStore = signalStore(
           formData: initialFormData,
           brands: [],
           models: [],
+          descriptions: [],
           error: null
         });
       },
@@ -573,10 +604,12 @@ export const EquipmentInspectableItemsStore = signalStore(
           formData: {
             ...state.formData,
             type,
-            brandId: null,  // Reset brand
-            modelId: null   // Reset model
+            brandId: null,
+            modelId: null,
+            descriptionId: null
           },
-          models: []  // Clear models
+          models: [],
+          descriptions: []
         }));
 
         if (type) {
@@ -592,8 +625,10 @@ export const EquipmentInspectableItemsStore = signalStore(
           formData: {
             ...state.formData,
             brandId,
-            modelId: null  // Reset model
-          }
+            modelId: null,
+            descriptionId: null
+          },
+          descriptions: []
         }));
 
         if (brandId) {
@@ -602,20 +637,28 @@ export const EquipmentInspectableItemsStore = signalStore(
       },
 
       /**
-       * Establecer modelo
+       * 🔧 Establecer modelo y cargar descriptions
        */
-      setModel(modelId: string | null): void {
+      async setModel(modelId: string | null): Promise<void> {
         patchState(store, (state) => ({
-          formData: { ...state.formData, modelId }
+          formData: {
+            ...state.formData,
+            modelId,
+            descriptionId: null
+          }
         }));
+
+        if (modelId) {
+          await this.loadDescriptionsForModel(modelId);
+        }
       },
 
       /**
-       * Establecer descripción
+       * 🆕 Establecer descripción
        */
-      setDescripcion(descripcion: string): void {
+      setDescription(descriptionId: string | null): void {
         patchState(store, (state) => ({
-          formData: { ...state.formData, descripcion }
+          formData: { ...state.formData, descriptionId }
         }));
       },
 
@@ -644,7 +687,7 @@ export const EquipmentInspectableItemsStore = signalStore(
             type: form.type!,
             brandId: form.brandId!,
             modelId: form.modelId!,
-            descriptionId: form.descriptionId.trim(),
+            descriptionId: form.descriptionId!, // 🆕
             currentCondition: null,
             currentCriticality: null,
             lastObservation: null,
@@ -656,7 +699,6 @@ export const EquipmentInspectableItemsStore = signalStore(
             inspectableItemService.create(newItem, equipmentId)
           );
 
-          // Agregar a la lista local
           patchState(store, (state) => ({
             items: [...state.items, created],
             isSubmitting: false,
@@ -700,7 +742,7 @@ export const EquipmentInspectableItemsStore = signalStore(
             type: form.type!,
             brandId: form.brandId!,
             modelId: form.modelId!,
-            descriptionId: form.descriptionId.trim(),
+            descriptionId: form.descriptionId!, // 🆕
             currentCondition: null,
             currentCriticality: null,
             lastObservation: null,
@@ -712,7 +754,6 @@ export const EquipmentInspectableItemsStore = signalStore(
             inspectableItemService.update(itemId, updatedItem)
           );
 
-          // Actualizar en la lista local
           patchState(store, (state) => ({
             items: state.items.map(item => item.id === itemId ? updated : item),
             isSubmitting: false,
@@ -743,7 +784,6 @@ export const EquipmentInspectableItemsStore = signalStore(
         try {
           await firstValueFrom(inspectableItemService.delete(itemId));
 
-          // Remover de la lista local
           patchState(store, (state) => ({
             items: state.items.filter(item => item.id !== itemId)
           }));
@@ -762,30 +802,18 @@ export const EquipmentInspectableItemsStore = signalStore(
 
       // ==================== UI STATE ====================
 
-      /**
-       * Establecer búsqueda
-       */
       setSearchQuery(query: string): void {
         patchState(store, { searchQuery: query });
       },
 
-      /**
-       * Limpiar búsqueda
-       */
       clearSearch(): void {
         patchState(store, { searchQuery: '' });
       },
 
-      /**
-       * Establecer filtro de tipo
-       */
       setFilterType(type: InspectableItemTypeEnum | null): void {
         patchState(store, { filterType: type });
       },
 
-      /**
-       * Toggle expansión de tipo
-       */
       toggleType(type: InspectableItemTypeEnum): void {
         patchState(store, (state) => {
           const newExpanded = new Set(state.expandedTypes);
@@ -798,31 +826,19 @@ export const EquipmentInspectableItemsStore = signalStore(
         });
       },
 
-      /**
-       * Expandir todos los tipos
-       */
       expandAll(): void {
         const allTypes = new Set(TYPE_CONFIGS.map(c => c.enum));
         patchState(store, { expandedTypes: allTypes });
       },
 
-      /**
-       * Colapsar todos los tipos
-       */
       collapseAll(): void {
         patchState(store, { expandedTypes: new Set() });
       },
 
-      /**
-       * Limpiar error
-       */
       clearError(): void {
         patchState(store, { error: null });
       },
 
-      /**
-       * Reset del store
-       */
       reset(): void {
         patchState(store, initialState);
       }
