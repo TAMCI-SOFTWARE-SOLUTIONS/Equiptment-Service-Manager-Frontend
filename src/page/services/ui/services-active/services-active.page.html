@@ -20,7 +20,7 @@
         <!-- Actions -->
         <div class="flex items-center gap-2">
           <!-- Refresh Button -->
-          @if (store.hasServices() && !store.isLoading()) {
+          @if (!store.isLoading()) {
             <button
               type="button"
               (click)="onRefresh()"
@@ -30,8 +30,8 @@
             </button>
           }
 
-          <!-- Create Button (Solo Admin) -->
-          @if (store.canCreateService()) {
+          <!-- Create Button (Just Operator) -->
+          @if (store.isOperator()) {
             <button
               type="button"
               (click)="onCreateNew()"
@@ -168,10 +168,10 @@
           iconBgClass="bg-gradient-to-br from-sky-100 to-cyan-100"
           iconColorClass="text-sky-600"
           title="No hay servicios activos"
-          [description]="store.userRole() === 'OPERATOR'
+          [description]="store.isOperator()
             ? 'No tienes servicios asignados actualmente.'
             : 'No hay servicios en progreso en este momento.'"
-          [showButton]="store.canCreateService()"
+          [showButton]="store.isOperator()"
           buttonText="Crear Servicio"
           buttonIcon="pi-plus"
           (onAction)="onCreateNew()">
@@ -213,9 +213,11 @@
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
                     Supervisor
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                    Operador
-                  </th>
+                  @if(!store.isOperator()) {
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      Operador
+                    </th>
+                  }
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
                     Inicio
                   </th>
@@ -267,12 +269,14 @@
                         </span>
                       </td>
 
-                      <!-- Operador -->
-                      <td class="px-4 py-3">
-                        <span class="text-sm text-gray-700">
-                          {{ service.operatorName }}
-                        </span>
-                      </td>
+                      @if(!store.isOperator()) {
+                        <!-- Operador -->
+                        <td class="px-4 py-3">
+                          <span class="text-sm text-gray-700">
+                            {{ service.operatorName }}
+                          </span>
+                        </td>
+                      }
 
                       <!-- Inicio -->
                       <td class="px-4 py-3">
@@ -362,7 +366,7 @@
                     pRipple
                     class="flex-1 rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600">
                     <i class="pi pi-eye mr-1.5 text-xs"></i>
-                    {{ store.userRole() === 'OPERATOR' ? 'Continuar' : 'Ver Detalles' }}
+                    {{ store.isOperator() ? 'Continuar' : 'Ver Detalles' }}
                   </button>
 
                   <button
