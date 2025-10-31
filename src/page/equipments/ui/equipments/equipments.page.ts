@@ -73,6 +73,56 @@ export class EquipmentsPage implements OnInit {
     this.store.setSearchQuery('');
   }
 
+  // ==================== PAGINATION ====================
+
+  onPageSizeChange(value: string): void {
+    const pageSize = parseInt(value, 10);
+    this.store.setPageSize(pageSize);
+  }
+
+  /**
+   * Generar números de página con ellipsis (...)
+   * Ejemplo: [1, 2, 3, ..., 10] o [1, ..., 5, 6, 7, ..., 10]
+   */
+  getPageNumbers(): (number | string)[] {
+    const info = this.store.paginationInfo();
+    const total = info.totalPages;
+    const current = info.currentPage;
+
+    if (total <= 7) {
+      // Mostrar todos los números si hay 7 o menos páginas
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    // Siempre mostrar: primera, última, actual, y 2 a cada lado de la actual
+    const pages: (number | string)[] = [];
+
+    // Primera página
+    pages.push(1);
+
+    // Ellipsis izquierda
+    if (current > 3) {
+      pages.push('...');
+    }
+
+    // Páginas alrededor de la actual
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      pages.push(i);
+    }
+
+    // Ellipsis derecha
+    if (current < total - 2) {
+      pages.push('...');
+    }
+
+    // Última página
+    if (total > 1) {
+      pages.push(total);
+    }
+
+    return pages;
+  }
+
   // ==================== ACTIONS ====================
 
   onCreateNew(): void {
