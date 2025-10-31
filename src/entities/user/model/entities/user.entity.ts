@@ -9,6 +9,8 @@ export interface UserEntity {
   failedLoginAttempts: number;
   lastLoginAt: Date | null;
   passwordChangedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date | null;
   roles: RoleEntity[];
   token: string | null;
 }

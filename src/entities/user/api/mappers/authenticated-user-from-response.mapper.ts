@@ -17,6 +17,8 @@ export class AuthenticatedUserFromResponseMapper {
         name: role as any
       })) : [],
       token: dto.token ?? '',
+      createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
+      updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : null,
     };
   }
 }

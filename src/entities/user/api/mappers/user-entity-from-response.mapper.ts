@@ -12,6 +12,8 @@ export class UserEntityFromResponseMapper {
       failedLoginAttempts: dto.failedLoginAttempts ?? 0,
       lastLoginAt: dto.lastLoginAt ? new Date(dto.lastLoginAt) : null,
       passwordChangedAt: dto.passwordChangedAt ? new Date(dto.passwordChangedAt) : null,
+      createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
+      updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : null,
       roles: dto.roles ? dto.roles.map(role => ({
         id: '',
         name: role as any
