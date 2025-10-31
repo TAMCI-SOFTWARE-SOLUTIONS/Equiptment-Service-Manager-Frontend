@@ -161,8 +161,7 @@ export const EquipmentInspectableItemsStore = signalStore(
 
       if (query) {
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(query);
-          return tagMatch;
+          return item.tag.toLowerCase().includes(query);
         });
       }
 
@@ -185,8 +184,7 @@ export const EquipmentInspectableItemsStore = signalStore(
 
       if (query) {
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(query);
-          return tagMatch;
+          return item.tag.toLowerCase().includes(query);
         });
       }
 
@@ -226,8 +224,7 @@ export const EquipmentInspectableItemsStore = signalStore(
 
       if (query) {
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(query);
-          return tagMatch;
+          return item.tag.toLowerCase().includes(query);
         });
       }
 
@@ -267,8 +264,7 @@ export const EquipmentInspectableItemsStore = signalStore(
 
       if (query) {
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(query);
-          return tagMatch;
+          return item.tag.toLowerCase().includes(query);
         });
       }
 
@@ -299,8 +295,7 @@ export const EquipmentInspectableItemsStore = signalStore(
       if (query) {
         const lowerQuery = query.toLowerCase();
         filtered = filtered.filter(item => {
-          const tagMatch = item.tag.toLowerCase().includes(lowerQuery);
-          return tagMatch;
+          return item.tag.toLowerCase().includes(lowerQuery);
         });
       }
 
