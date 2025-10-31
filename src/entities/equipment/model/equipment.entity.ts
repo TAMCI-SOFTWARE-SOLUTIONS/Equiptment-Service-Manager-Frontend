@@ -30,7 +30,7 @@ export interface EquipmentEntity {
   communicationProtocolId: string | null;
   communicationProtocol: string | null;
   equipmentTypeId: string | null;  // cabinetTypeId or panelTypeId
-  equipmentTypeName: string | null; // cabinetType or panelType
+  equipmentTypeCode: string | null; // cabinetType or panelType
 
   // Timestamps
   createdAt: Date;
@@ -57,7 +57,7 @@ export function cabinetToEquipment(cabinet: CabinetEntity): EquipmentEntity {
     communicationProtocolId: cabinet.communicationProtocolId,
     communicationProtocol: cabinet.communicationProtocol,
     equipmentTypeId: cabinet.cabinetTypeId,
-    equipmentTypeName: cabinet.cabinetType,
+    equipmentTypeCode: cabinet.cabinetType,
     createdAt: cabinet.createdAt,
     updatedAt: cabinet.updatedAt,
     lastInspectionAt: cabinet.lastInspectionAt,
@@ -83,7 +83,7 @@ export function panelToEquipment(panel: PanelEntity): EquipmentEntity {
     communicationProtocolId: panel.communicationProtocolId,
     communicationProtocol: panel.communicationProtocol,
     equipmentTypeId: panel.panelTypeId,
-    equipmentTypeName: panel.panelType,
+    equipmentTypeCode: panel.panelType,
     createdAt: panel.createdAt,
     updatedAt: panel.updatedAt,
     lastInspectionAt: panel.lastInspectionAt,

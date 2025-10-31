@@ -18,7 +18,8 @@ import {
       <!-- Header -->
       <div class="mb-3 flex items-start justify-between gap-3">
         <div class="flex items-center gap-3">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100 text-2xl">
+          <div
+            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100 text-2xl">
             <span class="text-2xl {{getEquipmentTypeIcon(equipment.type)}}"></span>
           </div>
           <div class="flex-1">
@@ -48,7 +49,7 @@ import {
           <div class="flex-1">
             <p class="text-xs text-gray-500">Tipo</p>
             <p class="text-sm font-medium text-gray-900">
-              {{ equipment.equipmentTypeName || 'No especificado' }}
+              {{ equipment.equipmentTypeCode || 'No especificado' }}
             </p>
           </div>
         </div>
@@ -63,11 +64,11 @@ import {
             </p>
             <p class="text-xs text-gray-600">
               {{ equipment.areaName || 'N/A' }}
-              @if (equipment.locationName ) {
+              @if (equipment.locationName) {
                 • {{ equipment.locationName || 'N/A' }}
               }
             </p>
-            @if (equipment.referenceLocation ) {
+            @if (equipment.referenceLocation) {
               <p class="text-xs text-gray-600">{{ equipment.referenceLocation || 'N/A' }}</p>
             }
           </div>

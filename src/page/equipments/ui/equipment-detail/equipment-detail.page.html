@@ -56,7 +56,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex items-start gap-4">
             <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-100 to-cyan-100">
-              <span class="text-3xl">{{ getEquipmentTypeEmoji(store.equipment()!.type) }}</span>
+              <i class="{{ getEquipmentTypeIcon(store.equipment()!.type)}}" style="font-size: 2rem"></i>
             </div>
 
             <div>
@@ -68,8 +68,8 @@
 
               <p class="mt-1 text-sm text-gray-600">
                 {{ store.equipmentTypeLabel() }}
-                @if (store.equipment()!.equipmentTypeName) {
-                  • {{ store.equipment()!.equipmentTypeName }}
+                @if (store.equipment()!.equipmentTypeCode) {
+                  • {{ store.equipment()!.equipmentTypeCode }}
                 }
               </p>
 
@@ -182,7 +182,7 @@
                     {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Tablero' }}
                   </dt>
                   <dd class="mt-1 text-sm text-gray-900">
-                    {{ store.equipment()!.equipmentTypeName || 'No especificado' }}
+                    {{ store.equipment()!.equipmentTypeCode || 'No especificado' }}
                   </dd>
                 </div>
 
@@ -333,7 +333,7 @@
                     {{ store.equipment()!.type === EquipmentTypeEnum.CABINET ? 'Tipo de Gabinete' : 'Tipo de Tablero' }}
                   </dt>
                   <dd class="mt-1 text-sm font-medium text-gray-900">
-                    {{ store.equipment()!.equipmentTypeName || 'No especificado' }}
+                    {{ store.equipment()!.equipmentTypeCode || 'No especificado' }}
                   </dd>
                 </div>
 
