@@ -1,11 +1,11 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { Ripple } from 'primeng/ripple';
-import { Menu } from 'primeng/menu';
-import { Drawer } from 'primeng/drawer';
-import { MenuItem } from 'primeng/api';
+import {Component, inject, OnInit, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {Router} from '@angular/router';
+import {FormsModule} from '@angular/forms';
+import {Ripple} from 'primeng/ripple';
+import {Menu} from 'primeng/menu';
+import {Drawer} from 'primeng/drawer';
+import {MenuItem} from 'primeng/api';
 import {UsersStore} from '../../model/users.store';
 import {AccountStatusEnum, UserEntity} from '../../../../entities/user/model';
 import {RolesEnum} from '../../../../entities/role/model';
@@ -148,8 +148,7 @@ export class UsersPage implements OnInit {
    * Toggle menú de acciones
    */
   toggleActionsMenu(event: Event, menu: Menu, user: UserEntity): void {
-    const items = this.buildActionsMenu(user);
-    menu.model = items;
+    menu.model = this.buildActionsMenu(user);
     menu.toggle(event);
   }
 
