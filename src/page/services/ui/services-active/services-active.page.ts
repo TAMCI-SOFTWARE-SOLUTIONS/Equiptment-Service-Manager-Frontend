@@ -42,6 +42,7 @@ export class ServicesActivePage implements OnInit {
   readonly ServiceStatusEnum = ServiceStatusEnum;
   readonly ServiceTypeEnum = ServiceTypeEnum;
   readonly EquipmentTypeEnum = EquipmentTypeEnum;
+  readonly currentService = signal<ServiceWithDetails | null>(null);
 
   // Modal state
   readonly showCancelModal = signal(false);
@@ -61,8 +62,15 @@ export class ServicesActivePage implements OnInit {
   }
 
   // ==================== MENU ACTIONS ====================
+  openMenu(event: Event, menu: Menu, service: ServiceWithDetails): void {
+    this.currentService.set(service);
+    menu.toggle(event);
+  }
 
-  getMenuItems(service: ServiceWithDetails): MenuItem[] {
+  getMenuItems(): MenuItem[] {
+    const service = this.currentService();
+    if (!service) return [];
+
     const items: MenuItem[] = [];
 
     items.push({
@@ -88,6 +96,7 @@ export class ServicesActivePage implements OnInit {
   // ==================== NAVIGATION ====================
 
   onServiceClick(service: ServiceWithDetails): void {
+    console.log('service', service);
     if (this.store.isOperator()) {
       this.router.navigate(['/services/work', service.id]).then();
     } else {

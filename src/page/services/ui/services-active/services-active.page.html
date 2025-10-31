@@ -296,22 +296,20 @@
                       <td class="px-4 py-3" (click)="$event.stopPropagation()">
                         <div class="flex justify-end">
                           <button
-                            #menuButton
                             type="button"
-                            (click)="menu.toggle($event)"
+                            (click)="openMenu($event, serviceMenu, service)"
                             pRipple
                             class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100">
                             <i class="pi pi-ellipsis-v text-sm"></i>
                           </button>
                           <p-menu
-                            #menu
-                            [model]="getMenuItems(service)"
+                            #serviceMenu
+                            [model]="getMenuItems()"
                             [popup]="true"
                             appendTo="body">
                           </p-menu>
                         </div>
                       </td>
-
                     </tr>
                   }
                 </tbody>
@@ -370,16 +368,15 @@
                   </button>
 
                   <button
-                    #menuButtonMobile
                     type="button"
-                    (click)="menuMobile.toggle($event)"
+                    (click)="openMenu($event, serviceMobileMenu, service)"
                     pRipple
                     class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50">
                     <i class="pi pi-ellipsis-v text-sm"></i>
                   </button>
                   <p-menu
-                    #menuMobile
-                    [model]="getMenuItems(service)"
+                    #serviceMobileMenu
+                    [model]="getMenuItems()"
                     [popup]="true"
                     appendTo="body">
                   </p-menu>
