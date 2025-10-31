@@ -43,12 +43,13 @@ export class InspectableItemDrawerComponent {
     await this.store.setBrand(brandId);
   }
 
-  onModelChange(modelId: string | null): void {
-    this.store.setModel(modelId);
+  async onModelChange(modelId: string | null): Promise<void> {
+    await this.store.setModel(modelId);
   }
 
-  onDescripcionChange(value: string): void {
-    this.store.setDescripcion(value);
+  // 🆕 Handler para Description
+  onDescriptionChange(descriptionId: string | null): void {
+    this.store.setDescription(descriptionId);
   }
 
   // ==================== DRAWER ACTIONS ====================
@@ -94,6 +95,14 @@ export class InspectableItemDrawerComponent {
     return this.store.availableModels().map(model => ({
       label: model.name,
       value: model.id
+    }));
+  }
+
+  // 🆕 Options para Description
+  getDescriptionOptions() {
+    return this.store.availableDescriptions().map(description => ({
+      label: description.name,
+      value: description.id
     }));
   }
 
