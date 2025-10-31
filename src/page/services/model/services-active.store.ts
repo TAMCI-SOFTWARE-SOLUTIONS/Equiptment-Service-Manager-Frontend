@@ -5,7 +5,6 @@ import {EquipmentServiceEntity, EquipmentServiceService, ServiceStatusEnum} from
 import {ProfileService} from '../../../entities/profile';
 import {SupervisorService} from '../../../entities/supervisor';
 import {EquipmentTypeEnum} from '../../../shared/model';
-import {RolesEnum} from '../../../entities/role/model';
 import {AuthStore} from '../../../shared/stores';
 import {CabinetService} from '../../../entities/cabinet/api';
 import {PanelService} from '../../../entities/panel/api';
@@ -54,140 +53,124 @@ const initialState: ServicesActiveState = {
   statusFilter: 'all',
   searchQuery: '',
   currentPage: 1,
-  pageSize: 10
+  pageSize: 5
 };
 
 export const ServicesActiveStore = signalStore(
   withState<ServicesActiveState>(initialState),
 
-  withComputed((state) => {
+  withComputed((store) => {
     const authStore = inject(AuthStore);
 
     return {
+      // Auth state
       isAdmin: computed(() => authStore.isAdmin()),
       isOperator: computed(() => authStore.isOperator()),
       isClient: computed(() => authStore.isClient()),
       currentUserId: computed(() => authStore.userId()),
-      isLoading: computed(() => state.isLoadingServices() || state.isLoadingDetails()),
-      filteredServices: computed(() => {
-        let services = state.enrichedServices();
+      userRoles: computed(() => authStore.userRoles()),
 
-        // 1. Filtro por estado
-        const statusFilter = state.statusFilter();
-        if (statusFilter !== 'all') {
-          services = services.filter(s => s.status === statusFilter);
-        }
+      // Loading state
+      isLoading: computed(() =>
+        store.isLoadingServices() || store.isLoadingDetails()
+      ),
 
-        // 2. Filtro de búsqueda
-        const searchQuery = state.searchQuery().toLowerCase().trim();
-        if (searchQuery) {
-          services = services.filter(s =>
-            s.equipmentTag.toLowerCase().includes(searchQuery) ||
-            s.operatorName.toLowerCase().includes(searchQuery) ||
-            s.supervisorName.toLowerCase().includes(searchQuery)
-          );
-        }
+      // Basic checks
+      hasServices: computed(() => store.enrichedServices().length > 0),
 
-        return services;
-      }),
-      paginatedServices: computed(() => {
-        let services = state.enrichedServices();
-
-        // Filtro por estado
-        const statusFilter = state.statusFilter();
-        if (statusFilter !== 'all') {
-          services = services.filter(s => s.status === statusFilter);
-        }
-
-        // Filtro de búsqueda
-        const searchQuery = state.searchQuery().toLowerCase().trim();
-        if (searchQuery) {
-          services = services.filter(s =>
-            s.equipmentTag.toLowerCase().includes(searchQuery) ||
-            s.operatorName.toLowerCase().includes(searchQuery) ||
-            s.supervisorName.toLowerCase().includes(searchQuery)
-          );
-        }
-
-        // Paginación
-        const page = state.currentPage();
-        const pageSize = state.pageSize();
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-
-        return services.slice(startIndex, endIndex);
-      }),
-      totalPages: computed(() => {
-        const roles = authStore.userRoles();
-        const userId = authStore.userId();
-        let services = state.enrichedServices();
-
-        // Filtro por rol
-        if (roles.some(r => r.name === RolesEnum.ROLE_OPERATOR) && userId) {
-          services = services.filter(s => s.operatorId === userId);
-        }
-
-        // Filtro por estado
-        const statusFilter = state.statusFilter();
-        if (statusFilter !== 'all') {
-          services = services.filter(s => s.status === statusFilter);
-        }
-
-        // Filtro de búsqueda
-        const searchQuery = state.searchQuery().toLowerCase().trim();
-        if (searchQuery) {
-          services = services.filter(s =>
-            s.equipmentTag.toLowerCase().includes(searchQuery) ||
-            s.operatorName.toLowerCase().includes(searchQuery) ||
-            s.supervisorName.toLowerCase().includes(searchQuery)
-          );
-        }
-
-        const pageSize = state.pageSize();
-        return Math.ceil(services.length / pageSize);
-      }),
-      statusCounts: computed(() => {
-        const roles = authStore.userRoles();
-        const userId = authStore.userId();
-        let services = state.enrichedServices();
-
-        // Filtro por rol
-        if (roles.some(r => r.name === RolesEnum.ROLE_OPERATOR) && userId) {
-          services = services.filter(s => s.operatorId === userId);
-        }
-
-        return {
-          all: services.length,
-          created: services.filter(s => s.status === ServiceStatusEnum.CREATED).length,
-          in_progress: services.filter(s => s.status === ServiceStatusEnum.IN_PROGRESS).length
-        };
-      }),
-      hasServices: computed(() => state.enrichedServices().length > 0),
-      hasNoResults: computed(() => {
-        let services = state.enrichedServices();
-
-        if (services.length === 0) return false;
-
-        // Filtro por estado
-        const statusFilter = state.statusFilter();
-        if (statusFilter !== 'all') {
-          services = services.filter(s => s.status === statusFilter);
-        }
-
-        // Filtro de búsqueda
-        const searchQuery = state.searchQuery().toLowerCase().trim();
-        if (searchQuery) {
-          services = services.filter(s =>
-            s.equipmentTag.toLowerCase().includes(searchQuery) ||
-            s.operatorName.toLowerCase().includes(searchQuery) ||
-            s.supervisorName.toLowerCase().includes(searchQuery)
-          );
-        }
-
-        return services.length === 0;
-      })
+      // Search query normalizado
+      normalizedSearchQuery: computed(() =>
+        store.searchQuery().toLowerCase().trim()
+      )
     };
   }),
+
+  withComputed((store) => ({
+    filteredServices: computed(() => {
+      let services = store.enrichedServices();
+
+      const statusFilter = store.statusFilter();
+      if (statusFilter !== 'all') {
+        services = services.filter(s => s.status === statusFilter);
+      }
+
+      const searchQuery = store.normalizedSearchQuery();
+      if (searchQuery) {
+        services = services.filter(s =>
+          s.equipmentTag.toLowerCase().includes(searchQuery) ||
+          s.operatorName.toLowerCase().includes(searchQuery) ||
+          s.supervisorName.toLowerCase().includes(searchQuery)
+        );
+      }
+
+      return services;
+    })
+  })),
+
+  withComputed((store) => ({
+    paginatedServices: computed(() => {
+      const services = store.filteredServices();
+      const page = store.currentPage();
+      const pageSize = store.pageSize();
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+
+      return services.slice(startIndex, endIndex);
+    }),
+
+    totalPages: computed(() => {
+      const services = store.filteredServices();
+      const pageSize = store.pageSize();
+      return Math.ceil(services.length / pageSize);
+    }),
+
+    totalFilteredResults: computed(() =>
+      store.filteredServices().length
+    ),
+
+    hasNoResults: computed(() => {
+      const hasData = store.hasServices();
+      const filteredCount = store.filteredServices().length;
+      return hasData && filteredCount === 0;
+    }),
+
+    statusCounts: computed(() => {
+      let services = store.enrichedServices();
+
+      if (store.isOperator() && store.currentUserId()) {
+        services = services.filter(s => s.operatorId === store.currentUserId());
+      }
+
+      return {
+        all: services.length,
+        created: services.filter(s => s.status === ServiceStatusEnum.CREATED).length,
+        inProgress: services.filter(s => s.status === ServiceStatusEnum.IN_PROGRESS).length,
+        completed: services.filter(s => s.status === ServiceStatusEnum.COMPLETED).length,
+        cancelled: services.filter(s => s.status === ServiceStatusEnum.CANCELLED).length
+      };
+    }),
+
+
+    paginationInfo: computed(() => {
+      const page = store.currentPage();
+      const pageSize = store.pageSize();
+      const total = store.filteredServices().length;
+      const totalPages = Math.ceil(total / pageSize);
+      const startIndex = (page - 1) * pageSize + 1;
+      const endIndex = Math.min(page * pageSize, total);
+
+      return {
+        currentPage: page,
+        pageSize,
+        totalPages,
+        totalResults: total,
+        startIndex: total > 0 ? startIndex : 0,
+        endIndex: total > 0 ? endIndex : 0,
+        hasPreviousPage: page > 1,
+        hasNextPage: page < totalPages
+      };
+    })
+  })),
 
   withMethods((store) => {
     const contextStore = inject(ContextStore);
