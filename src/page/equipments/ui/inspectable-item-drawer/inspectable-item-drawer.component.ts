@@ -8,6 +8,19 @@ import { PrimeTemplate } from 'primeng/api';
 import {EquipmentInspectableItemsStore} from '../../model/equipment-inspectable-items.store';
 import {InspectableItemTypeEnum} from '../../../../shared/model/enums';
 
+interface TypeOption {
+  label: string;
+  value: InspectableItemTypeEnum;
+  icon: string;
+  color: string;
+}
+
+interface TypeGroupOption {
+  label: string;
+  icon: string;
+  items: TypeOption[];
+}
+
 @Component({
   selector: 'app-inspectable-item-drawer',
   standalone: true,
@@ -75,13 +88,65 @@ export class InspectableItemDrawerComponent {
 
   // ==================== HELPERS ====================
 
-  getTypeOptions() {
-    return this.store.typeConfigs().map(config => ({
-      label: config.label,
-      value: config.enum,
-      icon: config.icon,
-      color: config.color
-    }));
+  getTypeOptions(): TypeGroupOption[] {
+    const configs = this.store.typeConfigs();
+
+    // Separar por grupo
+    const componentTypes = configs
+      .filter(c => c.group === 'component')
+      .map(c => ({
+        label: c.label,
+        value: c.enum,
+        icon: c.icon,
+        color: c.color
+      }));
+
+    const equipmentTypes = configs
+      .filter(c => c.group === 'equipment')
+      .map(c => ({
+        label: c.label,
+        value: c.enum,
+        icon: c.icon,
+        color: c.color
+      }));
+
+    const otherTypes = configs
+      .filter(c => c.group === 'other')
+      .map(c => ({
+        label: c.label,
+        value: c.enum,
+        icon: c.icon,
+        color: c.color
+      }));
+
+    // Crear estructura de grupos
+    const groups: TypeGroupOption[] = [];
+
+    if (componentTypes.length > 0) {
+      groups.push({
+        label: 'Componentes',
+        icon: ' pi-microchip',
+        items: componentTypes
+      });
+    }
+
+    if (equipmentTypes.length > 0) {
+      groups.push({
+        label: 'Dispositivos',
+        icon: ' pi-bolt',
+        items: equipmentTypes
+      });
+    }
+
+    if (otherTypes.length > 0) {
+      groups.push({
+        label: 'Adicionales',
+        icon: ' pi-ellipsis-h',
+        items: otherTypes
+      });
+    }
+
+    return groups;
   }
 
   getBrandOptions() {
@@ -89,6 +154,13 @@ export class InspectableItemDrawerComponent {
       label: brand.name,
       value: brand.id
     }));
+  }
+
+  getSelectedTypeConfig() {
+    const selectedType = this.store.formData().type;
+    if (!selectedType) return null;
+
+    return this.store.typeConfigs().find(c => c.enum === selectedType);
   }
 
   getModelOptions() {

@@ -75,12 +75,15 @@
         (onChange)="onTypeChange($event.value)"
         optionLabel="label"
         optionValue="value"
+        [group]="true"
         placeholder="Selecciona el tipo"
         [disabled]="store.isSubmitting()"
         [showClear]="false"
+        filterPlaceholder="Buscar tipo..."
         [style]="{ width: '100%' }"
         class="w-full">
 
+        <!-- Template para items dentro de grupos -->
         <ng-template let-type pTemplate="item">
           <div class="flex items-center gap-3 py-2">
             <div [class]="'flex h-8 w-8 items-center justify-center rounded-lg ' + getColorClasses(type.color).bg">
@@ -90,10 +93,21 @@
           </div>
         </ng-template>
 
-        <ng-template let-type pTemplate="selectedItem">
-          <div class="flex items-center gap-2">
-            <i [class]="'pi ' + type.icon + ' text-sm ' + getColorClasses(type.color).text"></i>
-            <span class="text-sm text-gray-900">{{ type.label }}</span>
+        <!-- Template para item seleccionado -->
+        <ng-template pTemplate="selectedItem">
+          @if (getSelectedTypeConfig(); as config) {
+            <div class="flex items-center gap-2">
+              <i [class]="'pi ' + config.icon + ' text-sm ' + getColorClasses(config.color).text"></i>
+              <span class="text-sm text-gray-900">{{ config.label }}</span>
+            </div>
+          }
+        </ng-template>
+
+        <!-- Template para headers de grupos -->
+        <ng-template let-group pTemplate="group">
+          <div class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <i [class]="'pi ' + group.icon + ' mr-1 text-sm ' + getColorClasses(group.color).text"></i>
+            <span>{{ group.label }}</span>
           </div>
         </ng-template>
       </p-select>

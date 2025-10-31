@@ -15,6 +15,7 @@ interface TypeConfig {
   label: string;
   icon: string;
   color: string;
+  group: 'component' | 'equipment' | 'other';
 }
 
 const TYPE_CONFIGS: TypeConfig[] = [
@@ -22,37 +23,43 @@ const TYPE_CONFIGS: TypeConfig[] = [
     enum: InspectableItemTypeEnum.COMMUNICATION,
     label: 'Comunicación',
     icon: 'pi-wifi',
-    color: 'sky'
+    color: 'sky',
+    group: 'component'
   },
   {
     enum: InspectableItemTypeEnum.STATE,
     label: 'Estado',
     icon: 'pi-circle',
-    color: 'cyan'
+    color: 'cyan',
+    group: 'component'
   },
-  {
+/*  {
     enum: InspectableItemTypeEnum.POWER_SUPPLY,
     label: 'Fuentes',
     icon: 'pi-bolt',
-    color: 'sky'
-  },
+    color: 'sky',
+    group: 'equipment'
+  },*/
   {
     enum: InspectableItemTypeEnum.POWER_120VAC,
     label: 'Alimentación 120VAC',
-    icon: 'pi-flash',
-    color: 'cyan'
+    icon: 'pi-lightbulb',
+    color: 'cyan',
+    group: 'equipment'
   },
   {
     enum: InspectableItemTypeEnum.ORDER_AND_CLEANLINESS,
     label: 'Orden y Limpieza',
     icon: 'pi-check-circle',
-    color: 'sky'
+    color: 'sky',
+    group: 'other'
   },
   {
     enum: InspectableItemTypeEnum.OTHERS,
     label: 'Otros',
     icon: 'pi-folder',
-    color: 'cyan'
+    color: 'cyan',
+    group: 'other'
   }
 ];
 
