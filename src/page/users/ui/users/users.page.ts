@@ -258,7 +258,8 @@ export class UsersPage implements OnInit {
   getRoleLabel(role: RolesEnum): string {
     const labels: Record<RolesEnum, string> = {
       [RolesEnum.ROLE_ADMIN]: 'Admin',
-      [RolesEnum.ROLE_OPERATOR]: 'Operador'
+      [RolesEnum.ROLE_OPERATOR]: 'Operador',
+      [RolesEnum.ROLE_CLIENT_VIEWER]: 'Cliente'
     };
     return labels[role] || role;
   }
@@ -269,7 +270,8 @@ export class UsersPage implements OnInit {
   getRoleClass(role: RolesEnum): string {
     const classes: Record<RolesEnum, string> = {
       [RolesEnum.ROLE_ADMIN]: 'bg-sky-100 text-sky-700 border-sky-200',
-      [RolesEnum.ROLE_OPERATOR]: 'bg-cyan-100 text-cyan-700 border-cyan-200'
+      [RolesEnum.ROLE_OPERATOR]: 'bg-cyan-100 text-cyan-700 border-cyan-200',
+      [RolesEnum.ROLE_CLIENT_VIEWER]: 'bg-blue-100 text-blue-700 border-blue-200',
     };
     return classes[role] || 'bg-gray-100 text-gray-700 border-gray-200';
   }
