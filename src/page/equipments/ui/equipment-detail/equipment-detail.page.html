@@ -491,11 +491,11 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
-                    <i class="pi pi-bolt text-lg text-sky-600"></i>
+                    <i class="pi pi-lock text-lg text-sky-600"></i>
                   </div>
                   <div>
                     <h2 class="text-lg font-semibold text-gray-900">
-                      Paneles de Distribución
+                      Puntos de Bloqueo
                     </h2>
                     @if (powerStore.hasAssignments()) {
                       <p class="text-xs text-gray-600">
@@ -512,7 +512,7 @@
                   [disabled]="powerStore.isLoading()"
                   class="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none sm:justify-start sm:px-4">
                   <i class="pi pi-plus text-sm"></i>
-                  <span class="hidden sm:inline">Asignar Panel</span>
+                  <span class="hidden sm:inline">Asignar Punto de Bloqueo</span>
                 </button>
               </div>
             </div>
@@ -656,7 +656,7 @@
 
                   <div class="mt-4 flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700">
                     <i class="pi pi-info-circle text-blue-600"></i>
-                    <span class="font-medium">Sin paneles de distribución asignados</span>
+                    <span class="font-medium">Sin puntos de bloqueo asignados</span>
                   </div>
 
                   <button
@@ -665,7 +665,7 @@
                     (click)="onAddPowerAssignment()"
                     class="mt-6 flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
                     <i class="pi pi-plus"></i>
-                    Asignar Panel
+                    Asignar Punto de Bloqueo
                   </button>
                 </div>
               }
