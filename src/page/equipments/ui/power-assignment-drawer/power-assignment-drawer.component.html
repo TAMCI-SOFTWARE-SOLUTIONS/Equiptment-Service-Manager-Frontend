@@ -15,7 +15,7 @@
           {{ store.drawerTitle() }}
         </h2>
         <p class="text-xs text-gray-600">
-          Asigna un panel y sus circuitos
+          Asignar punto de bloqueo
         </p>
       </div>
     </div>
@@ -50,7 +50,7 @@
       @if (store.isLoadingPanels()) {
         <div class="flex h-11 items-center rounded-lg border border-gray-300 bg-gray-50 px-3">
           <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
-          <span class="ml-2 text-sm text-gray-500">Cargando paneles...</span>
+          <span class="ml-2 text-sm text-gray-500">Cargando tableros de alimentación eléctrica...</span>
         </div>
       } @else {
         <p-select
@@ -59,7 +59,12 @@
           (onChange)="onPanelChange($event.value)"
           optionLabel="code"
           optionValue="id"
-          placeholder="Selecciona un panel"
+          placeholder="Selecciona un tablero de alimentación eléctrica"
+          [filter]="true"
+          [filterBy]="'code'"
+          [filterMatchMode]="'contains'"
+          [filterLocale]="'es'"
+          filterPlaceholder="Buscar tablero de alimentación eléctrica..."
           [disabled]="store.isSubmitting()"
           [showClear]="false"
           [style]="{ width: '100%' }"
