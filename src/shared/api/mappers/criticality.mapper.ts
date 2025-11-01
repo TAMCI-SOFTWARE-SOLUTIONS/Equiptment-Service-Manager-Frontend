@@ -1,20 +1,15 @@
-import {CriticalityEnum} from '../../model/enums/criticality.enum';
-
+import { CriticalityEnum } from '../../model/enums/criticality.enum';
 
 export class CriticalityMapper {
-
   static fromStringToEnum(criticality: string): CriticalityEnum | null {
-    if (!criticality) {return null;}
+    const criticalityKey = Object.keys(CriticalityEnum).find(
+      key => CriticalityEnum[key as keyof typeof CriticalityEnum] === criticality
+    );
 
-    const validCriticalities = Object.values(CriticalityEnum) as string[];
-
-    const normalizedCriticality = criticality.toLowerCase();
-
-    if (validCriticalities.includes(normalizedCriticality)) {
-      return normalizedCriticality as CriticalityEnum;
+    if (criticalityKey) {
+      return CriticalityEnum[criticalityKey as keyof typeof CriticalityEnum];
     }
 
-    console.warn(`Invalid criticality received: "${criticality}". Setting to null.`);
     return null;
   }
 
