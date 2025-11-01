@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {catchError, map, retry} from 'rxjs/operators';
 import {BaseService} from '../../../../shared/api';
 import {InspectableItemEntity} from '../../model';
@@ -9,6 +9,7 @@ import {
   InspectableItemEntityFromResponseMapper,
   UpdateInspectableItemRequestFromEntityMapper
 } from '../mappers';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -42,6 +43,17 @@ export class InspectableItemService extends BaseService {
       map((response: InspectableItemResponse) =>
         InspectableItemEntityFromResponseMapper.fromDtoToEntity(response)
       ),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  getAllByIds(ids: string[]): Observable<InspectableItemEntity[]> {
+    if (!ids || ids.length === 0) {return of([]);}
+    const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
+    const options = { ...this.httpOptions, params };
+    return this.http.get<InspectableItemResponse[]>(`${this.resourcePath()}/:batchGet`, options).pipe(
+      map((responses: InspectableItemResponse[]) => responses.map(response => InspectableItemEntityFromResponseMapper.fromDtoToEntity(response))),
       retry(2),
       catchError(this.handleError)
     );
