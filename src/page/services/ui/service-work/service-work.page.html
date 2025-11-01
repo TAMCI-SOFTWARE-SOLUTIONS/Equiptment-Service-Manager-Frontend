@@ -1,64 +1,23 @@
 <div class="flex h-full flex-col bg-gray-50">
 
-  <!-- Header -->
-  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
-    <div class="mx-auto max-w-7xl">
+  <!-- Header Fijo -->
+  <app-service-work-header
+    [title]="getServiceTitle()"
+    [currentStep]="store.currentStep()"
+    [stepLabel]="getStepLabel(store.currentStep())"
+    [progress]="getProgress()"
+    [hasUnsavedChanges]="store.hasUnsavedChanges()"
+    [isSaving]="store.isSavingInspection()"
+    [isLoading]="store.isLoading()"
+    [serviceStatus]="store.service()?.status || ServiceStatusEnum.CREATED"
+    (onClose)="onExit()"
+    (onStepClick)="onStepClick($event)"
+    (onSave)="saveProgress()">
+  </app-service-work-header>
 
-      <!-- Back button + Title -->
-      <div class="mb-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <button
-            type="button"
-            (click)="onExit()"
-            pRipple
-            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50">
-            <i class="pi pi-arrow-left text-sm"></i>
-          </button>
-          <div>
-            <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
-              Servicio en Progreso
-            </h1>
-            @if (store.service(); as service) {
-              <p class="text-sm text-gray-500">
-                {{ getServiceTypeLabel(service.type) }} - {{ service.equipmentId }}
-              </p>
-            }
-          </div>
-        </div>
-
-        <!-- Save Progress Button -->
-        @if (store.hasUnsavedChanges() && store.currentStep() === 2) {
-          <button
-            type="button"
-            (click)="saveProgress()"
-            [disabled]="store.isSavingInspection()"
-            pRipple
-            class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50">
-            @if (store.isSavingInspection()) {
-              <i class="pi pi-spin pi-spinner text-sm"></i>
-              <span>Guardando...</span>
-            } @else {
-              <i class="pi pi-save text-sm"></i>
-              <span>Guardar Progreso</span>
-            }
-          </button>
-        }
-      </div>
-
-      <!-- Stepper -->
-      <p-steps
-        [model]="stepperItems"
-        [activeIndex]="store.currentStep() - 1"
-        [readonly]="false"
-        (activeIndexChange)="onStepChange($event)">
-      </p-steps>
-
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <main class="flex-1 overflow-y-auto px-4 py-6 lg:px-8">
-    <div class="mx-auto max-w-7xl">
+  <!-- Main Content (Scrollable) -->
+  <main class="flex-1 overflow-y-auto">
+    <div class="mx-auto max-w-7xl px-4 py-6 lg:px-8">
 
       <!-- Loading State -->
       @if (store.isLoading() && !store.service()) {
@@ -89,1090 +48,159 @@
         </app-empty-state>
       }
 
-      @else if (store.currentStep() === 1 && store.service(); as service) {
-        <div class="space-y-6">
+      @else {
+        @switch (store.currentStep()) {
 
-          <!-- Service Info Card -->
-          <div class="rounded-lg border border-gray-200 bg-white p-6">
-            <h2 class="mb-4 text-lg font-semibold text-gray-900">
-              Información del Servicio
-            </h2>
-
-            <div class="grid gap-4 md:grid-cols-2">
-              <!-- Tipo de Servicio -->
-              <div>
-                <label class="text-sm font-medium text-gray-500">Tipo de Servicio</label>
-                <p class="mt-1 text-base font-semibold text-gray-900">
-                  {{ getServiceTypeLabel(service.type) }}
-                </p>
-              </div>
-
-              <!-- Estado -->
-              <div>
-                <label class="text-sm font-medium text-gray-500">Estado</label>
-                <p class="mt-1">
-                  @if (service.status === ServiceStatusEnum.CREATED) {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-sm font-medium text-gray-700">
-                      <i class="pi pi-circle text-xs"></i>
-                      Creado
-                    </span>
-                  } @else if (service.status === ServiceStatusEnum.IN_PROGRESS) {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-sm font-medium text-blue-700">
-                      <i class="pi pi-spin pi-spinner text-xs"></i>
-                      En Progreso
-                    </span>
-                  }
-                </p>
-              </div>
-
-              <!-- Supervisor -->
-              <div>
-                <label class="text-sm font-medium text-gray-500">Supervisor</label>
-                <p class="mt-1 text-base font-semibold text-gray-900">
-                  {{ store.supervisor()?.fullName || 'N/A' }}
-                </p>
-              </div>
-
-              <!-- Fecha Creación -->
-              <div>
-                <label class="text-sm font-medium text-gray-500">Fecha de Creación</label>
-                <p class="mt-1 text-base text-gray-900">
-                  {{ formatDate(service.createdAt) }}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Equipment Info Card -->
-          <div class="rounded-lg border border-gray-200 bg-white p-6">
-            <h2 class="mb-4 text-lg font-semibold text-gray-900">
-              Información del Equipo
-            </h2>
-
-            @if (store.equipment(); as equipment) {
-              <div class="grid gap-4 md:grid-cols-2">
-                <!-- Tipo -->
-                <div>
-                  <label class="text-sm font-medium text-gray-500">Tipo</label>
-                  <p class="mt-1 text-base font-semibold text-gray-900">
-                    {{ getEquipmentTypeLabel(service.equipmentType) }}
-                  </p>
-                </div>
-
-                <!-- Tag -->
-                <div>
-                  <label class="text-sm font-medium text-gray-500">Tag</label>
-                  <p class="mt-1 text-base font-semibold text-gray-900">
-                    {{ equipment.tag }}
-                  </p>
-                </div>
-              </div>
-            }
-          </div>
-
-          <!-- Power Distribution Panels -->
-          @if (store.powerDistributions().length > 0) {
-            <div class="rounded-lg border border-gray-200 bg-white p-6">
-              <h2 class="mb-4 text-lg font-semibold text-gray-900">
-                Paneles de Distribución Eléctrica
-              </h2>
-
-              <div class="space-y-3">
-                @for (distribution of store.powerDistributions(); track distribution.id) {
-                  @if (store.powerPanels().get(distribution.powerDistributionPanelId); as panel) {
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                      <div class="flex items-start justify-between">
-                        <div>
-                          <p class="font-semibold text-gray-900">
-                            Panel: {{ panel.code }}
-                          </p>
-                          <p class="text-sm text-gray-600">
-                            Tipo: {{ panel.type }}
-                          </p>
-                        </div>
-                        <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
-                          {{ distribution.circuitAssignments.length }} circuitos
-                        </span>
-                      </div>
-                      <div class="mt-2">
-                        <p class="text-sm font-medium text-gray-500">Circuitos asignados:</p>
-                        <p class="mt-1 text-sm text-gray-900">
-                          {{ distribution.circuitAssignments.join(', ') }}
-                        </p>
-                      </div>
-                    </div>
-                  }
-                }
-              </div>
-            </div>
-          }
-
-          <!-- Start Service Button -->
-          @if (store.canStartService()) {
-            <div class="flex justify-center">
-              <button
-                type="button"
-                (click)="onStartServiceClick()"
-                [disabled]="store.isStartingService()"
-                pRipple
-                class="inline-flex items-center gap-2 rounded-lg bg-green-500 px-8 py-3 text-base font-semibold text-white shadow-lg transition-all hover:bg-green-600 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50">
-                @if (store.isStartingService()) {
-                  <i class="pi pi-spin pi-spinner"></i>
-                  <span>Iniciando...</span>
-                } @else {
-                  <i class="pi pi-play"></i>
-                  <span>COMENZAR SERVICIO</span>
-                }
-              </button>
-            </div>
-          } @else if (store.isServiceInProgress()) {
-            <div class="flex justify-end">
-              <button
-                type="button"
-                (click)="onNext()"
-                pRipple
-                class="inline-flex items-center gap-2 rounded-lg bg-sky-500 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-sky-600">
-                <span>Continuar a Inspección</span>
-                <i class="pi pi-arrow-right"></i>
-              </button>
-            </div>
-          }
-
-        </div>
-      }
-
-      @else if (store.currentStep() === 2) {
-        <div class="space-y-6">
-
-          <!-- Progress Banner -->
-          @if (store.inspectionProgress(); as progress) {
-            <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="font-semibold text-blue-900">
-                    Progreso de Inspección
-                  </h3>
-                  <p class="text-sm text-blue-700">
-                    {{ progress.completed }} de {{ progress.total }} items completados ({{ progress.percentage }}%)
-                  </p>
-                </div>
-                <div class="text-right">
-                  <div class="text-2xl font-bold text-blue-900">
-                    {{ progress.percentage }}%
-                  </div>
-                </div>
-              </div>
-              <div class="mt-3 h-2 overflow-hidden rounded-full bg-blue-200">
-                <div
-                  [class]="getProgressColor(progress.percentage)"
-                  [style.width.%]="progress.percentage"
-                  class="h-full transition-all duration-500">
-                </div>
-              </div>
-            </div>
-          }
-
-          <!-- Unsaved Changes Warning -->
-          @if (store.hasUnsavedChanges()) {
-            <div class="rounded-lg border-l-4 border-amber-400 bg-amber-50 p-4">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <i class="pi pi-exclamation-triangle text-xl text-amber-600"></i>
-                  <div>
-                    <p class="font-medium text-amber-900">Tienes cambios sin guardar</p>
-                    <p class="text-sm text-amber-700">Los cambios se guardan automáticamente después de 2 segundos</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  (click)="saveProgress()"
-                  [disabled]="store.isSavingInspection()"
-                  pRipple
-                  class="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:opacity-50">
-                  @if (store.isSavingInspection()) {
-                    <i class="pi pi-spin pi-spinner text-sm"></i>
-                    <span>Guardando...</span>
-                  } @else {
-                    <i class="pi pi-save text-sm"></i>
-                    <span>Guardar Ahora</span>
-                  }
-                </button>
-              </div>
-            </div>
-          }
-
-          <!-- Inspection Tabs -->
-          <div class="rounded-lg border border-gray-200 bg-white">
-
-            <!-- Tabs Header (Desktop) -->
-            <div class="hidden border-b border-gray-200 lg:block">
-              <div class="flex overflow-x-auto">
-                @for (tab of inspectableTypeTabs; track tab.type) {
-                  <button
-                    type="button"
-                    (click)="onInspectableTypeChange(tab.type)"
-                    [class.border-b-2]="store.currentInspectableType() === tab.type"
-                    [class.border-sky-500]="store.currentInspectableType() === tab.type"
-                    [class.text-sky-600]="store.currentInspectableType() === tab.type"
-                    [class.font-semibold]="store.currentInspectableType() === tab.type"
-                    [class.text-gray-600]="store.currentInspectableType() !== tab.type"
-                    pRipple
-                    class="flex shrink-0 items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm transition-colors hover:bg-gray-50 hover:text-gray-900">
-                    <i [class]="'pi ' + tab.icon"></i>
-                    <span>{{ tab.label }}</span>
-                    @if (store.progressByType()[tab.type]; as typeProgress) {
-                      <span
-                        [class.bg-green-100]="typeProgress.completed === typeProgress.total && typeProgress.total > 0"
-                        [class.text-green-700]="typeProgress.completed === typeProgress.total && typeProgress.total > 0"
-                        [class.bg-gray-100]="typeProgress.completed !== typeProgress.total || typeProgress.total === 0"
-                        [class.text-gray-600]="typeProgress.completed !== typeProgress.total || typeProgress.total === 0"
-                        class="rounded-full px-2 py-0.5 text-xs font-medium">
-                        {{ typeProgress.completed }}/{{ typeProgress.total }}
-                      </span>
-                    }
-                  </button>
-                }
-              </div>
-            </div>
-
-            <!-- Tabs Dropdown (Mobile) -->
-            <div class="border-b border-gray-200 p-4 lg:hidden">
-              <select
-                [value]="store.currentInspectableType()"
-                (change)="onInspectableTypeChange($any($event.target).value)"
-                class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                @for (tab of inspectableTypeTabs; track tab.type) {
-                  <option [value]="tab.type">
-                    {{ tab.label }}
-                    @if (store.progressByType()[tab.type]; as typeProgress) {
-                      ({{ typeProgress.completed }}/{{ typeProgress.total }})
-                    }
-                  </option>
-                }
-              </select>
-            </div>
-
-            <!-- Items List -->
-            <div class="p-6">
-              @if (store.isLoadingItems()) {
-                <!-- Loading Skeleton -->
-                <div class="space-y-4">
-                  @for (i of [1,2,3,4]; track i) {
-                    <div class="animate-pulse rounded-lg border border-gray-200 p-4">
-                      <div class="h-4 w-1/4 rounded bg-gray-200"></div>
-                      <div class="mt-3 flex gap-3">
-                        <div class="h-10 flex-1 rounded bg-gray-200"></div>
-                        <div class="h-10 flex-1 rounded bg-gray-200"></div>
-                      </div>
-                    </div>
-                  }
-                </div>
-              } @else if (store.currentTypeItems().length === 0) {
-                <!-- Empty State -->
-                <app-empty-state
-                  icon="pi-inbox"
-                  iconBgClass="bg-gradient-to-br from-gray-100 to-gray-200"
-                  iconColorClass="text-gray-500"
-                  [title]="'No hay items en esta categoría'"
-                  [description]="'No se encontraron items inspeccionables del tipo ' + INSPECTABLE_TYPE_LABELS[store.currentInspectableType()]"
-                  [showButton]="false">
-                </app-empty-state>
-              } @else {
-                <!-- Items -->
-                <div class="space-y-4">
-                  @for (item of store.currentTypeItems(); track item.id) {
-                    <div
-                      class="rounded-lg border border-gray-200 bg-white p-4 transition-all"
-                      [class.ring-2]="isItemCompleted(item.inspection?.condition || null, item.inspection?.criticality || null)"
-                      [class.ring-green-500]="isItemCompleted(item.inspection?.condition || null, item.inspection?.criticality || null)"
-                      [class.bg-green-50]="isItemCompleted(item.inspection?.condition || null, item.inspection?.criticality || null)">
-
-                      <!-- Item Header -->
-                      <div class="mb-3 flex items-start justify-between">
-                        <div class="flex items-start gap-3">
-                          <!-- Status Icon -->
-                          <i
-                            [class]="'text-xl ' + getItemStatusIcon(item)"
-                            [ngClass]="getItemStatusClass(item)">
-                          </i>
-
-                          <div class="flex-1">
-                            <h3 class="font-semibold text-gray-900">{{ item.tag }}</h3>
-                            <p class="text-sm text-gray-600">{{ item.descriptionId }}</p>
-                            <div class="mt-1 flex flex-wrap gap-2 text-xs text-gray-500">
-                              <span>Marca: {{ item.brandName }}</span>
-                              <span>•</span>
-                              <span>Modelo: {{ item.modelName }}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- Saving Indicator -->
-                        @if (item.isSaving) {
-                          <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
-                            <i class="pi pi-spin pi-spinner"></i>
-                            Guardando...
-                          </span>
-                        } @else if (item.lastSaved) {
-                          <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                            <i class="pi pi-check"></i>
-                            Guardado
-                          </span>
-                        }
-                      </div>
-
-                      <!-- Form Fields -->
-                      <div class="grid gap-4 md:grid-cols-3">
-
-                        <!-- Condición -->
-                        <div>
-                          <label class="mb-1 block text-sm font-medium text-gray-700">
-                            Condición <span class="text-rose-500">*</span>
-                          </label>
-                          <select
-                            [value]="item.inspection?.condition || ''"
-                            (change)="onConditionChange(item, $any($event.target).value)"
-                            [disabled]="item.isSaving"
-                            class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-100">
-                            <option value="">Seleccionar...</option>
-                            @for (condition of getConditionOptions(item.type); track condition) {
-                              <option [value]="condition">
-                                {{ CONDITION_LABELS[condition] }}
-                              </option>
-                            }
-                          </select>
-                        </div>
-
-                        <!-- Criticidad (Conditional) -->
-                        @if (item.inspection?.condition && requiresCriticality(item.inspection?.condition)) {
-                          <div>
-                            <label class="mb-1 block text-sm font-medium text-gray-700">
-                              Criticidad <span class="text-rose-500">*</span>
-                            </label>
-                            <select
-                              [value]="item.inspection?.criticality || ''"
-                              (change)="onCriticalityChange(item, $any($event.target).value)"
-                              [disabled]="item.isSaving"
-                              class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-100">
-                              <option value="">Seleccionar...</option>
-                              <option [value]="CriticalityEnum.CRITICAL">
-                                {{ CRITICALITY_LABELS[CriticalityEnum.CRITICAL] }}
-                              </option>
-                              <option [value]="CriticalityEnum.NOT_CRITICAL">
-                                {{ CRITICALITY_LABELS[CriticalityEnum.NOT_CRITICAL] }}
-                              </option>
-                            </select>
-                          </div>
-                        } @else {
-                          <div>
-                            <label class="mb-1 block text-sm font-medium text-gray-400">
-                              Criticidad
-                            </label>
-                            <div class="flex h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-400">
-                              No aplica
-                            </div>
-                          </div>
-                        }
-
-                        <!-- Observación -->
-                        <div [class.md:col-span-2]="!item.inspection?.condition || !requiresCriticality(item.inspection?.condition)">
-                          <label class="mb-1 block text-sm font-medium text-gray-700">
-                            Observación <span class="text-gray-400 text-xs">(Opcional)</span>
-                          </label>
-                          <input
-                            type="text"
-                            [value]="item.inspection?.observation || ''"
-                            (input)="onObservationChange(item, $any($event.target).value)"
-                            [disabled]="item.isSaving"
-                            placeholder="Agregar observación..."
-                            class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-100">
-                        </div>
-
-                      </div>
-
-                      <!-- Previous Service Info (for Maintenance/Raise) -->
-                      @if (store.hasPreviousService() && item.inspection?.id === '') {
-                        <div class="mt-3 rounded-lg bg-blue-50 p-3">
-                          <div class="flex items-start gap-2">
-                            <i class="pi pi-info-circle text-sm text-blue-600"></i>
-                            <p class="text-xs text-blue-700">
-                              Datos pre-cargados del servicio anterior. Modifica los campos si hay cambios.
-                            </p>
-                          </div>
-                        </div>
-                      }
-
-                      <!-- Validation for Raise Observation -->
-                      @if (store.serviceType() === ServiceTypeEnum.RAISE_OBSERVATION && item.inspection?.condition && !isValidForRaiseObservation(item)) {
-                        <div class="mt-3 rounded-lg bg-amber-50 p-3">
-                          <div class="flex items-start gap-2">
-                            <i class="pi pi-exclamation-triangle text-sm text-amber-600"></i>
-                            <p class="text-xs text-amber-700">
-                              Para levantamiento de observaciones, este item debe estar en estado "OK" u "Operativo" sin criticidad.
-                            </p>
-                          </div>
-                        </div>
-                      }
-
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-
-          </div>
-
-          <!-- Navigation Buttons -->
-          <div class="flex items-center justify-between">
-            <button
-              type="button"
-              (click)="onBack()"
-              pRipple
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50">
-              <i class="pi pi-arrow-left"></i>
-              <span>Atrás</span>
-            </button>
-
-            <div class="flex items-center gap-3">
-              @if (store.hasUnsavedChanges()) {
-                <button
-                  type="button"
-                  (click)="saveProgress()"
-                  [disabled]="store.isSavingInspection()"
-                  pRipple
-                  class="inline-flex items-center gap-2 rounded-lg border border-blue-300 bg-white px-6 py-3 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 disabled:opacity-50">
-                  @if (store.isSavingInspection()) {
-                    <i class="pi pi-spin pi-spinner"></i>
-                    <span>Guardando...</span>
-                  } @else {
-                    <i class="pi pi-save"></i>
-                    <span>Guardar Progreso</span>
-                  }
-                </button>
-              }
-
-              <button
-                type="button"
-                (click)="onNext()"
-                pRipple
-                class="inline-flex items-center gap-2 rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-sky-600">
-                <span>Continuar a Evidencias</span>
-                <i class="pi pi-arrow-right"></i>
-              </button>
-            </div>
-          </div>
-
-        </div>
-      }
-
-      @else if (store.currentStep() === 3 && store.service(); as service) {
-        <div class="space-y-6">
-
-          <!-- Progress Info -->
-          @if (store.evidenceValidation(); as evidence) {
-            <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
-              <div class="flex items-center gap-3">
-                <i class="pi pi-images text-2xl text-blue-600"></i>
-                <div>
-                  <h3 class="font-semibold text-blue-900">
-                    Carga de Evidencias
-                  </h3>
-                  <p class="text-sm text-blue-700">
-                    @if (evidence.isComplete) {
-                      ✅ Todas las evidencias han sido cargadas
-                    } @else {
-                      Completa la carga de todas las evidencias requeridas
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          }
-
-          <!-- Videos Section -->
-          <div class="rounded-lg border border-gray-200 bg-white p-6">
-            <h2 class="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <i class="pi pi-video text-sky-500"></i>
-              Videos
-            </h2>
-
-            <div class="grid gap-6 md:grid-cols-2">
-
-              <!-- Video Inicio -->
-              <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                  Video de Inicio <span class="text-rose-500">*</span>
-                </label>
-
-                @if (service.videoStartFileId) {
-                  <div class="rounded-lg border-2 border-green-200 bg-green-50 p-4">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-3">
-                        <i class="pi pi-check-circle text-2xl text-green-600"></i>
-                        <div>
-                          <p class="font-medium text-green-900">Video cargado</p>
-                          <p class="text-sm text-green-700">ID: {{ service.videoStartFileId }}</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        (click)="onVideoStartClick()"
-                        [disabled]="store.isUploadingFile()"
-                        pRipple
-                        class="rounded-lg border border-green-300 bg-white px-3 py-2 text-sm font-medium text-green-600 transition-colors hover:bg-green-50 disabled:opacity-50">
-                        Reemplazar
-                      </button>
-                    </div>
-                  </div>
-                } @else {
-                  <button
-                    type="button"
-                    (click)="onVideoStartClick()"
-                    [disabled]="store.isUploadingFile()"
-                    pRipple
-                    class="flex w-full items-center justify-center gap-3 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-8 transition-all hover:border-sky-400 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50">
-                    @if (store.isUploadingFile()) {
-                      <i class="pi pi-spin pi-spinner text-2xl text-sky-500"></i>
-                      <span class="text-sm font-medium text-sky-700">Subiendo...</span>
-                    } @else {
-                      <i class="pi pi-cloud-upload text-2xl text-gray-400"></i>
-                      <div class="text-center">
-                        <p class="text-sm font-medium text-gray-700">Subir video de inicio</p>
-                        <p class="text-xs text-gray-500">Click para seleccionar archivo</p>
-                      </div>
-                    }
-                  </button>
-                }
-              </div>
-
-              <!-- Video Final -->
-              <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                  Video Final <span class="text-rose-500">*</span>
-                </label>
-
-                @if (service.videoEndFileId) {
-                  <div class="rounded-lg border-2 border-green-200 bg-green-50 p-4">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-3">
-                        <i class="pi pi-check-circle text-2xl text-green-600"></i>
-                        <div>
-                          <p class="font-medium text-green-900">Video cargado</p>
-                          <p class="text-sm text-green-700">ID: {{ service.videoEndFileId }}</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        (click)="onVideoEndClick()"
-                        [disabled]="store.isUploadingFile()"
-                        pRipple
-                        class="rounded-lg border border-green-300 bg-white px-3 py-2 text-sm font-medium text-green-600 transition-colors hover:bg-green-50 disabled:opacity-50">
-                        Reemplazar
-                      </button>
-                    </div>
-                  </div>
-                } @else {
-                  <button
-                    type="button"
-                    (click)="onVideoEndClick()"
-                    [disabled]="store.isUploadingFile()"
-                    pRipple
-                    class="flex w-full items-center justify-center gap-3 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-8 transition-all hover:border-sky-400 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50">
-                    @if (store.isUploadingFile()) {
-                      <i class="pi pi-spin pi-spinner text-2xl text-sky-500"></i>
-                      <span class="text-sm font-medium text-sky-700">Subiendo...</span>
-                    } @else {
-                      <i class="pi pi-cloud-upload text-2xl text-gray-400"></i>
-                      <div class="text-center">
-                        <p class="text-sm font-medium text-gray-700">Subir video final</p>
-                        <p class="text-xs text-gray-500">Click para seleccionar archivo</p>
-                      </div>
-                    }
-                  </button>
-                }
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Photos Section -->
-          <div class="rounded-lg border border-gray-200 bg-white p-6">
-            <h2 class="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <i class="pi pi-camera text-sky-500"></i>
-              Fotografías
-            </h2>
-
+          <!-- STEP 1: Información -->
+          @case (1) {
             <div class="space-y-6">
 
-              <!-- Fotos de Inicio -->
-              <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                  Fotos de Inicio <span class="text-rose-500">*</span>
-                  <span class="ml-2 text-xs text-gray-500">(Mínimo 1, Máximo 3)</span>
-                </label>
-
-                <div class="grid grid-cols-3 gap-3">
-                  @for (photoId of service.startPhotos; track photoId; let idx = $index) {
-                    <div class="group relative aspect-square overflow-hidden rounded-lg border-2 border-green-200 bg-gray-100">
-                      <div class="flex h-full items-center justify-center">
-                        <i class="pi pi-image text-4xl text-green-600"></i>
-                      </div>
-                      <div class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          type="button"
-                          (click)="removePhoto(photoId, 'startPhoto')"
-                          [disabled]="store.isUploadingFile()"
-                          pRipple
-                          class="rounded-lg bg-rose-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-600 disabled:opacity-50">
-                          <i class="pi pi-trash"></i>
-                        </button>
-                      </div>
-                      <div class="absolute bottom-0 left-0 right-0 bg-green-600 px-2 py-1 text-center text-xs text-white">
-                        Foto {{ idx + 1 }}
-                      </div>
-                    </div>
-                  }
-
-                  @if (service.startPhotos.length < 3) {
-                    <button
-                      type="button"
-                      (click)="onPhotoClick('startPhoto')"
-                      [disabled]="store.isUploadingFile()"
-                      pRipple
-                      class="flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-all hover:border-sky-400 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50">
-                      @if (store.isUploadingFile()) {
-                        <i class="pi pi-spin pi-spinner text-2xl text-sky-500"></i>
-                      } @else {
-                        <i class="pi pi-plus text-2xl text-gray-400"></i>
-                      }
-                    </button>
-                  }
-                </div>
-              </div>
-
-              <!-- Fotos del Medio -->
-              <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                  Fotos del Medio <span class="text-rose-500">*</span>
-                  <span class="ml-2 text-xs text-gray-500">(Mínimo 1, Máximo 3)</span>
-                </label>
-
-                <div class="grid grid-cols-3 gap-3">
-                  @for (photoId of service.midPhotos; track photoId; let idx = $index) {
-                    <div class="group relative aspect-square overflow-hidden rounded-lg border-2 border-green-200 bg-gray-100">
-                      <div class="flex h-full items-center justify-center">
-                        <i class="pi pi-image text-4xl text-green-600"></i>
-                      </div>
-                      <div class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          type="button"
-                          (click)="removePhoto(photoId, 'midPhoto')"
-                          [disabled]="store.isUploadingFile()"
-                          pRipple
-                          class="rounded-lg bg-rose-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-600 disabled:opacity-50">
-                          <i class="pi pi-trash"></i>
-                        </button>
-                      </div>
-                      <div class="absolute bottom-0 left-0 right-0 bg-green-600 px-2 py-1 text-center text-xs text-white">
-                        Foto {{ idx + 1 }}
-                      </div>
-                    </div>
-                  }
-
-                  @if (service.midPhotos.length < 3) {
-                    <button
-                      type="button"
-                      (click)="onPhotoClick('midPhoto')"
-                      [disabled]="store.isUploadingFile()"
-                      pRipple
-                      class="flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-all hover:border-sky-400 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50">
-                      @if (store.isUploadingFile()) {
-                        <i class="pi pi-spin pi-spinner text-2xl text-sky-500"></i>
-                      } @else {
-                        <i class="pi pi-plus text-2xl text-gray-400"></i>
-                      }
-                    </button>
-                  }
-                </div>
-              </div>
-
-              <!-- Fotos Finales -->
-              <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                  Fotos Finales <span class="text-rose-500">*</span>
-                  <span class="ml-2 text-xs text-gray-500">(Mínimo 1, Máximo 3)</span>
-                </label>
-
-                <div class="grid grid-cols-3 gap-3">
-                  @for (photoId of service.endPhotos; track photoId; let idx = $index) {
-                    <div class="group relative aspect-square overflow-hidden rounded-lg border-2 border-green-200 bg-gray-100">
-                      <div class="flex h-full items-center justify-center">
-                        <i class="pi pi-image text-4xl text-green-600"></i>
-                      </div>
-                      <div class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          type="button"
-                          (click)="removePhoto(photoId, 'endPhoto')"
-                          [disabled]="store.isUploadingFile()"
-                          pRipple
-                          class="rounded-lg bg-rose-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-600 disabled:opacity-50">
-                          <i class="pi pi-trash"></i>
-                        </button>
-                      </div>
-                      <div class="absolute bottom-0 left-0 right-0 bg-green-600 px-2 py-1 text-center text-xs text-white">
-                        Foto {{ idx + 1 }}
-                      </div>
-                    </div>
-                  }
-
-                  @if (service.endPhotos.length < 3) {
-                    <button
-                      type="button"
-                      (click)="onPhotoClick('endPhoto')"
-                      [disabled]="store.isUploadingFile()"
-                      pRipple
-                      class="flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-all hover:border-sky-400 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50">
-                      @if (store.isUploadingFile()) {
-                        <i class="pi pi-spin pi-spinner text-2xl text-sky-500"></i>
-                      } @else {
-                        <i class="pi pi-plus text-2xl text-gray-400"></i>
-                      }
-                    </button>
-                  }
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Report Document Section -->
-          <div class="rounded-lg border border-gray-200 bg-white p-6">
-            <h2 class="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <i class="pi pi-file-pdf text-sky-500"></i>
-              Reporte Documento
-            </h2>
-
-            <div>
-              <label class="mb-2 block text-sm font-medium text-gray-700">
-                Documento PDF <span class="text-rose-500">*</span>
-              </label>
-
-              @if (service.reportDocumentFileId) {
-                <div class="rounded-lg border-2 border-green-200 bg-green-50 p-4">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                      <i class="pi pi-file-pdf text-3xl text-rose-600"></i>
-                      <div>
-                        <p class="font-medium text-green-900">Reporte cargado</p>
-                        <p class="text-sm text-green-700">ID: {{ service.reportDocumentFileId }}</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      (click)="onReportClick()"
-                      [disabled]="store.isUploadingFile()"
-                      pRipple
-                      class="rounded-lg border border-green-300 bg-white px-4 py-2 text-sm font-medium text-green-600 transition-colors hover:bg-green-50 disabled:opacity-50">
-                      Reemplazar
-                    </button>
-                  </div>
-                </div>
-              } @else {
-                <button
-                  type="button"
-                  (click)="onReportClick()"
-                  [disabled]="store.isUploadingFile()"
-                  pRipple
-                  class="flex w-full items-center justify-center gap-3 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-8 transition-all hover:border-sky-400 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50">
-                  @if (store.isUploadingFile()) {
-                    <i class="pi pi-spin pi-spinner text-2xl text-sky-500"></i>
-                    <span class="text-sm font-medium text-sky-700">Subiendo...</span>
-                  } @else {
-                    <i class="pi pi-file-pdf text-3xl text-rose-600"></i>
-                    <div class="text-center">
-                      <p class="text-sm font-medium text-gray-700">Subir reporte PDF</p>
-                      <p class="text-xs text-gray-500">Click para seleccionar archivo</p>
-                    </div>
-                  }
-                </button>
+              <!-- Service Info Card -->
+              @if (store.service() && store.supervisor();) {
+                <app-service-info-card
+                  [service]="store.service()!"
+                  [supervisor]="store.supervisor()">
+                </app-service-info-card>
               }
-            </div>
-          </div>
 
-          <!-- Navigation Buttons -->
-          <div class="flex items-center justify-between">
-            <button
-              type="button"
-              (click)="onBack()"
-              pRipple
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50">
-              <i class="pi pi-arrow-left"></i>
-              <span>Atrás</span>
-            </button>
+              <!-- Equipment Info Card -->
+              @if (store.equipment() && store.service();) {
+                <app-equipment-info-card
+                  [equipment]="store.equipment()!"
+                  [equipmentType]="store.service()!.equipmentType">
+                </app-equipment-info-card>
+              }
 
-            <button
-              type="button"
-              (click)="onNext()"
-              pRipple
-              class="inline-flex items-center gap-2 rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-sky-600">
-              <span>Ir a Resumen</span>
-              <i class="pi pi-arrow-right"></i>
-            </button>
-          </div>
-
-        </div>
-      }
-
-      @else if (store.currentStep() === 4 && store.service(); as service) {
-        <div class="space-y-6">
-
-          <!-- Summary Header -->
-          <div class="rounded-lg border border-blue-200 bg-blue-50 p-6">
-            <div class="flex items-start gap-4">
-              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100">
-                <i class="pi pi-check-circle text-2xl text-blue-600"></i>
-              </div>
-              <div>
-                <h2 class="text-xl font-bold text-blue-900">
-                  Resumen del Servicio
-                </h2>
-                <p class="mt-1 text-sm text-blue-700">
-                  Verifica que toda la información esté correcta antes de completar el servicio
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Inspection Summary -->
-          <div class="rounded-lg border border-gray-200 bg-white p-6">
-            <h3 class="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <i class="pi pi-list-check text-sky-500"></i>
-              Inspecciones
-            </h3>
-
-            @if (store.inspectionProgress(); as progress) {
-              <div class="mb-4 flex items-center justify-between rounded-lg bg-gray-50 p-4">
-                <div>
-                  <p class="font-semibold text-gray-900">
-                    {{ progress.completed }} de {{ progress.total }} items completados
-                  </p>
-                  <p class="text-sm text-gray-600">
-                    {{ progress.percentage }}% de progreso
-                  </p>
-                </div>
-                @if (progress.completed === progress.total) {
-                  <i class="pi pi-check-circle text-3xl text-green-500"></i>
-                } @else {
-                  <i class="pi pi-exclamation-triangle text-3xl text-amber-500"></i>
-                }
-              </div>
-
-              <!-- Progress by Type -->
-              <div class="space-y-2">
-                @for (tab of inspectableTypeTabs; track tab.type) {
-                  @if (store.progressByType()[tab.type]; as typeProgress) {
-                    @if (typeProgress.total > 0) {
-                      <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                        <div class="flex items-center gap-3">
-                          <i [class]="'pi ' + tab.icon + ' text-gray-600'"></i>
-                          <span class="text-sm font-medium text-gray-700">{{ tab.label }}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                          <span class="text-sm text-gray-600">
-                            {{ typeProgress.completed }}/{{ typeProgress.total }}
-                          </span>
-                          @if (typeProgress.completed === typeProgress.total) {
-                            <i class="pi pi-check-circle text-green-500"></i>
-                          } @else {
-                            <i class="pi pi-clock text-amber-500"></i>
-                          }
-                        </div>
-                      </div>
-                    }
-                  }
-                }
-              </div>
-            }
-          </div>
-
-          <!-- Evidence Summary -->
-          <div class="rounded-lg border border-gray-200 bg-white p-6">
-            <h3 class="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <i class="pi pi-images text-sky-500"></i>
-              Evidencias
-            </h3>
-
-            @if (store.evidenceValidation(); as evidence) {
-              <div class="grid gap-3 md:grid-cols-2">
-
-                <!-- Video Inicio -->
-                <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                  <span class="text-sm font-medium text-gray-700">Video de Inicio</span>
-                  @if (evidence.videoStart) {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                      <i class="pi pi-check"></i>
-                      Cargado
-                    </span>
-                  } @else {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-medium text-rose-700">
-                      <i class="pi pi-times"></i>
-                      Falta
-                    </span>
-                  }
-                </div>
-
-                <!-- Video Final -->
-                <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                  <span class="text-sm font-medium text-gray-700">Video Final</span>
-                  @if (evidence.videoEnd) {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                      <i class="pi pi-check"></i>
-                      Cargado
-                    </span>
-                  } @else {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-medium text-rose-700">
-                      <i class="pi pi-times"></i>
-                      Falta
-                    </span>
-                  }
-                </div>
-
-                <!-- Fotos Inicio -->
-                <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                  <span class="text-sm font-medium text-gray-700">Fotos de Inicio</span>
-                  @if (evidence.startPhotos) {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                      <i class="pi pi-check"></i>
-                      {{ service.startPhotos.length }}/3
-                    </span>
-                  } @else {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-medium text-rose-700">
-                      <i class="pi pi-times"></i>
-                      {{ service.startPhotos.length }}/3
-                    </span>
-                  }
-                </div>
-
-                <!-- Fotos Medio -->
-                <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                  <span class="text-sm font-medium text-gray-700">Fotos del Medio</span>
-                  @if (evidence.midPhotos) {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                      <i class="pi pi-check"></i>
-                      {{ service.midPhotos.length }}/3
-                    </span>
-                  } @else {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-medium text-rose-700">
-                      <i class="pi pi-times"></i>
-                      {{ service.midPhotos.length }}/3
-                    </span>
-                  }
-                </div>
-
-                <!-- Fotos Finales -->
-                <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                  <span class="text-sm font-medium text-gray-700">Fotos Finales</span>
-                  @if (evidence.endPhotos) {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                      <i class="pi pi-check"></i>
-                      {{ service.endPhotos.length }}/3
-                    </span>
-                  } @else {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-medium text-rose-700">
-                      <i class="pi pi-times"></i>
-                      {{ service.endPhotos.length }}/3
-                    </span>
-                  }
-                </div>
-
-                <!-- Reporte PDF -->
-                <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                  <span class="text-sm font-medium text-gray-700">Reporte PDF</span>
-                  @if (evidence.reportDocument) {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                      <i class="pi pi-check"></i>
-                      Cargado
-                    </span>
-                  } @else {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-medium text-rose-700">
-                      <i class="pi pi-times"></i>
-                      Falta
-                    </span>
-                  }
-                </div>
-
-              </div>
-            }
-          </div>
-
-          <!-- Validation Messages -->
-          @if (!store.canCompleteService()) {
-            <div class="rounded-lg border-l-4 border-rose-400 bg-rose-50 p-4">
-              <div class="flex items-start gap-3">
-                <i class="pi pi-exclamation-triangle text-xl text-rose-600"></i>
-                <div class="flex-1">
-                  <p class="font-semibold text-rose-900">
-                    Completa los siguientes requisitos para finalizar:
-                  </p>
-                  <ul class="mt-2 space-y-1 text-sm text-rose-700">
-                    @for (message of getValidationMessages(); track message) {
-                      <li class="flex items-start gap-2">
-                        <i class="pi pi-circle-fill mt-1 text-xs"></i>
-                        <span>{{ message }}</span>
-                      </li>
-                    }
-                  </ul>
-                </div>
-              </div>
-            </div>
-          } @else {
-            <div class="rounded-lg border-l-4 border-green-400 bg-green-50 p-4">
-              <div class="flex items-center gap-3">
-                <i class="pi pi-check-circle text-2xl text-green-600"></i>
-                <p class="font-semibold text-green-900">
-                  ✅ Todos los requisitos completados. El servicio está listo para finalizar.
-                </p>
-              </div>
+              <!-- Power Distribution List -->
+              <app-power-distribution-list
+                [powerDistributions]="store.powerDistributions()"
+                [powerPanels]="store.powerPanels()">
+              </app-power-distribution-list>
             </div>
           }
 
-          <!-- Navigation Buttons -->
-          <div class="flex items-center justify-between">
-            <button
-              type="button"
-              (click)="onBack()"
-              pRipple
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50">
-              <i class="pi pi-arrow-left"></i>
-              <span>Atrás</span>
-            </button>
+          <!-- STEP 2: Inspección -->
+          @case (2) {
+            <div class="space-y-6">
 
-            <button
-              type="button"
-              (click)="onCompleteServiceClick()"
-              [disabled]="!store.canCompleteService() || store.isCompletingService()"
-              pRipple
-              class="inline-flex items-center gap-2 rounded-lg bg-green-500 px-8 py-3 text-base font-semibold text-white shadow-lg transition-all hover:bg-green-600 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50">
-              @if (store.isCompletingService()) {
-                <i class="pi pi-spin pi-spinner"></i>
-                <span>Completando...</span>
-              } @else {
-                <i class="pi pi-check-circle"></i>
-                <span>COMPLETAR SERVICIO</span>
+              <!-- Progress Banner -->
+              @if (store.inspectionProgress(); as progress) {
+                <app-inspection-progress-banner
+                  [completed]="progress.completed"
+                  [total]="progress.total"
+                  [percentage]="progress.percentage">
+                </app-inspection-progress-banner>
               }
-            </button>
-          </div>
 
-        </div>
+              <!-- Unsaved Changes Warning -->
+              @if (store.hasUnsavedChanges()) {
+                <div class="rounded-xl border-l-4 border-amber-400 bg-amber-50 p-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <i class="pi pi-exclamation-triangle text-xl text-amber-600"></i>
+                      <div>
+                        <p class="font-semibold text-amber-900">Tienes cambios sin guardar</p>
+                        <p class="text-sm text-amber-700">Haz clic en el botón "Guardar" del encabezado para guardar tus cambios</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- Inspection Tabs -->
+              <app-inspection-tabs
+                [tabConfigs]="store.tabConfigs()"
+                [currentTab]="store.currentInspectableType()"
+                [tabProgressMap]="store.tabProgress()"
+                (onTabChange)="onInspectableTypeChange($event)">
+
+                <!-- Items Loading -->
+                @if (store.isLoadingItems()) {
+                  <div class="space-y-4">
+                    @for (i of [1,2,3]; track i) {
+                      <div class="animate-pulse rounded-lg border border-gray-200 p-4">
+                        <div class="h-4 w-1/4 rounded bg-gray-200"></div>
+                        <div class="mt-3 flex gap-3">
+                          <div class="h-10 flex-1 rounded bg-gray-200"></div>
+                          <div class="h-10 flex-1 rounded bg-gray-200"></div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @else if (store.currentTypeItems().length === 0) {
+                  <app-empty-state
+                    icon="pi-inbox"
+                    iconBgClass="bg-gradient-to-br from-gray-100 to-gray-200"
+                    iconColorClass="text-gray-500"
+                    [title]="'No hay items en esta categoría'"
+                    [description]="'No se encontraron items inspeccionables en esta sección'"
+                    [showButton]="false">
+                  </app-empty-state>
+                }
+
+                @else {
+                  <div class="space-y-4">
+                    @for (item of store.currentTypeItems(); track item.id) {
+                      <app-inspection-item-form
+                        [item]="item"
+                        [conditionOptions]="getConditionOptions(item.type)"
+                        [serviceType]="store.serviceType()"
+                        (onConditionChange)="onConditionChange(item, $event)"
+                        (onCriticalityChange)="onCriticalityChange(item, $event)"
+                        (onObservationChange)="onObservationChange(item, $event)">
+                      </app-inspection-item-form>
+                    }
+                  </div>
+                }
+
+              </app-inspection-tabs>
+
+            </div>
+          }
+
+          <!-- STEP 3: Evidencias -->
+          @case (3) {
+            <div class="space-y-6">
+              <p class="text-2xl font-bold text-gray-900">Step 3: Evidencias</p>
+              <p class="text-gray-600">Contenido temporal - implementaremos en Fase 5</p>
+            </div>
+          }
+
+          <!-- STEP 4: Resumen -->
+          @case (4) {
+            <div class="space-y-6">
+              <p class="text-2xl font-bold text-gray-900">Step 4: Resumen y Completar</p>
+              <p class="text-gray-600">Contenido temporal - implementaremos en Fase 6</p>
+            </div>
+          }
+
+        }
       }
 
     </div>
   </main>
 
+  <!-- Footer -->
+  <app-service-work-footer
+    [currentStep]="store.currentStep()"
+    [stepLabel]="getStepLabel(store.currentStep())"
+    [isLastStep]="store.currentStep() === 4"
+    [canGoPrevious]="store.currentStep() > 1"
+    [canGoNext]="true"
+    [canComplete]="store.canCompleteService()"
+    [isLoading]="store.isStartingService() || store.isCompletingService()"
+    [nextButtonLabel]="getNextButtonLabel()"
+    [showStartButton]="shouldShowStartButton()"
+    (onPrevious)="onBack()"
+    (onNext)="onNextOrStart()"
+    (onComplete)="onCompleteServiceClick()">
+  </app-service-work-footer>
+
 </div>
 
-<!-- Modals -->
-<!-- Start Service Modal -->
+<!-- Modals (sin cambios) -->
 <app-confirmation-modal
   [show]="showStartModal()"
   [title]="'¿Comenzar servicio?'"
@@ -1183,7 +211,6 @@
   (onCancel)="cancelStartService()">
 </app-confirmation-modal>
 
-<!-- Complete Service Modal -->
 <app-confirmation-modal
   [show]="showCompleteModal()"
   [title]="'¿Completar servicio?'"
@@ -1194,7 +221,6 @@
   (onCancel)="cancelCompleteService()">
 </app-confirmation-modal>
 
-<!-- Exit Confirmation Modal -->
 <app-confirmation-modal
   [show]="showExitModal()"
   [title]="'¿Salir del servicio?'"
