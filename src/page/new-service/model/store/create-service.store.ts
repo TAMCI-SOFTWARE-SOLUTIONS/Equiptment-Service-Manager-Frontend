@@ -856,7 +856,6 @@ export const CreateServiceStore = signalStore(
             supervisorId,
             type: formData.serviceType,
             status: ServiceStatusEnum.CREATED,
-            previousServiceId: '',
             createdAt: new Date(),
             updatedAt: new Date(),
             startedAt: null,
