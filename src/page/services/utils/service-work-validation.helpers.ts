@@ -61,13 +61,13 @@ export function requiresCriticality(condition: ItemConditionEnum | null | undefi
  * Verifica si un item está completado (tiene condición y criticidad si aplica)
  */
 export function isItemCompleted(
-  condition: ItemConditionEnum | null,
-  criticality: CriticalityEnum | null
+  condition: ItemConditionEnum | null | undefined,
+  criticality: CriticalityEnum | null | undefined
 ): boolean {
   if (!condition) return false;
 
   if (requiresCriticality(condition)) {
-    return criticality !== null;
+    return criticality !== null && criticality !== undefined;
   }
 
   return true;
@@ -75,13 +75,14 @@ export function isItemCompleted(
 
 /**
  * Verifica si un item es válido para levantamiento de observaciones
+ * ✅ ACTUALIZADO: Acepta undefined
  */
 export function isValidForRaiseObservation(
-  condition: ItemConditionEnum | null,
-  criticality: CriticalityEnum | null
+  condition: ItemConditionEnum | null | undefined,
+  criticality: CriticalityEnum | null | undefined
 ): boolean {
   if (!condition) return false;
-  return VALID_CONDITIONS_FOR_RAISE.includes(condition) && criticality === null;
+  return VALID_CONDITIONS_FOR_RAISE.includes(condition) && (criticality === null || criticality === undefined);
 }
 
 /**
