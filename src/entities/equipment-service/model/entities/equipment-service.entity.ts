@@ -10,7 +10,6 @@ export interface EquipmentServiceEntity {
   status: ServiceStatusEnum;
   supervisorId: string;
   type: ServiceTypeEnum;
-  previousServiceId: string;
   createdAt: Date;
   updatedAt: Date;
   startedAt: Date | null;
