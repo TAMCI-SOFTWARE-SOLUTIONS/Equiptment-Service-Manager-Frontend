@@ -2,7 +2,6 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ServicesActiveStore, ServiceWithDetails } from '../../model/services-active.store';
 import {
   getStatusBadgeClass,
   getStatusIcon,
@@ -19,6 +18,7 @@ import {Menu} from 'primeng/menu';
 import {MenuItem} from 'primeng/api';
 import {getEquipmentTypeIcon, getEquipmentTypeLabel} from '../../../../shared/model/enums/equipment-type.enum';
 import {getServiceTypeLabel} from '../../../../shared/model/service-type.enum';
+import {ServicesActiveStore, ServiceWithDetails} from '../../model/store/services-active.store';
 
 @Component({
   selector: 'app-services-active',

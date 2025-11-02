@@ -1,14 +1,18 @@
 import {computed, inject} from '@angular/core';
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
 import {firstValueFrom, forkJoin} from 'rxjs';
-import {EquipmentServiceEntity, EquipmentServiceService, ServiceStatusEnum} from '../../../entities/equipment-service';
-import {ProfileService} from '../../../entities/profile';
-import {SupervisorService} from '../../../entities/supervisor';
-import {EquipmentTypeEnum} from '../../../shared/model';
-import {AuthStore} from '../../../shared/stores';
-import {CabinetService} from '../../../entities/cabinet/api';
-import {PanelService} from '../../../entities/panel/api';
-import {ContextStore} from '../../../shared/model/context.store';
+import {
+  EquipmentServiceEntity,
+  EquipmentServiceService,
+  ServiceStatusEnum
+} from '../../../../entities/equipment-service';
+import {AuthStore} from '../../../../shared/stores';
+import {ContextStore} from '../../../../shared/model/context.store';
+import {ProfileService} from '../../../../entities/profile';
+import {SupervisorService} from '../../../../entities/supervisor';
+import {CabinetService} from '../../../../entities/cabinet/api';
+import {PanelService} from '../../../../entities/panel/api';
+import {EquipmentTypeEnum} from '../../../../shared/model';
 
 export interface ServiceWithDetails extends EquipmentServiceEntity {
   operatorName: string;
