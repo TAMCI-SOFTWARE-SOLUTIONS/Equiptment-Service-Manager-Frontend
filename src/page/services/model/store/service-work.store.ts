@@ -9,7 +9,7 @@ import {
 import {CabinetEntity} from '../../../../entities/cabinet/model';
 import {PanelEntity} from '../../../../entities/panel/model';
 import {SupervisorEntity, SupervisorService} from '../../../../entities/supervisor';
-import {ProfileEntity, ProfileService} from '../../../../entities/profile'; // ✅ NUEVO
+import {ProfileEntity, ProfileService} from '../../../../entities/profile';
 import {ItemInspectionWithDetails} from '../interfaces/item-inspection-with-details.interface';
 import {ItemInspectionEntity, ItemInspectionService} from '../../../../entities/item-inspection';
 import {InspectableItemService} from '../../../../entities/inspectable-item';
@@ -18,7 +18,12 @@ import {
 } from '../../../../entities/equipment-power-distribution-assignment/model/entities/equipment-power-distribution-assignment.entity';
 import {PowerDistributionPanelEntity} from '../../../../entities/power-distribution-panel/model';
 import {InspectableItemTypeEnum} from '../../../../shared/model/enums';
-import {isItemCompleted, requiresCriticality} from '../../utils/service-work-validation.helpers';
+import {
+  isItemCompleted,
+  requiresCriticality,
+  validateItems,
+  ValidationError
+} from '../../utils/service-work-validation.helpers';
 import {EquipmentTypeEnum} from '../../../../shared/model';
 import {CabinetService} from '../../../../entities/cabinet/api';
 import {PanelService} from '../../../../entities/panel/api';
@@ -683,11 +688,18 @@ export const ServiceWorkStore = signalStore(
         }
       },
 
-      async saveAllProgress(): Promise<boolean> {
+      async saveAllProgress(): Promise<{ success: boolean; errors: ValidationError[] }> {
         const items = store.itemInspections().filter(item => item.hasUnsavedChanges);
 
         if (items.length === 0) {
-          return true;
+          return { success: true, errors: [] };
+        }
+
+        const validationErrors = this.validateUnsavedItems();
+
+        if (validationErrors.length > 0) {
+          console.warn('⚠️ Validation errors found:', validationErrors);
+          return { success: false, errors: validationErrors };
         }
 
         patchState(store, { isSavingInspection: true });
@@ -699,7 +711,7 @@ export const ServiceWorkStore = signalStore(
 
           await Promise.all(savePromises);
 
-          return true;
+          return { success: true, errors: [] };
 
         } catch (error: any) {
           console.error('❌ Error saving all progress:', error);
@@ -707,7 +719,7 @@ export const ServiceWorkStore = signalStore(
             isSavingInspection: false,
             error: 'Error al guardar el progreso'
           });
-          return false;
+          return { success: false, errors: [] };
         }
       },
 
@@ -959,6 +971,17 @@ export const ServiceWorkStore = signalStore(
           });
           return false;
         }
+      },
+
+      validateUnsavedItems(): ValidationError[] {
+        const items = store.itemInspections().filter(item => item.hasUnsavedChanges);
+
+        return validateItems(items.map(item => ({
+          id: item.id,
+          tag: item.tag,
+          condition: item.condition,
+          criticality: item.criticality
+        })));
       },
 
       setCurrentStep(step: number): void {
