@@ -1,18 +1,20 @@
-import {Component, Input, Output, EventEmitter, OnInit} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // ✅ Necesario para [(ngModel)]
-import { Select } from 'primeng/select'; // ✅ PrimeNG Select (nuevo)
-import { InputText } from 'primeng/inputtext'; // ✅ PrimeNG Input
-import { ItemInspectionWithDetails } from '../../model/interfaces/item-inspection-with-details.interface';
-import { ItemConditionEnum } from '../../../../shared/model/enums/item-condition.enum';
-import { CriticalityEnum } from '../../../../shared/model/enums/criticality.enum';
-import { ServiceTypeEnum } from '../../../../shared/model';
+import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {Select} from 'primeng/select';
+import {InputText} from 'primeng/inputtext';
+import {ItemInspectionWithDetails} from '../../model/interfaces/item-inspection-with-details.interface';
+import {ItemConditionEnum} from '../../../../shared/model/enums/item-condition.enum';
+import {CriticalityEnum} from '../../../../shared/model/enums/criticality.enum';
+import {ServiceTypeEnum} from '../../../../shared/model';
 import {
   CONDITION_LABELS,
   CRITICALITY_LABELS,
+  isItemCompleted,
   requiresCriticality,
-  isItemCompleted
+  shouldClearCriticality
 } from '../../utils/service-work-validation.helpers';
+import {MessageService} from 'primeng/api';
 
 interface SelectOption {
   label: string;
@@ -24,9 +26,9 @@ interface SelectOption {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule, // ✅ Para ngModel
-    Select, // ✅ PrimeNG Select
-    InputText // ✅ PrimeNG Input
+    FormsModule,
+    Select,
+    InputText
   ],
   template: `
     <div
@@ -169,6 +171,8 @@ interface SelectOption {
   `,
 })
 export class InspectionItemFormComponent implements OnInit {
+  private readonly messageService = inject(MessageService);
+
   @Input({ required: true }) item!: ItemInspectionWithDetails;
   @Input({ required: true }) conditionOptions: ItemConditionEnum[] = [];
   @Input() serviceType: ServiceTypeEnum | null = null;
@@ -225,11 +229,40 @@ export class InspectionItemFormComponent implements OnInit {
 
   handleConditionChange(value: string | null): void {
     const conditionValue = value as ItemConditionEnum | null;
+
+    if (conditionValue && shouldClearCriticality(conditionValue)) {
+      if (this.selectedCriticality) {
+        console.log(`🧹 Auto-clearing criticality for condition: ${conditionValue}`);
+        this.selectedCriticality = null;
+
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Criticidad removida',
+          detail: `La condición "${CONDITION_LABELS[conditionValue]}" no requiere criticidad`,
+          life: 3000
+        });
+      }
+    }
+
     this.onConditionChange.emit(conditionValue);
+
+    if (conditionValue && shouldClearCriticality(conditionValue)) {
+      this.onCriticalityChange.emit(null);
+    }
   }
 
   handleCriticalityChange(value: string | null): void {
     const criticalityValue = value as CriticalityEnum | null;
+
+    if (this.item.condition && requiresCriticality(this.item.condition) && !criticalityValue) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Criticidad requerida',
+        detail: `La condición "${CONDITION_LABELS[this.item.condition]}" requiere que selecciones una criticidad`,
+        life: 4000
+      });
+    }
+
     this.onCriticalityChange.emit(criticalityValue);
   }
 
