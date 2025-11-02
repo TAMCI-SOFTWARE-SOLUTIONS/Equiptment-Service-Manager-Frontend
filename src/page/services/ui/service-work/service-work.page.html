@@ -163,7 +163,7 @@
           <!-- STEP 3: Evidencias -->
           @case (3) {
             <div class="space-y-8">
-              <app-evidence-section title="Videos del Servicio">
+              <app-evidence-section title="Videos del Servicio" icon="pi-video">
               <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <app-video-uploader
                   label="Video de Inicio"
@@ -189,7 +189,7 @@
               </div>
             </app-evidence-section>
 
-              <app-evidence-section title="Reporte Fotográfico">
+              <app-evidence-section title="Reporte Fotográfico" icon="pi-camera">
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                   <app-photo-uploader
                     label="Fotos de Inicio (1-3)"
@@ -229,7 +229,7 @@
                 </div>
               </app-evidence-section>
 
-              <app-evidence-section title="Reporte (PDF Opcional)">
+              <app-evidence-section title="Reporte (PDF Opcional)" icon="pi-file-pdf">
                 <app-report-uploader
                   label="Documento de Reporte"
                   [file]="store.evidenceFiles().report"
@@ -275,7 +275,31 @@
 
 </div>
 
-<!-- Modals (sin cambios) -->
+<app-file-preview-modal
+  [show]="showPreviewModal()"
+  [fileList]="previewFiles()"
+  [initialIndex]="previewCurrentIndex()"
+  [config]="{
+    allowFullscreen: true,
+    allowZoom: true,
+    allowDownload: true,
+    showThumbnails: true,
+    closeOnBackdrop: true,
+    closeOnEsc: true,
+    darkMode: true
+  }"
+  (closeModal)="closePreviewModal()"
+  (downloadFile)="onDownloadFileFromPreview($event)"
+  (errorOccurred)="handlePreviewError($event)">
+</app-file-preview-modal>
+
+<app-camera-modal
+  [show]="showCameraModal()"
+  [mode]="cameraMode()"
+  (closeModal)="closeCameraModal()"
+  (captureConfirmed)="onCameraCapture($event)">
+</app-camera-modal>
+
 <app-confirmation-modal
   [show]="showStartModal()"
   [title]="'¿Comenzar servicio?'"
@@ -305,118 +329,3 @@
   (onConfirm)="confirmExit()"
   (onCancel)="cancelExit()">
 </app-confirmation-modal>
-
-
-<p-dialog
-  [header]="previewFile()?.originalName"
-  [(visible)]="showPreviewModal"
-  [modal]="true"
-  [style]="{ width: '90vw' }"
-  [contentStyle]="{ height: '90vh' }"
-  [draggable]="false"
-  [resizable]="false"
-  (onHide)="closePreviewModal()">
-
-  <div class="w-full h-full">
-
-    @if (isPreviewLoading()) {
-      <div class="flex h-full flex-col items-center justify-center gap-4"> <p-progressSpinner class="w-16 h-16" strokeWidth="4"></p-progressSpinner>
-        <span class="text-lg text-gray-600">
-          Cargando previsualización... Esto puede tardar varios minutos.
-        </span>
-      </div>
-    }
-
-    @if (previewContentUrl() && !isPreviewLoading()) {
-
-      @if (isPreviewImage()) {
-        <img [src]="previewContentUrl()" alt="Previsualización" class="max-w-full max-h-full object-contain">
-      }
-
-      @if (isPreviewVideo()) {
-        <video [src]="previewContentUrl()" controls autoplay class="max-w-full max-h-full"></video>
-      }
-
-      @if (isPreviewPdf()) {
-        <ngx-extended-pdf-viewer
-          [src]="previewContentUrl()"
-          [height]="'100%'">
-        </ngx-extended-pdf-viewer>
-      }
-    }
-  </div>
-</p-dialog>
-
-<p-dialog
-  [header]="isPhotoCapture() ? 'Tomar Foto' : 'Grabar Video'"
-  [(visible)]="showCameraModal"
-  (onHide)="closeCameraModal()">
-
-  @if (showCameraModal()) {
-    <div class="flex flex-col items-center">
-
-      @if (capturedImagePreview() || capturedVideoPreviewUrl()) {
-
-        @if (capturedImagePreview()) {
-          <img [src]="capturedImagePreview()" alt="Captura" class="w-full h-auto">
-        }
-
-        @if (capturedVideoPreviewUrl()) {
-          <video [src]="capturedVideoPreviewUrl()" controls autoplay class="w-full h-auto"></video>
-        }
-
-        <div class="mt-4 flex gap-3">
-          <button pButton type="button" (click)="confirmCapture()">
-            <i class="pi pi-check" pButtonIcon></i>
-            <span pButtonLabel>Guardar</span>
-          </button>
-          <button pButton type="button" class="p-button-danger p-button-outlined" (click)="discardCapture()">
-            <i class="pi pi-times" pButtonIcon></i>
-            <span pButtonLabel>Descartar</span>
-          </button>
-        </div>
-
-      } @else {
-
-        @if (isPhotoCapture()) {
-          <webcam
-            [trigger]="cameraTrigger.asObservable()"
-            (imageCapture)="handleImageCapture($event)"
-            (initError)="handleInitError($event)"
-            [width]="640"
-            [height]="480"
-            [videoOptions]="{ facingMode: 'environment' }"
-            [imageType]="'image/jpeg'"
-            [imageQuality]="0.92">
-          </webcam>
-        }
-
-        @if (!isPhotoCapture()) {
-          <video #videoPlayer autoplay muted class="w-full h-auto bg-black"></video>
-        }
-
-        <div class="mt-4">
-          @if (isPhotoCapture()) {
-            <button pButton type="button" (click)="triggerSnapshot()">
-              <i class="pi pi-camera" pButtonIcon></i>
-              <span pButtonLabel>Tomar Foto</span>
-            </button>
-          } @else {
-            @if (!isRecording()) {
-              <button pButton type="button" class="p-button-danger" (click)="startRecording()">
-                <i class="pi pi-video" pButtonIcon></i>
-                <span pButtonLabel>Iniciar Grabación</span>
-              </button>
-            } @else {
-              <button pButton type="button" (click)="stopRecording()">
-                <i class="pi pi-stop-circle" pButtonIcon></i>
-                <span pButtonLabel>Detener Grabación</span>
-              </button>
-            }
-          }
-        </div>
-      }
-
-    </div>
-  }
-</p-dialog>
