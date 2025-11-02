@@ -162,9 +162,84 @@
 
           <!-- STEP 3: Evidencias -->
           @case (3) {
-            <div class="space-y-6">
-              <p class="text-2xl font-bold text-gray-900">Step 3: Evidencias</p>
-              <p class="text-gray-600">Contenido temporal - implementaremos en Fase 5</p>
+            <div class="space-y-8">
+              <app-evidence-section title="Videos del Servicio">
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <app-video-uploader
+                  label="Video de Inicio"
+                  [file]="store.evidenceFiles().videoStart"
+                  [isLoading]="store.uploadingStatus().videoStart"
+                  [uploadType]="'videoStart'"
+                  (onUpload)="onUploadVideo($event, 'videoStart')"
+                  (onRemove)="onRemoveVideo('videoStart')"
+                  (onPreview)="openPreviewModal($event)"
+                  (onOpenCamera)="openCameraModal($event)">
+                </app-video-uploader>
+
+                <app-video-uploader
+                  label="Video de Fin"
+                  [file]="store.evidenceFiles().videoEnd"
+                  [isLoading]="store.uploadingStatus().videoEnd"
+                  [uploadType]="'videoEnd'"
+                  (onUpload)="onUploadVideo($event, 'videoEnd')"
+                  (onRemove)="onRemoveVideo('videoEnd')"
+                  (onPreview)="openPreviewModal($event)"
+                  (onOpenCamera)="openCameraModal($event)">
+                </app-video-uploader>
+              </div>
+            </app-evidence-section>
+
+              <app-evidence-section title="Reporte Fotográfico">
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  <app-photo-uploader
+                    label="Fotos de Inicio (1-3)"
+                    [files]="store.evidenceFiles().startPhotos"
+                    [isLoading]="store.uploadingStatus().startPhoto"
+                    [maxFiles]="3"
+                    [uploadType]="'startPhoto'"
+                    (onUpload)="onUploadPhoto($event, 'startPhoto')"
+                    (onRemove)="onRemovePhoto($event, 'startPhoto')"
+                    (onPreview)="openPreviewModal($event)"
+                    (onOpenCamera)="openCameraModal($event)">
+                  </app-photo-uploader>
+
+                  <app-photo-uploader
+                    label="Fotos de Proceso (1-3)"
+                    [files]="store.evidenceFiles().midPhotos"
+                    [isLoading]="store.uploadingStatus().midPhoto"
+                    [maxFiles]="3"
+                    [uploadType]="'midPhoto'"
+                    (onUpload)="onUploadPhoto($event, 'midPhoto')"
+                    (onRemove)="onRemovePhoto($event, 'midPhoto')"
+                    (onPreview)="openPreviewModal($event)"
+                    (onOpenCamera)="openCameraModal($event)">
+                  </app-photo-uploader>
+
+                  <app-photo-uploader
+                    label="Fotos de Fin (1-3)"
+                    [files]="store.evidenceFiles().endPhotos"
+                    [isLoading]="store.uploadingStatus().endPhoto"
+                    [maxFiles]="3"
+                    [uploadType]="'endPhoto'"
+                    (onUpload)="onUploadPhoto($event, 'endPhoto')"
+                    (onRemove)="onRemovePhoto($event, 'endPhoto')"
+                    (onPreview)="openPreviewModal($event)"
+                    (onOpenCamera)="openCameraModal($event)">
+                  </app-photo-uploader>
+                </div>
+              </app-evidence-section>
+
+              <app-evidence-section title="Reporte (PDF Opcional)">
+                <app-report-uploader
+                  label="Documento de Reporte"
+                  [file]="store.evidenceFiles().report"
+                  [isLoading]="store.uploadingStatus().report"
+                  [uploadType]="'report'"
+                  (onUpload)="onUploadReport($event)"
+                  (onRemove)="onRemoveReport()"
+                  (onPreview)="openPreviewModal($event)">
+                </app-report-uploader>
+              </app-evidence-section>
             </div>
           }
 
@@ -230,3 +305,118 @@
   (onConfirm)="confirmExit()"
   (onCancel)="cancelExit()">
 </app-confirmation-modal>
+
+
+<p-dialog
+  [header]="previewFile()?.originalName"
+  [(visible)]="showPreviewModal"
+  [modal]="true"
+  [style]="{ width: '90vw' }"
+  [contentStyle]="{ height: '90vh' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="closePreviewModal()">
+
+  <div class="w-full h-full">
+
+    @if (isPreviewLoading()) {
+      <div class="flex h-full flex-col items-center justify-center gap-4"> <p-progressSpinner class="w-16 h-16" strokeWidth="4"></p-progressSpinner>
+        <span class="text-lg text-gray-600">
+          Cargando previsualización... Esto puede tardar varios minutos.
+        </span>
+      </div>
+    }
+
+    @if (previewContentUrl() && !isPreviewLoading()) {
+
+      @if (isPreviewImage()) {
+        <img [src]="previewContentUrl()" alt="Previsualización" class="max-w-full max-h-full object-contain">
+      }
+
+      @if (isPreviewVideo()) {
+        <video [src]="previewContentUrl()" controls autoplay class="max-w-full max-h-full"></video>
+      }
+
+      @if (isPreviewPdf()) {
+        <ngx-extended-pdf-viewer
+          [src]="previewContentUrl()"
+          [height]="'100%'">
+        </ngx-extended-pdf-viewer>
+      }
+    }
+  </div>
+</p-dialog>
+
+<p-dialog
+  [header]="isPhotoCapture() ? 'Tomar Foto' : 'Grabar Video'"
+  [(visible)]="showCameraModal"
+  (onHide)="closeCameraModal()">
+
+  @if (showCameraModal()) {
+    <div class="flex flex-col items-center">
+
+      @if (capturedImagePreview() || capturedVideoPreviewUrl()) {
+
+        @if (capturedImagePreview()) {
+          <img [src]="capturedImagePreview()" alt="Captura" class="w-full h-auto">
+        }
+
+        @if (capturedVideoPreviewUrl()) {
+          <video [src]="capturedVideoPreviewUrl()" controls autoplay class="w-full h-auto"></video>
+        }
+
+        <div class="mt-4 flex gap-3">
+          <button pButton type="button" (click)="confirmCapture()">
+            <i class="pi pi-check" pButtonIcon></i>
+            <span pButtonLabel>Guardar</span>
+          </button>
+          <button pButton type="button" class="p-button-danger p-button-outlined" (click)="discardCapture()">
+            <i class="pi pi-times" pButtonIcon></i>
+            <span pButtonLabel>Descartar</span>
+          </button>
+        </div>
+
+      } @else {
+
+        @if (isPhotoCapture()) {
+          <webcam
+            [trigger]="cameraTrigger.asObservable()"
+            (imageCapture)="handleImageCapture($event)"
+            (initError)="handleInitError($event)"
+            [width]="640"
+            [height]="480"
+            [videoOptions]="{ facingMode: 'environment' }"
+            [imageType]="'image/jpeg'"
+            [imageQuality]="0.92">
+          </webcam>
+        }
+
+        @if (!isPhotoCapture()) {
+          <video #videoPlayer autoplay muted class="w-full h-auto bg-black"></video>
+        }
+
+        <div class="mt-4">
+          @if (isPhotoCapture()) {
+            <button pButton type="button" (click)="triggerSnapshot()">
+              <i class="pi pi-camera" pButtonIcon></i>
+              <span pButtonLabel>Tomar Foto</span>
+            </button>
+          } @else {
+            @if (!isRecording()) {
+              <button pButton type="button" class="p-button-danger" (click)="startRecording()">
+                <i class="pi pi-video" pButtonIcon></i>
+                <span pButtonLabel>Iniciar Grabación</span>
+              </button>
+            } @else {
+              <button pButton type="button" (click)="stopRecording()">
+                <i class="pi pi-stop-circle" pButtonIcon></i>
+                <span pButtonLabel>Detener Grabación</span>
+              </button>
+            }
+          }
+        </div>
+      }
+
+    </div>
+  }
+</p-dialog>

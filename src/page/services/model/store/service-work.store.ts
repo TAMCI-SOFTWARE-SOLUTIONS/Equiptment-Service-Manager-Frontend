@@ -97,6 +97,14 @@ export interface ServiceWorkState {
   isStartingService: boolean;
   isSavingInspection: boolean;
   isUploadingFile: boolean;
+  uploadingStatus: {
+    videoStart: boolean;
+    videoEnd: boolean;
+    startPhoto: boolean;
+    midPhoto: boolean;
+    endPhoto: boolean;
+    report: boolean;
+  };
   isCompletingService: boolean;
   isCancelingService: boolean;
 
@@ -131,6 +139,14 @@ const initialState: ServiceWorkState = {
   isStartingService: false,
   isSavingInspection: false,
   isUploadingFile: false,
+  uploadingStatus: {
+    videoStart: false,
+    videoEnd: false,
+    startPhoto: false,
+    midPhoto: false,
+    endPhoto: false,
+    report: false
+  },
   isCompletingService: false,
   isCancelingService: false,
   error: null,
@@ -233,8 +249,17 @@ export const ServiceWorkStore = signalStore(
       const items = state.itemInspections();
       return items.filter(item => item.type === currentType);
     }),
-    isLoading: computed(() => state.isLoadingService() || state.isLoadingItems() || state.isLoadingEvidence() || state.isStartingService() || state.isSavingInspection() || state.isUploadingFile() || state.isCompletingService() || state.isCancelingService()),
-  })),
+    isLoading: computed(() => {
+      const uploading = Object.values(state.uploadingStatus()).some(status => status === true);
+      return state.isLoadingService() ||
+        state.isLoadingItems() ||
+        state.isLoadingEvidence() ||
+        state.isStartingService() ||
+        state.isSavingInspection() ||
+        uploading ||
+        state.isCompletingService() ||
+        state.isCancelingService();
+    }), })),
 
   withMethods((store) => {
     const serviceService = inject(EquipmentServiceService);
@@ -415,7 +440,10 @@ export const ServiceWorkStore = signalStore(
           ].filter(id => id && id.trim() !== '') as string[];
 
           if (fileIds.length === 0) {
-            patchState(store, { isLoadingEvidence: false });
+            patchState(store, {
+              evidenceFiles: initialState.evidenceFiles,
+              isLoadingEvidence: false
+            });
             return;
           }
 
@@ -661,19 +689,30 @@ export const ServiceWorkStore = signalStore(
         patchState(store, { currentInspectableType: type });
       },
 
+      // En service-work.store.ts
+
       async uploadFile(file: File, type: 'videoStart' | 'videoEnd' | 'startPhoto' | 'midPhoto' | 'endPhoto' | 'report'): Promise<boolean> {
+
         const service = store.service();
         if (!service) return false;
 
-        patchState(store, { isUploadingFile: true, error: null });
+        // 1. Poner ESE TIPO específico en 'true'
+        patchState(store, state => ({
+          error: null,
+          uploadingStatus: {
+            ...state.uploadingStatus,
+            [type]: true // Actualización dinámica
+          }
+        }));
 
         try {
-          // 1. Subir archivo
+          // 2. Subir archivo
           const uploadedFile = await firstValueFrom(fileService.upload(file));
 
-          // 2. Actualizar servicio según el tipo
+          // 3. Actualizar servicio (ESTA ES LA PARTE CORREGIDA)
           const updates: Partial<EquipmentServiceEntity> = {};
 
+          // ⬇️ TU SWITCH ESTABA INCOMPLETO. ESTE ES EL CORRECTO. ⬇️
           switch (type) {
             case 'videoStart':
               updates.videoStartFileId = uploadedFile.id;
@@ -694,25 +733,33 @@ export const ServiceWorkStore = signalStore(
               updates.reportDocumentFileId = uploadedFile.id;
               break;
           }
+          // ⬆️ FIN DE LA CORRECCIÓN ⬆️
 
-          // 3. Actualizar en backend
+          // 4. Actualizar en backend
           const updatedService = await firstValueFrom(
             serviceService.update(service.id, { ...service, ...updates })
           );
 
-          patchState(store, {
+          // 5. Poner ESE TIPO en 'false' y actualizar servicio
+          patchState(store, state => ({
             service: updatedService,
-            isUploadingFile: false
-          });
+            uploadingStatus: {
+              ...state.uploadingStatus,
+              [type]: false
+            }
+          }));
 
           return true;
 
         } catch (error: any) {
           console.error('❌ Error uploading file:', error);
-          patchState(store, {
-            isUploadingFile: false,
-            error: error.message || 'Error al subir el archivo'
-          });
+          patchState(store, state => ({
+            error: error.message || 'Error al subir el archivo',
+            uploadingStatus: {
+              ...state.uploadingStatus,
+              [type]: false
+            }
+          }));
           return false;
         }
       },
@@ -721,9 +768,18 @@ export const ServiceWorkStore = signalStore(
         const service = store.service();
         if (!service) return false;
 
-        patchState(store, { isUploadingFile: true });
+        // 1. Poner el estado de carga ESE TIPO en 'true'
+        // (Usamos el mismo flag de 'uploading' para mostrar 'eliminando...')
+        patchState(store, state => ({
+          error: null,
+          uploadingStatus: {
+            ...state.uploadingStatus,
+            [type]: true
+          }
+        }));
 
         try {
+          // 2. Preparar la actualización
           const updates: Partial<EquipmentServiceEntity> = {};
 
           switch (type) {
@@ -738,23 +794,114 @@ export const ServiceWorkStore = signalStore(
               break;
           }
 
+          // 3. Llamar al servicio de backend para actualizar la entidad
           const updatedService = await firstValueFrom(
             serviceService.update(service.id, { ...service, ...updates })
           );
 
-          patchState(store, {
+          // 4. Actualizar el estado en éxito
+          patchState(store, state => ({
             service: updatedService,
-            isUploadingFile: false
-          });
+            uploadingStatus: {
+              ...state.uploadingStatus,
+              [type]: false
+            }
+          }));
 
           return true;
 
         } catch (error: any) {
           console.error('❌ Error removing photo:', error);
-          patchState(store, {
-            isUploadingFile: false,
-            error: 'Error al eliminar la foto'
-          });
+
+          // 5. Actualizar el estado en error
+          patchState(store, state => ({
+            uploadingStatus: {
+              ...state.uploadingStatus,
+              [type]: false
+            },
+            error: error.message || 'Error al eliminar la foto'
+          }));
+
+          return false;
+        }
+      },
+
+      /**
+       * 🆕 Eliminar Video (con estado de carga individual)
+       */
+      async removeVideo(type: 'videoStart' | 'videoEnd'): Promise<boolean> {
+        const service = store.service();
+        if (!service) return false;
+
+        // 1. Poner el estado de carga en 'true'
+        patchState(store, state => ({
+          error: null,
+          uploadingStatus: { ...state.uploadingStatus, [type]: true }
+        }));
+
+        try {
+          // 2. Preparar la actualización (setear a null)
+          const updates: Partial<EquipmentServiceEntity> = {
+            [type === 'videoStart' ? 'videoStartFileId' : 'videoEndFileId']: null
+          };
+
+          console.log(`🔄 Removing video ${type}, updates:`, updates);
+
+          // 3. Llamar al backend
+          const updatedService = await firstValueFrom(
+            serviceService.update(service.id, { ...service, ...updates })
+          );
+
+          // 4. Actualizar estado en éxito
+          patchState(store, state => ({
+            service: updatedService,
+            uploadingStatus: { ...state.uploadingStatus, [type]: false }
+          }));
+          return true;
+
+        } catch (error: any) {
+          console.error(`❌ Error removing video ${type}:`, error);
+          patchState(store, state => ({
+            uploadingStatus: { ...state.uploadingStatus, [type]: false },
+            error: error.message || 'Error al eliminar el video'
+          }));
+          return false;
+        }
+      },
+
+      /**
+       * 🆕 Eliminar Reporte (con estado de carga individual)
+       */
+      async removeReport(): Promise<boolean> {
+        const service = store.service();
+        if (!service) return false;
+
+        patchState(store, state => ({
+          error: null,
+          uploadingStatus: { ...state.uploadingStatus, report: true }
+        }));
+
+        try {
+          const updates: Partial<EquipmentServiceEntity> = {
+            reportDocumentFileId: null
+          };
+
+          const updatedService = await firstValueFrom(
+            serviceService.update(service.id, { ...service, ...updates })
+          );
+
+          patchState(store, state => ({
+            service: updatedService,
+            uploadingStatus: { ...state.uploadingStatus, report: false }
+          }));
+          return true;
+
+        } catch (error: any) {
+          console.error('❌ Error removing report:', error);
+          patchState(store, state => ({
+            uploadingStatus: { ...state.uploadingStatus, report: false },
+            error: error.message || 'Error al eliminar el reporte'
+          }));
           return false;
         }
       },
