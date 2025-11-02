@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import {Component, input} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,92 +6,96 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-5 shadow-sm">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-        <!-- Left: Progress Info -->
-        <div class="flex-1">
-          <div class="flex items-center gap-3">
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100">
-              <i class="pi pi-chart-line text-xl text-blue-600"></i>
-            </div>
-            <div>
-              <h3 class="text-lg font-bold text-blue-900">
-                Progreso de Inspección
-              </h3>
-              <p class="text-sm text-blue-700">
-                {{ completed }} de {{ total }} items completados
-              </p>
-            </div>
+    <!-- Desktop: Banner normal -->
+    <div class="hidden rounded-xl border border-gray-200 bg-white p-5 shadow-sm lg:block">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-100 to-cyan-100">
+            <i class="pi pi-check-square text-2xl text-sky-600"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">
+              Progreso de Inspección
+            </h3>
+            <p class="text-sm text-gray-600">
+              {{ completed() }} de {{ total() }} items completados
+            </p>
           </div>
         </div>
 
-        <!-- Right: Percentage Circle -->
-        <div class="flex shrink-0 items-center gap-4">
-          <div class="relative flex h-20 w-20 items-center justify-center">
-            <!-- Background Circle -->
-            <svg class="absolute h-20 w-20 -rotate-90 transform">
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <p class="text-3xl font-bold text-sky-600">{{ percentage() }}%</p>
+            <p class="text-xs text-gray-500">Completado</p>
+          </div>
+          <div class="h-16 w-16">
+            <svg class="h-full w-full -rotate-90 transform" viewBox="0 0 36 36">
               <circle
-                cx="40"
-                cy="40"
-                r="34"
-                stroke="currentColor"
-                stroke-width="6"
+                cx="18"
+                cy="18"
+                r="16"
                 fill="none"
-                class="text-blue-200"
-              />
-              <!-- Progress Circle -->
+                class="stroke-current text-gray-200"
+                stroke-width="3">
+              </circle>
               <circle
-                cx="40"
-                cy="40"
-                r="34"
-                stroke="currentColor"
-                stroke-width="6"
+                cx="18"
+                cy="18"
+                r="16"
                 fill="none"
-                [attr.stroke-dasharray]="circumference"
-                [attr.stroke-dashoffset]="strokeDashoffset"
-                class="text-blue-600 transition-all duration-500"
-                stroke-linecap="round"
-              />
+                class="stroke-current text-sky-500"
+                stroke-width="3"
+                stroke-dasharray="100"
+                [attr.stroke-dashoffset]="100 - percentage()"
+                stroke-linecap="round">
+              </circle>
             </svg>
-            <!-- Percentage Text -->
-            <div class="relative text-center">
-              <div class="text-2xl font-bold text-blue-900">
-                {{ percentage }}%
-              </div>
-            </div>
           </div>
         </div>
-
       </div>
+    </div>
 
-      <!-- Progress Bar -->
-      <div class="mt-4 h-3 overflow-hidden rounded-full bg-blue-200">
-        <div
-          [class]="getProgressBarColor()"
-          [style.width.%]="percentage"
-          class="h-full transition-all duration-500 ease-out">
+    <!-- Mobile: Compacto -->
+    <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 lg:hidden">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+          <i class="pi pi-check-square text-lg text-sky-600"></i>
         </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-900">
+            {{ completed() }}/{{ total() }}
+          </p>
+          <p class="text-xs text-gray-600">{{ percentage() }}%</p>
+        </div>
+      </div>
+      <div class="h-10 w-10">
+        <svg class="h-full w-full -rotate-90 transform" viewBox="0 0 36 36">
+          <circle
+            cx="18"
+            cy="18"
+            r="16"
+            fill="none"
+            class="stroke-current text-gray-200"
+            stroke-width="4">
+          </circle>
+          <circle
+            cx="18"
+            cy="18"
+            r="16"
+            fill="none"
+            class="stroke-current text-sky-500"
+            stroke-width="4"
+            stroke-dasharray="100"
+            [attr.stroke-dashoffset]="100 - percentage()"
+            stroke-linecap="round">
+          </circle>
+        </svg>
       </div>
     </div>
   `
 })
 export class InspectionProgressBannerComponent {
-  @Input() completed: number = 0;
-  @Input() total: number = 0;
-  @Input() percentage: number = 0;
-
-  readonly circumference = 2 * Math.PI * 34; // 34 es el radio
-
-  get strokeDashoffset(): number {
-    return this.circumference - (this.percentage / 100) * this.circumference;
-  }
-
-  getProgressBarColor(): string {
-    if (this.percentage === 0) return 'bg-gray-300';
-    if (this.percentage < 30) return 'bg-gradient-to-r from-rose-400 to-rose-500';
-    if (this.percentage < 70) return 'bg-gradient-to-r from-amber-400 to-amber-500';
-    if (this.percentage < 100) return 'bg-gradient-to-r from-blue-400 to-blue-500';
-    return 'bg-gradient-to-r from-green-400 to-green-500';
-  }
+  readonly completed = input.required<number>();
+  readonly total = input.required<number>();
+  readonly percentage = input.required<number>();
 }
