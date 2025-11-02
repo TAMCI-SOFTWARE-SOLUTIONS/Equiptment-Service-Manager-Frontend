@@ -327,8 +327,8 @@ export const ServicesActiveStore = signalStore(
       },
 
       async cancelService(serviceId: string): Promise<boolean> {
-        if (!store.isAdmin()) {
-          console.warn('⚠️ Solo administradores pueden cancelar servicios');
+        if (store.isClient()) {
+          console.warn('⚠️ Solo administradores y operadores pueden cancelar servicios');
           return false;
         }
 
@@ -336,13 +336,7 @@ export const ServicesActiveStore = signalStore(
           const service = store.services().find(s => s.id === serviceId);
           if (!service) return false;
 
-          await firstValueFrom(
-            serviceService.update(serviceId, {
-              ...service,
-              status: ServiceStatusEnum.CANCELLED,
-              cancelledAt: new Date()
-            })
-          );
+          await firstValueFrom(serviceService.cancel(serviceId));
 
           await this.loadServices();
           return true;
