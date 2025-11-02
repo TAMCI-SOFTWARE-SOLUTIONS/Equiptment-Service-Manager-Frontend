@@ -75,7 +75,7 @@ export class CreateServicePage implements OnInit, OnDestroy {
     const serviceId = await this.store.submit();
 
     if (serviceId) {
-      this.router.navigate(['/services', serviceId]).then();
+      this.router.navigate(['/services/work', serviceId]).then();
     } else {
       console.error('Error creating service');
     }

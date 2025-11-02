@@ -1,0 +1,340 @@
+<div class="space-y-4">
+
+  <!-- Header con descripción contextual -->
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex-1">
+      <div class="flex items-center gap-2">
+        <p class="font-semibold text-gray-900">{{ label }}</p>
+        @if (file) {
+          <span class="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+            <i class="pi pi-check-circle text-[10px]"></i>
+            Subido
+          </span>
+        }
+      </div>
+      <p class="mt-1 text-xs text-gray-600">{{ helperText }}</p>
+    </div>
+
+    @if (!file) {
+      <div class="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1">
+        <i class="pi pi-video text-xs text-gray-600"></i>
+        <span class="text-xs font-medium text-gray-500">Máx. 3 min</span>
+      </div>
+    }
+  </div>
+
+  <!-- Preview Local (antes de confirmar subida) -->
+  @if (localPreview()) {
+    <div class="overflow-hidden rounded-xl border-2 border-sky-500 bg-gradient-to-br from-sky-50 to-cyan-50 p-4 shadow-lg">
+      <div class="flex flex-col gap-4">
+
+        <!-- Video preview -->
+        <div class="relative overflow-hidden rounded-lg bg-black shadow-md">
+          <video
+            [src]="localPreview()!.url"
+            controls
+            class="w-full"
+            style="max-height: 300px;">
+          </video>
+
+          <!-- Overlay con info -->
+          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+            <div class="flex items-center gap-2 text-white">
+              <i class="pi pi-video text-sm"></i>
+              <span class="text-xs font-medium">{{ localPreview()!.file.name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info adicional -->
+        <div class="flex items-center justify-between rounded-lg bg-white/80 p-3 backdrop-blur-sm">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100">
+              <i class="pi pi-info-circle text-sky-600"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-900">Vista previa del video</p>
+              <p class="text-xs text-gray-600">
+                Tamaño: {{ formatSize(localPreview()!.file.size) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex flex-wrap gap-2">
+          <button
+            pButton
+            type="button"
+            (click)="confirmUpload()"
+            class="flex-1 sm:flex-initial">
+            <i class="pi pi-check" pButtonIcon></i>
+            <span pButtonLabel>Confirmar y Subir</span>
+          </button>
+          <button
+            pButton
+            type="button"
+            (click)="cancelUpload()"
+            class="p-button-outlined flex-1 sm:flex-initial">
+            <i class="pi pi-times" pButtonIcon></i>
+            <span pButtonLabel>Descartar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Upload Zone (Drag & Drop + Botones) -->
+  @if (canShowUpload && !localPreview()) {
+    <div
+      class="group rounded-xl border-2 border-dashed p-8 text-center transition-all duration-300"
+      [ngClass]="{
+        'border-sky-500 bg-gradient-to-br from-sky-50 to-cyan-50 shadow-lg scale-[1.02]': isDragging(),
+        'border-gray-300 bg-gray-50 hover:border-sky-400 hover:bg-sky-50/30': !isDragging()
+      }"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)">
+
+      <!-- Icono animado -->
+      <div class="mb-4 inline-flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300"
+           [ngClass]="{
+             'scale-110 bg-sky-100 shadow-sky-200': isDragging(),
+             'group-hover:scale-105 group-hover:shadow-lg': !isDragging()
+           }">
+        <i class="text-4xl transition-all duration-300"
+           [ngClass]="{
+             'pi-cloud-upload text-sky-500': isDragging(),
+             'pi-video text-gray-400 group-hover:text-sky-500': !isDragging()
+           }">
+        </i>
+      </div>
+
+      <!-- Texto principal -->
+      <p class="text-lg font-semibold transition-colors duration-300"
+         [ngClass]="{
+           'text-sky-700': isDragging(),
+           'text-gray-700 group-hover:text-sky-600': !isDragging()
+         }">
+        @if (isDragging()) {
+          <span>¡Suelta tu video aquí!</span>
+        } @else {
+          Arrastra un video o selecciona desde tu dispositivo
+        }
+      </p>
+
+      <!-- Texto secundario con specs -->
+      <div class="mt-3 space-y-1">
+        <p class="text-sm text-gray-600">
+          {{ uploadButtonLabel }} - Máximo {{ formatSize(MAX_FILE_SIZE) }}
+        </p>
+        <p class="text-xs text-gray-500">
+          <i class="pi pi-clock mr-1"></i>
+          Duración máxima: {{ MAX_DURATION_SECONDS / 60 }} minutos
+        </p>
+      </div>
+
+      <!-- Formatos aceptados -->
+      <div class="mt-3 flex flex-wrap items-center justify-center gap-2">
+        <span class="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm">
+          <i class="pi pi-file text-[10px]"></i>
+          MP4
+        </span>
+        <span class="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm">
+          <i class="pi pi-file text-[10px]"></i>
+          WebM
+        </span>
+        <span class="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm">
+          <i class="pi pi-file text-[10px]"></i>
+          MOV
+        </span>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+        <button
+          pButton
+          type="button"
+          [disabled]="isLoading"
+          (click)="fileInput.click()">
+          <i class="pi pi-upload" pButtonIcon></i>
+          <span pButtonLabel>Seleccionar video</span>
+        </button>
+
+        <button
+          pButton
+          type="button"
+          [disabled]="isLoading"
+          (click)="openCamera()"
+          class="p-button-outlined recording-indicator"
+          [ngClass]="{'recording-indicator': false}">
+          <i class="pi pi-camera" pButtonIcon></i>
+          <span pButtonLabel>Grabar video</span>
+        </button>
+      </div>
+
+      <!-- Input oculto (accesible) -->
+      <label [for]="'file-' + uploadType" class="sr-only">{{ label }}</label>
+      <input
+        [id]="'file-' + uploadType"
+        #fileInput
+        type="file"
+        class="hidden"
+        accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
+        [attr.aria-label]="label"
+        (change)="onFileSelect($event)">
+    </div>
+  }
+
+  <!-- Estado de carga (Skeleton avanzado) -->
+  @if (isLoading) {
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <!-- Header skeleton -->
+      <div class="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100 p-4">
+        <div class="flex items-center gap-3">
+          <div class="h-12 w-12 animate-pulse rounded-lg bg-gradient-to-br from-gray-200 to-gray-300"></div>
+          <div class="flex-1 space-y-2">
+            <div class="h-4 w-1/2 animate-pulse rounded-full bg-gradient-to-r from-gray-200 to-gray-300"></div>
+            <div class="h-3 w-1/3 animate-pulse rounded-full bg-gradient-to-r from-gray-200 to-gray-300"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content skeleton -->
+      <div class="p-4">
+        <!-- Video thumbnail skeleton -->
+        <div class="mb-4 h-40 w-full animate-pulse rounded-lg bg-gradient-to-br from-gray-200 to-gray-300"></div>
+
+        <!-- Progress bar -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-sm">
+            <span class="font-medium text-gray-700">Procesando video...</span>
+            <span class="text-gray-500">Esto puede tardar varios minutos</span>
+          </div>
+          <div class="h-3 overflow-hidden rounded-full bg-gray-200">
+            <div class="h-full animate-pulse bg-gradient-to-r from-sky-400 via-cyan-500 to-sky-400 bg-[length:200%_100%]" style="width: 65%; animation: shimmer 2s infinite;"></div>
+          </div>
+        </div>
+
+        <!-- Spinner -->
+        <div class="mt-4 flex items-center justify-center gap-3">
+          <p-progressSpinner class="w-8 h-8" strokeWidth="6"></p-progressSpinner>
+          <div class="text-sm">
+            <p class="font-medium text-gray-700">Subiendo video</p>
+            <p class="text-gray-500">Por favor no cierres esta ventana</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Video subido (Card mejorado) -->
+  @if (file && !isLoading) {
+    <div
+      class="video-item group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg"
+      [ngClass]="{
+        'opacity-50 scale-95 pointer-events-none': isDeleting()
+      }">
+
+      <!-- Header -->
+      <div class="border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50 p-4">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 shadow-md">
+              <i class="pi pi-video text-xl text-white"></i>
+            </div>
+            <div>
+              <p class="font-semibold text-gray-900">{{ uploadButtonLabel }}</p>
+              <p class="text-xs text-gray-600">Video cargado exitosamente</p>
+            </div>
+          </div>
+
+          <!-- Badge de estado -->
+          <div class="rounded-full bg-white px-3 py-1.5 shadow-sm">
+            <i class="pi pi-check-circle mr-1.5 text-sm text-green-600"></i>
+            <span class="text-xs font-semibold text-green-700">Listo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-4">
+        <!-- Info del archivo -->
+        <div class="mb-4 flex items-start gap-3">
+          <div class="flex-1">
+            <p class="font-medium text-gray-900"
+               [pTooltip]="file.fileEntity.originalName"
+               tooltipPosition="top">
+              {{ file.fileEntity.originalName }}
+            </p>
+            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-600">
+              <span class="flex items-center gap-1.5">
+                <i class="pi pi-file text-[10px]"></i>
+                {{ formatSize(file.fileEntity.size) }}
+              </span>
+              <span class="text-gray-300">•</span>
+              <span class="flex items-center gap-1.5">
+                <i class="pi pi-tag text-[10px]"></i>
+                {{ getVideoTypeLabel(file.fileEntity.contentType) }}
+              </span>
+              @if (videoDuration()) {
+                <span class="text-gray-300">•</span>
+                <span class="flex items-center gap-1.5">
+                  <i class="pi pi-clock text-[10px]"></i>
+                  {{ formatDuration(videoDuration()!) }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex flex-wrap gap-2">
+          <button
+            pButton
+            type="button"
+            class="flex-1 p-button-outlined p-button-sm sm:flex-initial"
+            (click)="preview()">
+            <i class="pi pi-eye" pButtonIcon></i>
+            <span pButtonLabel>Previsualizar</span>
+          </button>
+
+          <button
+            pButton
+            type="button"
+            class="flex-1 p-button-danger p-button-outlined p-button-sm sm:flex-initial"
+            [disabled]="isDeleting()"
+            (click)="remove()">
+            <i class="pi pi-trash" pButtonIcon></i>
+            <span pButtonLabel>Eliminar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Estado cuando no hay video y ya pasó la carga -->
+  @if (!file && !isLoading && !localPreview() && !canShowUpload) {
+    <div class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+      <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
+        <i class="pi pi-video text-3xl text-gray-400"></i>
+      </div>
+      <p class="font-semibold text-gray-700">Sin video</p>
+      <p class="mt-1 text-sm text-gray-500">
+        No se ha subido ningún video aún
+      </p>
+    </div>
+  }
+
+</div>
+
+<style>
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+</style>

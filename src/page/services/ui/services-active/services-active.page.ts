@@ -2,7 +2,6 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ServicesActiveStore, ServiceWithDetails } from '../../model/services-active.store';
 import {
   getStatusBadgeClass,
   getStatusIcon,
@@ -19,6 +18,7 @@ import {Menu} from 'primeng/menu';
 import {MenuItem} from 'primeng/api';
 import {getEquipmentTypeIcon, getEquipmentTypeLabel} from '../../../../shared/model/enums/equipment-type.enum';
 import {getServiceTypeLabel} from '../../../../shared/model/service-type.enum';
+import {ServicesActiveStore, ServiceWithDetails} from '../../model/store/services-active.store';
 
 @Component({
   selector: 'app-services-active',
@@ -29,7 +29,7 @@ import {getServiceTypeLabel} from '../../../../shared/model/service-type.enum';
     Ripple,
     EmptyStateComponent,
     ConfirmationModalComponent,
-    Menu // ← NUEVO
+    Menu
   ],
   providers: [ServicesActiveStore],
   templateUrl: './services-active.page.html'
@@ -38,18 +38,15 @@ export class ServicesActivePage implements OnInit {
   readonly store = inject(ServicesActiveStore);
   readonly router = inject(Router);
 
-  // Expose enums to template
   readonly ServiceStatusEnum = ServiceStatusEnum;
   readonly ServiceTypeEnum = ServiceTypeEnum;
   readonly EquipmentTypeEnum = EquipmentTypeEnum;
   readonly currentService = signal<ServiceWithDetails | null>(null);
 
-  // Modal state
   readonly showCancelModal = signal(false);
   readonly serviceToCancelSignal = signal<ServiceWithDetails | null>(null);
   readonly isCancelling = signal(false);
 
-  // Equipment helpers
   protected readonly getEquipmentTypeIcon = getEquipmentTypeIcon;
   protected readonly getEquipmentTypeLabel = getEquipmentTypeLabel;
   protected readonly getServiceTypeLabel = getServiceTypeLabel;
@@ -58,10 +55,14 @@ export class ServicesActivePage implements OnInit {
   protected readonly getStatusBadgeClass = getStatusBadgeClass;
 
   ngOnInit(): void {
+    if(this.router.url.includes('services/active')) {
+      this.store.setIsActivePage(true);
+    } else {
+      this.store.setIsActivePage(false);
+    }
     this.store.loadServices();
   }
 
-  // ==================== MENU ACTIONS ====================
   openMenu(event: Event, menu: Menu, service: ServiceWithDetails): void {
     this.currentService.set(service);
     menu.toggle(event);
@@ -74,12 +75,12 @@ export class ServicesActivePage implements OnInit {
     const items: MenuItem[] = [];
 
     items.push({
-      label: this.store.isOperator() ? 'Continuar servicio' : 'Ver detalles',
+      label: (this.store.isOperator() && this.store.isActivePage()) ? 'Continuar servicio' : 'Ver detalles',
       icon: 'pi pi-eye',
       command: () => this.onServiceClick(service)
     });
 
-    if (this.store.isAdmin() || this.store.isOperator()) {
+    if ((this.store.isAdmin() || this.store.isOperator()) && this.store.isActivePage()) {
       items.push({ separator: true });
 
       items.push({
@@ -93,14 +94,12 @@ export class ServicesActivePage implements OnInit {
     return items;
   }
 
-  // ==================== NAVIGATION ====================
 
   onServiceClick(service: ServiceWithDetails): void {
-    console.log('service', service);
-    if (this.store.isOperator()) {
-      this.router.navigate(['/services/work', service.id]).then();
+    if (!this.store.isActivePage() || this.store.isAdmin()) {
+      this.router.navigate(['/services', service.id]).then();
     } else {
-      this.router.navigate(['/services/active', service.id]).then();
+      this.router.navigate(['/services/work', service.id]).then();
     }
   }
 
@@ -109,7 +108,6 @@ export class ServicesActivePage implements OnInit {
     this.router.navigate(['/services/new']).then();
   }
 
-  // ==================== FILTERS ====================
 
   onStatusFilterChange(status: ServiceStatusEnum | 'all'): void {
     this.store.setStatusFilter(status);
@@ -122,8 +120,6 @@ export class ServicesActivePage implements OnInit {
   clearSearch(): void {
     this.store.clearSearch();
   }
-
-  // ==================== ACTIONS ====================
 
   onCancelClickFromMenu(service: ServiceWithDetails): void {
     this.serviceToCancelSignal.set(service);
@@ -151,21 +147,9 @@ export class ServicesActivePage implements OnInit {
     this.isCancelling.set(false);
   }
 
-  // ==================== PAGINATION ====================
-
-  onPreviousPage(): void {
-    this.store.previousPage();
-  }
-
-  onNextPage(): void {
-    this.store.nextPage();
-  }
-
   onPageClick(page: number): void {
     this.store.goToPage(page);
   }
-
-  // ==================== HELPERS ====================
 
   onRefresh(): void {
     this.store.loadServices();
@@ -176,8 +160,12 @@ export class ServicesActivePage implements OnInit {
     return DateUtils.formatDateTime(date);
   }
 
-  formatDuration(duration: string | null): string {
-    if (!duration) return '-';
-    return DurationUtils.formatReadable(duration);
+  formatDuration(service: ServiceWithDetails): string {
+    if (service.totalWorkDuration && service.totalWorkDuration != "PT0S") return DurationUtils.formatReadable(service.totalWorkDuration);
+    if (service.startedAt) {
+      return DateUtils.diffReadable(service.startedAt, new Date());
+    } else {
+      return '0s';
+    }
   }
 }

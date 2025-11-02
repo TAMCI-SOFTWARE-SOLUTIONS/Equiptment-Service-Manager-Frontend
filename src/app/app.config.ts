@@ -10,6 +10,7 @@ import {definePreset} from '@primeuix/themes';
 import { authenticationInterceptor } from '../shared/api';
 import { AppInitializerService } from '../shared/services';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import {MessageService} from 'primeng/api';
 
 const BlueModern = definePreset(Aura, {
   semantic: {
@@ -30,6 +31,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([authenticationInterceptor])),
     provideAnimationsAsync(),
+    MessageService,
     providePrimeNG({
       ripple: true,
       theme: {

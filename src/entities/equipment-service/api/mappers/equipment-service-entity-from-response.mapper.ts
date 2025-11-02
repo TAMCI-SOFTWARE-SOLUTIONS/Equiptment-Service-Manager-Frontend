@@ -15,7 +15,6 @@ export class EquipmentServiceEntityFromResponseMapper {
       status: ServiceStatusMapper.fromStringToEnum(dto.status ?? ''),
       supervisorId: dto.supervisorId ?? '',
       type: ServiceTypeMapper.fromStringToEnum(dto.type ?? ''),
-      previousServiceId: dto.previousServiceId ?? '',
       createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(0),
       updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : new Date(0),
       startedAt: dto.startedAt ? new Date(dto.startedAt) : null,

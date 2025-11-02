@@ -10,17 +10,16 @@ export interface EquipmentServiceEntity {
   status: ServiceStatusEnum;
   supervisorId: string;
   type: ServiceTypeEnum;
-  previousServiceId: string;
   createdAt: Date;
   updatedAt: Date;
   startedAt: Date | null;
   completedAt: Date | null;
   cancelledAt: Date | null;
   totalWorkDuration: string;
-  videoStartFileId: string;
-  videoEndFileId: string;
+  videoStartFileId: string | null;
+  videoEndFileId: string | null;
   startPhotos: string[];
   midPhotos: string[];
   endPhotos: string[];
-  reportDocumentFileId: string;
+  reportDocumentFileId: string | null;
 }

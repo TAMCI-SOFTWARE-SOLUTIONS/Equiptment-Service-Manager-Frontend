@@ -115,4 +115,41 @@ export class EquipmentServiceService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  start(id: string): Observable<EquipmentServiceEntity> {
+    return this.http.post<EquipmentServiceResponse>(
+      `${this.resourcePath()}/${id}/start`,
+      {},
+      this.httpOptions
+    ).pipe(
+      map((response: EquipmentServiceResponse) =>
+        EquipmentServiceEntityFromResponseMapper.fromDtoToEntity(response)
+      ),
+      retry(2),
+    )
+  }
+
+  complete(id: string): Observable<EquipmentServiceEntity> {
+    return this.http.post<EquipmentServiceResponse>(
+      `${this.resourcePath()}/${id}/complete`,
+      {},
+      this.httpOptions
+    ).pipe(
+      map((response: EquipmentServiceResponse) =>
+        EquipmentServiceEntityFromResponseMapper.fromDtoToEntity(response)
+      ),
+    )
+  }
+
+  cancel(id: string): Observable<EquipmentServiceEntity> {
+    return this.http.post<EquipmentServiceResponse>(
+      `${this.resourcePath()}/${id}/cancel`,
+      {},
+      this.httpOptions
+    ).pipe(
+      map((response: EquipmentServiceResponse) =>
+        EquipmentServiceEntityFromResponseMapper.fromDtoToEntity(response)
+      ),
+    )
+  }
 }

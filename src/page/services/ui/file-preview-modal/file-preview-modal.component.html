@@ -1,0 +1,281 @@
+@if (isVisible()) {
+  <div
+    class="fixed inset-0 z-[9998] flex items-center justify-center"
+    [class.px-0]="isMobile()"
+    [class.p-4]="!isMobile()">
+
+    <!-- Backdrop -->
+    <div
+      class="absolute inset-0 bg-black/95 backdrop-blur-sm transition-opacity duration-200"
+      (click)="onBackdropClick($event)">
+    </div>
+
+    @if (currentFile(); as file) {
+      <div
+        #contentContainer
+        [attr.data-file-id]="file.fileEntity.id"
+        class="relative z-[9999] flex flex-col overflow-hidden bg-gray-900 shadow-2xl transition-all duration-300"
+        [class.w-screen]="isMobile() || isFullscreenActive()"
+        [class.h-screen]="isMobile() || isFullscreenActive()"
+        [class.rounded-none]="isMobile() || isFullscreenActive()"
+        [class.w-[90vw]]="!isMobile() && !isFullscreenActive()"
+        [class.h-[90vh]]="!isMobile() && !isFullscreenActive()"
+        [class.max-w-7xl]="!isMobile() && !isFullscreenActive()"
+        [class.max-h-[900px]]="!isMobile() && !isFullscreenActive()"
+        [class.rounded-2xl]="!isMobile() && !isFullscreenActive()"
+        (touchstart)="onTouchStart($event)"
+        (touchend)="onTouchEnd($event)">
+
+        <!-- Header -->
+        <header class="relative z-10 flex flex-shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-3 backdrop-blur-xl lg:px-6 lg:py-4">
+          <div class="flex min-w-0 flex-1 items-center gap-3">
+            @if (isMobile()) {
+              <button
+                pButton
+                type="button"
+                icon="pi pi-arrow-left"
+                class="!h-10 !w-10 shrink-0 !rounded-xl !bg-white/10 !p-0 !text-white hover:!bg-white/20"
+                (click)="close()">
+              </button>
+            }
+
+            <div class="min-w-0 flex-1">
+              <h3 class="truncate text-sm font-semibold text-white lg:text-base">
+                {{ file.fileEntity.originalName }}
+              </h3>
+              <p class="flex items-center gap-2 text-xs text-gray-400 lg:text-sm">
+                <span>{{ formatSize(file.fileEntity.size) }}</span>
+                @if (canNavigate()) {
+                  <span class="text-gray-600">•</span>
+                  <span>{{ getCurrentIndex() + 1 }} / {{ allFiles().length }}</span>
+                }
+              </p>
+            </div>
+          </div>
+
+          <div class="flex shrink-0 items-center gap-1 lg:gap-2">
+            @if (!isMobile() && canNavigate()) {
+              <button
+                pButton
+                type="button"
+                icon="pi pi-chevron-left"
+                class="!h-10 !w-10 !rounded-xl !bg-white/10 !p-0 !text-white hover:!bg-white/20 disabled:!opacity-30"
+                [disabled]="isFirst()"
+                (click)="previous()">
+              </button>
+
+              <button
+                pButton
+                type="button"
+                icon="pi pi-chevron-right"
+                class="!h-10 !w-10 !rounded-xl !bg-white/10 !p-0 !text-white hover:!bg-white/20 disabled:!opacity-30"
+                [disabled]="isLast()"
+                (click)="next()">
+              </button>
+            }
+
+            @if (canZoom() && !isMobile()) {
+              <div class="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5">
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-minus"
+                  class="!h-7 !w-7 !rounded-lg !bg-transparent !p-0 !text-white hover:!bg-white/10 disabled:!opacity-30"
+                  [disabled]="zoomLevel() <= 0.5"
+                  (click)="zoomOut()">
+                </button>
+
+                <span class="min-w-[3rem] text-center text-xs font-semibold text-white">
+                  {{ (zoomLevel() * 100).toFixed(0) }}%
+                </span>
+
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-plus"
+                  class="!h-7 !w-7 !rounded-lg !bg-transparent !p-0 !text-white hover:!bg-white/10 disabled:!opacity-30"
+                  [disabled]="zoomLevel() >= 3"
+                  (click)="zoomIn()">
+                </button>
+
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-refresh"
+                  class="!h-7 !w-7 !rounded-lg !bg-transparent !p-0 !text-white hover:!bg-white/10 disabled:!opacity-30"
+                  [disabled]="zoomLevel() === 1"
+                  (click)="resetZoom()">
+                </button>
+              </div>
+            }
+
+            @if (!isMobile() && mergedConfig().allowFullscreen) {
+              <button
+                pButton
+                type="button"
+                [icon]="isFullscreenActive() ? 'pi pi-window-minimize' : 'pi pi-window-maximize'"
+                class="!h-10 !w-10 !rounded-xl !bg-white/10 !p-0 !text-white hover:!bg-white/20"
+                (click)="toggleFullscreen()">
+              </button>
+            }
+
+            @if (mergedConfig().allowDownload) {
+              <button
+                pButton
+                type="button"
+                icon="pi pi-download"
+                class="!h-10 !w-10 !rounded-xl !bg-blue-600 !p-0 !text-white hover:!bg-blue-700"
+                (click)="download()">
+              </button>
+            }
+
+            @if (!isMobile()) {
+              <button
+                pButton
+                type="button"
+                icon="pi pi-times"
+                class="!h-10 !w-10 !rounded-xl !bg-red-600 !p-0 !text-white hover:!bg-red-700"
+                (click)="close()">
+              </button>
+            }
+          </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="relative flex flex-1 items-center justify-center overflow-hidden bg-black">
+
+          @if (isLoading()) {
+            <div class="flex flex-col items-center justify-center gap-6 p-8">
+              <div class="h-16 w-16 animate-spin rounded-full border-4 border-gray-700 border-t-blue-500"></div>
+              <p class="text-lg font-semibold text-white">Cargando...</p>
+            </div>
+          }
+
+          @else if (error()) {
+            <div class="flex flex-col items-center justify-center gap-6 p-8 text-center">
+              <div class="flex h-20 w-20 items-center justify-center rounded-full bg-red-500/20">
+                <i class="pi pi-exclamation-triangle text-4xl text-red-500"></i>
+              </div>
+              <h4 class="text-xl font-bold text-white">Error al cargar</h4>
+              <p class="text-sm text-gray-400">{{ error() }}</p>
+              <button
+                pButton
+                type="button"
+                label="Reintentar"
+                icon="pi pi-refresh"
+                class="!rounded-xl !bg-blue-600"
+                (click)="retry()">
+              </button>
+            </div>
+          }
+
+          @else {
+            <!-- 🔧 FIX: Cada tipo de archivo se recrea con el fileEntity.id -->
+            @switch (file.type) {
+              @case ('image') {
+                @if (file.url) {
+                  <div
+                    class="flex h-full w-full items-center justify-center overflow-hidden"
+                    [class.cursor-move]="zoomLevel() > 1">
+                    <img
+                      [src]="file.url"
+                      [alt]="file.fileEntity.originalName"
+                      [style.transform]="getImageTransform()"
+                      class="max-h-full max-w-full select-none object-contain"
+                      (dblclick)="onDoubleClick()"
+                      (mousedown)="onMouseDown($event)">
+                  </div>
+                }
+              }
+
+              @case ('video') {
+                @if (file.url) {
+                  <div class="flex h-full w-full items-center justify-center p-4">
+                    <video
+                      [src]="file.url"
+                      controls
+                      autoplay
+                      class="max-h-full max-w-full rounded-lg shadow-2xl">
+                    </video>
+                  </div>
+                }
+              }
+
+              @case ('pdf') {
+                @if (file.url) {
+                  <div class="h-full w-full bg-gray-800">
+                    <ngx-extended-pdf-viewer
+                      [src]="file.url"
+                      height="100%"
+                      [textLayer]="true"
+                      [showHandToolButton]="true"
+                      [zoom]="'auto'">
+                    </ngx-extended-pdf-viewer>
+                  </div>
+                }
+              }
+
+              @default {
+                <div class="flex flex-col items-center justify-center gap-6 p-8">
+                  <div class="flex h-20 w-20 items-center justify-center rounded-full bg-gray-700">
+                    <i class="pi pi-file text-4xl text-gray-400"></i>
+                  </div>
+                  <h4 class="text-xl font-bold text-white">Vista previa no disponible</h4>
+                  <button
+                    pButton
+                    type="button"
+                    label="Descargar"
+                    icon="pi pi-download"
+                    class="!rounded-xl !bg-blue-600"
+                    (click)="download()">
+                  </button>
+                </div>
+              }
+            }
+          }
+
+        </main>
+
+        <!-- Footer Thumbnails -->
+        @if (showThumbnails()) {
+          <footer class="relative z-10 flex-shrink-0 border-t border-white/10 bg-gradient-to-r from-gray-800 to-gray-900 p-4 backdrop-blur-xl">
+            <div class="flex gap-3 overflow-x-auto pb-1">
+              @for (f of allFiles(); track f.fileEntity.id; let i = $index) {
+                <div
+                  class="group relative flex h-20 w-20 flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 bg-gray-800 transition-all hover:-translate-y-1"
+                  [class.border-blue-500]="i === getCurrentIndex()"
+                  (click)="selectFile(f)">
+
+                @if (f.type === 'image' && f.url) {
+                  <img [src]="f.url" class="h-full w-full object-cover" alt="">
+                }
+                @else if (f.type === 'video') {
+                  <i class="pi pi-video text-3xl text-blue-400"></i>
+                }
+                @else if (f.type === 'pdf') {
+                  <i class="pi pi-file-pdf text-3xl text-red-400"></i>
+                }
+                @else {
+                  <i class="pi pi-file text-3xl text-gray-400"></i>
+                }
+
+                @if (i === getCurrentIndex()) {
+                  <div class="absolute bottom-1 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-blue-500"></div>
+                }
+                </div>
+              }
+            </div>
+          </footer>
+        }
+
+        @if (isMobile() && zoomLevel() === 1) {
+          <div class="absolute left-1/2 top-20 z-20 flex -translate-x-1/2 flex-col items-center gap-2 rounded-full border border-white/10 bg-black/70 px-6 py-3 backdrop-blur-md">
+            <i class="pi pi-chevron-down animate-bounce text-white/60"></i>
+            <p class="whitespace-nowrap text-xs text-white/60">Desliza para cerrar</p>
+          </div>
+        }
+
+      </div>
+    }
+  </div>
+}

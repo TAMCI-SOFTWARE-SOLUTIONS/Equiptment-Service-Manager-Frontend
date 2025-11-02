@@ -1,7 +1,6 @@
-import { computed, inject } from '@angular/core';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { firstValueFrom, forkJoin, Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import {computed, inject} from '@angular/core';
+import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
+import {firstValueFrom, forkJoin} from 'rxjs';
 import {
   EquipmentServiceEntity,
   EquipmentServiceService,
@@ -10,18 +9,22 @@ import {
 import {CabinetEntity} from '../../../../entities/cabinet/model';
 import {PanelEntity} from '../../../../entities/panel/model';
 import {SupervisorEntity, SupervisorService} from '../../../../entities/supervisor';
-import {InspectableItemWithDetails} from '../interfaces/inspectable-item-with-details.interface';
-import {
-  ItemInspectionEntity,
-  ItemInspectionService
-} from '../../../../entities/item-inspection';
+import {ProfileEntity, ProfileService} from '../../../../entities/profile';
+import {ItemInspectionWithDetails} from '../interfaces/item-inspection-with-details.interface';
+import {ItemInspectionEntity, ItemInspectionService} from '../../../../entities/item-inspection';
+import {InspectableItemService} from '../../../../entities/inspectable-item';
 import {
   EquipmentPowerDistributionAssignmentEntity
 } from '../../../../entities/equipment-power-distribution-assignment/model/entities/equipment-power-distribution-assignment.entity';
 import {PowerDistributionPanelEntity} from '../../../../entities/power-distribution-panel/model';
 import {InspectableItemTypeEnum} from '../../../../shared/model/enums';
-import {isItemCompleted, isValidForRaiseObservation} from '../../utils/service-work-validation.helpers';
-import {EquipmentTypeEnum, ServiceTypeEnum} from '../../../../shared/model';
+import {
+  isItemCompleted,
+  requiresCriticality,
+  validateItems,
+  ValidationError
+} from '../../utils/service-work-validation.helpers';
+import {EquipmentTypeEnum} from '../../../../shared/model';
 import {CabinetService} from '../../../../entities/cabinet/api';
 import {PanelService} from '../../../../entities/panel/api';
 import {BrandService} from '../../../../entities/brand';
@@ -33,32 +36,84 @@ import {
 import {PowerDistributionPanelService} from '../../../../entities/power-distribution-panel/api';
 import {ItemConditionEnum} from '../../../../shared/model/enums/item-condition.enum';
 import {CriticalityEnum} from '../../../../shared/model/enums/criticality.enum';
+import {TabConfig, TabProgress} from '../interfaces/tab-config.interface';
+import {EvidenceFile} from '../interfaces/evidence-file.interface';
+import {DescriptionService} from '../../../../entities/description/api/services/description.service';
 
-// ==================== INTERFACES ====================
+const TAB_CONFIGS: TabConfig[] = [
+  {
+    type: InspectableItemTypeEnum.COMMUNICATION,
+    label: 'Comunicación',
+    icon: 'pi-wifi',
+    color: 'sky'
+  },
+  {
+    type: InspectableItemTypeEnum.POWER_SUPPLY,
+    label: 'Fuentes',
+    icon: 'pi-bolt',
+    color: 'amber'
+  },
+  {
+    type: InspectableItemTypeEnum.POWER_120VAC,
+    label: '120 VAC',
+    icon: 'pi-flash',
+    color: 'yellow'
+  },
+  {
+    type: InspectableItemTypeEnum.ORDER_AND_CLEANLINESS,
+    label: 'Orden y Limpieza',
+    icon: 'pi-check-square',
+    color: 'green'
+  },
+  {
+    type: InspectableItemTypeEnum.OTHERS,
+    label: 'Otros',
+    icon: 'pi-ellipsis-h',
+    color: 'gray'
+  }
+];
 
 export interface ServiceWorkState {
   // Service data
   service: EquipmentServiceEntity | null;
   equipment: CabinetEntity | PanelEntity | null;
   supervisor: SupervisorEntity | null;
+  operator: ProfileEntity | null;
 
-  // Inspectable items enriquecidos
-  inspectableItems: InspectableItemWithDetails[];
-
-  // Inspecciones del servicio anterior (para Mantenimiento/Levantamiento)
-  previousInspections: ItemInspectionEntity[];
+  // Inspections
+  itemInspections: ItemInspectionWithDetails[];
 
   // Power distribution
   powerDistributions: EquipmentPowerDistributionAssignmentEntity[];
   powerPanels: Map<string, PowerDistributionPanelEntity>;
 
+  // Evidence files
+  evidenceFiles: {
+    videoStart: EvidenceFile | null;
+    videoEnd: EvidenceFile | null;
+    startPhotos: EvidenceFile[];
+    midPhotos: EvidenceFile[];
+    endPhotos: EvidenceFile[];
+    report: EvidenceFile | null;
+  };
+
   // Loading states
   isLoadingService: boolean;
   isLoadingItems: boolean;
+  isLoadingEvidence: boolean;
   isStartingService: boolean;
   isSavingInspection: boolean;
   isUploadingFile: boolean;
+  uploadingStatus: {
+    videoStart: boolean;
+    videoEnd: boolean;
+    startPhoto: boolean;
+    midPhoto: boolean;
+    endPhoto: boolean;
+    report: boolean;
+  };
   isCompletingService: boolean;
+  isCancelingService: boolean;
 
   // Error
   error: string | null;
@@ -68,105 +123,91 @@ export interface ServiceWorkState {
 
   // Current inspectable type tab (en Step 2)
   currentInspectableType: InspectableItemTypeEnum;
-
-  // Auto-save debouncer
-  saveSubject: Subject<{ itemId: string; data: Partial<ItemInspectionEntity> }> | null;
 }
 
 const initialState: ServiceWorkState = {
   service: null,
   equipment: null,
   supervisor: null,
-  inspectableItems: [],
-  previousInspections: [],
+  operator: null,
+  itemInspections: [],
   powerDistributions: [],
   powerPanels: new Map(),
+  evidenceFiles: {
+    videoStart: null,
+    videoEnd: null,
+    startPhotos: [],
+    midPhotos: [],
+    endPhotos: [],
+    report: null
+  },
   isLoadingService: false,
   isLoadingItems: false,
+  isLoadingEvidence: false,
   isStartingService: false,
   isSavingInspection: false,
   isUploadingFile: false,
+  uploadingStatus: {
+    videoStart: false,
+    videoEnd: false,
+    startPhoto: false,
+    midPhoto: false,
+    endPhoto: false,
+    report: false
+  },
   isCompletingService: false,
+  isCancelingService: false,
   error: null,
   currentStep: 1,
-  currentInspectableType: InspectableItemTypeEnum.COMMUNICATION,
-  saveSubject: null
+  currentInspectableType: InspectableItemTypeEnum.COMMUNICATION
 };
-
-// ==================== STORE ====================
 
 export const ServiceWorkStore = signalStore(
   withState<ServiceWorkState>(initialState),
 
   withComputed((state) => ({
-    /**
-     * Indica si el servicio puede comenzar
-     */
-    canStartService: computed(() => {
-      const service = state.service();
-      return service?.status === ServiceStatusEnum.CREATED;
-    }),
-
-    /**
-     * Indica si el servicio está en progreso
-     */
-    isServiceInProgress: computed(() => {
-      const service = state.service();
-      return service?.status === ServiceStatusEnum.IN_PROGRESS;
-    }),
-
-    /**
-     * Tipo de servicio
-     */
+    tabConfigs: computed(() => TAB_CONFIGS),
     serviceType: computed(() => state.service()?.type || null),
 
-    /**
-     * Indica si tiene servicio previo (Mantenimiento o Levantamiento)
-     */
-    hasPreviousService: computed(() => {
-      const service = state.service();
-      return Boolean(service?.previousServiceId);
+    operatorFullName: computed(() => {
+      const operator = state.operator();
+      if (!operator) return '';
+
+      return [
+        operator.names,
+        operator.firstSurname,
+        operator.secondSurname
+      ]
+        .filter(Boolean)
+        .join(' ');
     }),
 
-    /**
-     * Items agrupados por tipo
-     */
-    itemsByType: computed(() => {
-      const items = state.inspectableItems();
-      const grouped: Record<InspectableItemTypeEnum, InspectableItemWithDetails[]> = {
-        [InspectableItemTypeEnum.COMMUNICATION]: [],
-        [InspectableItemTypeEnum.STATE]: [],
-        [InspectableItemTypeEnum.POWER_SUPPLY]: [],
-        [InspectableItemTypeEnum.POWER_120VAC]: [],
-        [InspectableItemTypeEnum.ORDER_AND_CLEANLINESS]: [],
-        [InspectableItemTypeEnum.OTHERS]: []
-      };
+    tabProgress: computed(() => {
+      const items = state.itemInspections();
+      const progressMap = new Map<InspectableItemTypeEnum, TabProgress>();
 
-      items.forEach(item => {
-        grouped[item.type].push(item);
+      TAB_CONFIGS.forEach(config => {
+        const tabItems = items.filter(item => item.type === config.type);
+        const completed = tabItems.filter(item =>
+          isItemCompleted(item.condition, item.criticality)
+        ).length;
+
+        progressMap.set(config.type, {
+          completed,
+          total: tabItems.length,
+          percentage: tabItems.length > 0 ? Math.round((completed / tabItems.length) * 100) : 0
+        });
       });
 
-      return grouped;
+      return progressMap;
     }),
 
-    /**
-     * Items del tipo actual seleccionado
-     */
-    currentTypeItems: computed(() => {
-      const currentType = state.currentInspectableType();
-      const items = state.inspectableItems();
-      return items.filter(item => item.type === currentType);
-    }),
-
-    /**
-     * Progreso total de inspecciones
-     */
     inspectionProgress: computed(() => {
-      const items = state.inspectableItems();
+      const items = state.itemInspections();
       if (items.length === 0) return { completed: 0, total: 0, percentage: 0 };
 
       const completed = items.filter(item =>
-        isItemCompleted(item.inspection?.condition || null, item.inspection?.criticality || null)
+        isItemCompleted(item.condition, item.criticality)
       ).length;
 
       return {
@@ -176,131 +217,97 @@ export const ServiceWorkStore = signalStore(
       };
     }),
 
-    /**
-     * Progreso por tipo
-     */
-    progressByType: computed(() => {
-      const itemsByType = state.inspectableItems();
-      const progress: Record<InspectableItemTypeEnum, { completed: number; total: number }> = {
-        [InspectableItemTypeEnum.COMMUNICATION]: { completed: 0, total: 0 },
-        [InspectableItemTypeEnum.STATE]: { completed: 0, total: 0 },
-        [InspectableItemTypeEnum.POWER_SUPPLY]: { completed: 0, total: 0 },
-        [InspectableItemTypeEnum.POWER_120VAC]: { completed: 0, total: 0 },
-        [InspectableItemTypeEnum.ORDER_AND_CLEANLINESS]: { completed: 0, total: 0 },
-        [InspectableItemTypeEnum.OTHERS]: { completed: 0, total: 0 }
-      };
-
-      itemsByType.forEach(item => {
-        progress[item.type].total++;
-        if (isItemCompleted(item.inspection?.condition || null, item.inspection?.criticality || null)) {
-          progress[item.type].completed++;
-        }
-      });
-
-      return progress;
-    }),
-
-    /**
-     * Validación de evidencias
-     */
     evidenceValidation: computed(() => {
-      const service = state.service();
-      if (!service) return null;
-
+      const evidence = state.evidenceFiles();
       return {
-        videoStart: Boolean(service.videoStartFileId),
-        videoEnd: Boolean(service.videoEndFileId),
-        startPhotos: service.startPhotos.length >= 1 && service.startPhotos.length <= 3,
-        midPhotos: service.midPhotos.length >= 1 && service.midPhotos.length <= 3,
-        endPhotos: service.endPhotos.length >= 1 && service.endPhotos.length <= 3,
-        reportDocument: Boolean(service.reportDocumentFileId),
-        isComplete: Boolean(
-          service.videoStartFileId &&
-          service.videoEndFileId &&
-          service.startPhotos.length >= 1 &&
-          service.midPhotos.length >= 1 &&
-          service.endPhotos.length >= 1 &&
-          service.reportDocumentFileId
+        videoStart: !!evidence.videoStart,
+        videoEnd: !!evidence.videoEnd,
+        startPhotos: evidence.startPhotos.length >= 1 && evidence.startPhotos.length <= 3,
+        midPhotos: evidence.midPhotos.length >= 1 && evidence.midPhotos.length <= 3,
+        endPhotos: evidence.endPhotos.length >= 1 && evidence.endPhotos.length <= 3,
+        report: !!evidence.report,
+        isComplete: !!(
+          evidence.videoStart &&
+          evidence.videoEnd &&
+          evidence.startPhotos.length >= 1 &&
+          evidence.midPhotos.length >= 1 &&
+          evidence.endPhotos.length >= 1
         )
       };
     }),
 
-    /**
-     * Puede completar el servicio
-     */
-    canCompleteService: computed(() => {
+    canStartService: computed(() => {
       const service = state.service();
-      const progress = state.inspectableItems();
-      const evidence = state.service();
-
-      if (!service || !evidence) return false;
-
-      // 1. Todas las inspecciones completadas
-      const allInspectionsCompleted = progress.every(item =>
-        isItemCompleted(item.inspection?.condition || null, item.inspection?.criticality || null)
-      );
-
-      // 2. Todas las evidencias cargadas
-      const allEvidencesUploaded = Boolean(
-        evidence.videoStartFileId &&
-        evidence.videoEndFileId &&
-        evidence.startPhotos.length >= 1 &&
-        evidence.midPhotos.length >= 1 &&
-        evidence.endPhotos.length >= 1 &&
-        evidence.reportDocumentFileId
-      );
-
-      // 3. Para levantamiento: todas las condiciones válidas
-      let validForRaise = true;
-      if (service.type === ServiceTypeEnum.RAISE_OBSERVATION) {
-        validForRaise = progress.every(item =>
-          isValidForRaiseObservation(
-            item.inspection?.condition || null,
-            item.inspection?.criticality || null
-          )
-        );
-      }
-
-      return allInspectionsCompleted && allEvidencesUploaded && validForRaise;
+      return service?.status === ServiceStatusEnum.CREATED;
     }),
 
-    /**
-     * Indica si hay cambios sin guardar
-     */
+    isServiceInProgress: computed(() => {
+      const service = state.service();
+      return service?.status === ServiceStatusEnum.IN_PROGRESS;
+    }),
+
+    canCompleteService: computed(() => {
+      const service = state.service();
+      const progress = state.itemInspections();
+      const evidenceValidation = state.evidenceFiles();
+
+      if (!service) return false;
+
+      const allInspectionsCompleted = progress.every(item =>
+        isItemCompleted(item.condition, item.criticality)
+      );
+
+      const allEvidencesUploaded = !!(
+        evidenceValidation.videoStart &&
+        evidenceValidation.videoEnd &&
+        evidenceValidation.startPhotos.length >= 1 &&
+        evidenceValidation.midPhotos.length >= 1 &&
+        evidenceValidation.endPhotos.length >= 1
+      );
+
+      return allInspectionsCompleted && allEvidencesUploaded;
+    }),
+
     hasUnsavedChanges: computed(() => {
-      const items = state.inspectableItems();
+      const items = state.itemInspections();
       return items.some(item => item.hasUnsavedChanges);
     }),
 
-    /**
-     * Indica si está cargando algo
-     */
-    isLoading: computed(() =>
-      state.isLoadingService() ||
-      state.isLoadingItems() ||
-      state.isStartingService() ||
-      state.isSavingInspection() ||
-      state.isUploadingFile() ||
-      state.isCompletingService()
-    )
+    currentTypeItems: computed(() => {
+      const currentType = state.currentInspectableType();
+      const items = state.itemInspections();
+      return items.filter(item => item.type === currentType);
+    }),
+
+    isLoading: computed(() => {
+      const uploading = Object.values(state.uploadingStatus()).some(status => status === true);
+      return state.isLoadingService() ||
+        state.isLoadingItems() ||
+        state.isLoadingEvidence() ||
+        state.isStartingService() ||
+        state.isSavingInspection() ||
+        uploading ||
+        state.isCompletingService() ||
+        state.isCancelingService();
+    })
   })),
 
   withMethods((store) => {
     const serviceService = inject(EquipmentServiceService);
     const itemInspectionService = inject(ItemInspectionService);
-    const cabinetService = inject(CabinetService);
-    const panelService = inject(PanelService);
+    const inspectableItemService = inject(InspectableItemService);
     const supervisorService = inject(SupervisorService);
+    const profileService = inject(ProfileService);
     const brandService = inject(BrandService);
     const modelService = inject(ModelService);
+    const descriptionService = inject(DescriptionService);
     const fileService = inject(FileService);
     const powerDistAssignService = inject(EquipmentPowerDistributionAssignmentService);
     const powerPanelService = inject(PowerDistributionPanelService);
+    const cabinetService = inject(CabinetService);
+    const panelService = inject(PanelService);
 
     return {
-      /**
-       * Cargar servicio y toda su información relacionada
-       */
       async loadService(serviceId: string): Promise<void> {
         patchState(store, {
           isLoadingService: true,
@@ -308,23 +315,21 @@ export const ServiceWorkStore = signalStore(
         });
 
         try {
-          // 1. Cargar servicio
           const service = await firstValueFrom(serviceService.getById(serviceId));
 
           patchState(store, { service });
 
-          // 2. Cargar en paralelo: equipo, supervisor, power distributions
-          const [equipment, supervisor, powerDistributions] = await firstValueFrom(
+          const [equipment, supervisor, operator, powerDistributions] = await firstValueFrom(
             forkJoin([
               service.equipmentType === EquipmentTypeEnum.CABINET
                 ? cabinetService.getById(service.equipmentId)
                 : panelService.getById(service.equipmentId),
               supervisorService.getById(service.supervisorId),
+              profileService.getByUserId(service.operatorId),
               powerDistAssignService.getAllByEquipmentId(service.equipmentId)
             ])
           );
 
-          // 3. Cargar power panels
           const panelIds = powerDistributions.map(pd => pd.powerDistributionPanelId);
           const panels = panelIds.length > 0
             ? await firstValueFrom(powerPanelService.batchGetByIds(panelIds))
@@ -335,13 +340,14 @@ export const ServiceWorkStore = signalStore(
           patchState(store, {
             equipment,
             supervisor,
+            operator,
             powerDistributions,
             powerPanels: powerPanelsMap,
             isLoadingService: false
           });
 
-          // 4. Cargar inspectable items
-          await this.loadInspectableItems();
+          await this.loadItemInspections();
+          await this.loadEvidenceFiles();
 
         } catch (error: any) {
           console.error('❌ Error loading service:', error);
@@ -351,109 +357,95 @@ export const ServiceWorkStore = signalStore(
           });
         }
       },
-      /**
-       * Cargar inspectable items del equipo y enriquecerlos
-       */
-      async loadInspectableItems(): Promise<void> {
-        const service = store.service();
-        const equipment = store.equipment();
 
-        if (!service || !equipment) return;
+      async loadItemInspections(): Promise<void> {
+        const service = store.service();
+        if (!service) return;
 
         patchState(store, { isLoadingItems: true });
 
         try {
-          // 1. Obtener inspectable items del equipo
-          const items = await firstValueFrom(
-            service.equipmentType === EquipmentTypeEnum.CABINET
-              ? cabinetService.getAllInspectableItems(equipment.id)
-              : panelService.getAllInspectableItems(equipment.id)
-          );
+          let inspections: ItemInspectionEntity[] = [];
+          try {
+            inspections = await firstValueFrom(serviceService.getAllItemInspections(service.id));
+          } catch (error) {
+            patchState(store, {
+              isLoadingItems: false,
+              error: 'Error al cargar las inspecciones del servicio'
+            });
+            return;
+          }
 
-          // 2. Extraer IDs únicos de brands y models
+          if (inspections.length === 0) {
+            console.warn('⚠️ No se encontraron inspecciones para este servicio.');
+            patchState(store, { itemInspections: [], isLoadingItems: false });
+            return;
+          }
+
+          const itemIds = inspections.map(insp => insp.itemId);
+          const items = await firstValueFrom(inspectableItemService.getAllByIds(itemIds));
+          const itemsMap = new Map(items.map(i => [i.id, i]));
+
           const brandIds = [...new Set(items.map(item => item.brandId))];
           const modelIds = [...new Set(items.map(item => item.modelId))];
+          const descriptionIds = [...new Set(items.map(item => item.descriptionId))];
 
-          // 3. Cargar brands y models en paralelo
-          const [brands, models] = await firstValueFrom(
+          const [brands, models, descriptions] = await firstValueFrom(
             forkJoin([
               brandService.batchGetByIds(brandIds),
-              modelService.batchGetByIds(modelIds)
+              modelService.batchGetByIds(modelIds),
+              descriptionService.batchGetByIds(descriptionIds)
             ])
           );
 
           const brandsMap = new Map(brands.map(b => [b.id, b]));
           const modelsMap = new Map(models.map(m => [m.id, m]));
+          const descriptionsMap = new Map(descriptions.map(d => [d.id, d]));
 
-          // 4. Cargar inspecciones existentes del servicio actual
-          let currentInspections: ItemInspectionEntity[] = [];
-          try {
-            currentInspections = await firstValueFrom(
-              serviceService.getAllItemInspections(service.id)
-            );
-          } catch (error) {
-            console.log('No hay inspecciones previas en este servicio');
-          }
+          const enrichedInspections: ItemInspectionWithDetails[] = inspections.reduce(
+            (acc: ItemInspectionWithDetails[], inspection) => {
 
-          const inspectionsMap = new Map(
-            currentInspections.map(insp => [insp.itemId, insp])
-          );
+              const item = itemsMap.get(inspection.itemId);
 
-          // 5. Si tiene servicio previo, cargar esas inspecciones
-          let previousInspections: ItemInspectionEntity[] = [];
-          if (service.previousServiceId) {
-            try {
-              previousInspections = await firstValueFrom(
-                serviceService.getAllItemInspections(service.previousServiceId)
-              );
-            } catch (error) {
-              console.warn('No se pudieron cargar inspecciones del servicio previo');
-            }
-          }
-
-          const previousInspectionsMap = new Map(
-            previousInspections.map(insp => [insp.itemId, insp])
-          );
-
-          // 6. Enriquecer items
-          const enrichedItems: InspectableItemWithDetails[] = items.map(item => {
-            const brand = brandsMap.get(item.brandId);
-            const model = modelsMap.get(item.modelId);
-
-            // Prioridad: inspección actual > inspección previa > null
-            let inspection = inspectionsMap.get(item.id) || null;
-
-            // Si no tiene inspección actual pero sí previa (Mantenimiento/Levantamiento)
-            if (!inspection && service.previousServiceId) {
-              const prevInspection = previousInspectionsMap.get(item.id);
-              if (prevInspection) {
-                // Crear una copia para pre-cargar (sin ID para que se cree una nueva)
-                inspection = {
-                  ...prevInspection,
-                  id: '' // Vacío para indicar que es nueva
-                };
+              if (!item) {
+                console.warn(`⚠️ Se encontró la inspección ${inspection.id} pero no su ítem ${inspection.itemId}`);
+                return acc;
               }
-            }
 
-            return {
-              ...item,
-              brandName: brand?.name || 'Desconocido',
-              modelName: model?.name || 'Desconocido',
-              inspection,
-              isSaving: false,
-              lastSaved: null,
-              hasUnsavedChanges: false
-            };
-          });
+              const brand = brandsMap.get(item.brandId);
+              const model = modelsMap.get(item.modelId);
+              const description = descriptionsMap.get(item.descriptionId);
+
+              acc.push({
+                // IDs
+                id: inspection.id,
+                itemId: item.id,
+                // Datos de Inspección
+                condition: inspection.condition,
+                criticality: inspection.criticality,
+                observation: inspection.observation,
+                // Datos de Ítem
+                tag: item.tag,
+                type: item.type,
+                // Datos Enriquecidos
+                brandName: brand?.name || 'Desconocido',
+                modelName: model?.name || 'Desconocido',
+                descriptionName: description?.name || 'Sin descripción',
+                // Estado de UI
+                isSaving: false,
+                lastSaved: null,
+                hasUnsavedChanges: false
+              });
+
+              return acc;
+            },
+            []
+          );
 
           patchState(store, {
-            inspectableItems: enrichedItems,
-            previousInspections,
+            itemInspections: enrichedInspections,
             isLoadingItems: false
           });
-
-          // 7. Configurar auto-save
-          this.setupAutoSave();
 
         } catch (error: any) {
           console.error('❌ Error loading inspectable items:', error);
@@ -464,28 +456,71 @@ export const ServiceWorkStore = signalStore(
         }
       },
 
-      /**
-       * Configurar auto-save con debounce
-       */
-      setupAutoSave(): void {
-        const saveSubject = new Subject<{
-          itemId: string;
-          data: Partial<ItemInspectionEntity>
-        }>();
+      async loadEvidenceFiles(): Promise<void> {
+        const service = store.service();
+        if (!service) return;
 
-        // Auto-save después de 2 segundos de inactividad
-        saveSubject.pipe(
-          debounceTime(2000)
-        ).subscribe(async ({ itemId, data }) => {
-          await this.saveItemInspection(itemId, data, true);
-        });
+        patchState(store, { isLoadingEvidence: true });
 
-        patchState(store, { saveSubject });
+        try {
+          const fileIds: string[] = [
+            service.videoStartFileId,
+            service.videoEndFileId,
+            ...service.startPhotos,
+            ...service.midPhotos,
+            ...service.endPhotos,
+            service.reportDocumentFileId
+          ].filter(id => id && id.trim() !== '') as string[];
+
+          if (fileIds.length === 0) {
+            patchState(store, {
+              evidenceFiles: initialState.evidenceFiles,
+              isLoadingEvidence: false
+            });
+            return;
+          }
+
+          const fileEntities = await Promise.all(
+            fileIds.map(id => firstValueFrom(fileService.getById(id)))
+          );
+
+          const filesMap = new Map(fileEntities.map(f => [f.id, f]));
+
+          const evidenceFiles = {
+            videoStart: service.videoStartFileId
+              ? { fileEntity: filesMap.get(service.videoStartFileId)!, isLoading: false }
+              : null,
+            videoEnd: service.videoEndFileId
+              ? { fileEntity: filesMap.get(service.videoEndFileId)!, isLoading: false }
+              : null,
+            startPhotos: service.startPhotos
+              .map(id => ({ fileEntity: filesMap.get(id)!, isLoading: false }))
+              .filter(f => f.fileEntity),
+            midPhotos: service.midPhotos
+              .map(id => ({ fileEntity: filesMap.get(id)!, isLoading: false }))
+              .filter(f => f.fileEntity),
+            endPhotos: service.endPhotos
+              .map(id => ({ fileEntity: filesMap.get(id)!, isLoading: false }))
+              .filter(f => f.fileEntity),
+            report: service.reportDocumentFileId
+              ? { fileEntity: filesMap.get(service.reportDocumentFileId)!, isLoading: false }
+              : null
+          };
+
+          patchState(store, {
+            evidenceFiles,
+            isLoadingEvidence: false
+          });
+
+        } catch (error: any) {
+          console.error('❌ Error loading evidence files:', error);
+          patchState(store, {
+            isLoadingEvidence: false,
+            error: error.message || 'Error al cargar las evidencias'
+          });
+        }
       },
 
-      /**
-       * Comenzar servicio (cambiar status a IN_PROGRESS)
-       */
       async startService(): Promise<boolean> {
         const service = store.service();
         if (!service || service.status !== ServiceStatusEnum.CREATED) {
@@ -495,24 +530,12 @@ export const ServiceWorkStore = signalStore(
         patchState(store, { isStartingService: true, error: null });
 
         try {
-          // TODO: Cambiar a endpoint específico cuando backend lo tenga
-          // const updatedService = await firstValueFrom(
-          //   serviceService.startService(service.id)
-          // );
-
-          // Por ahora usar update genérico:
-          const updatedService = await firstValueFrom(
-            serviceService.update(service.id, {
-              ...service,
-              status: ServiceStatusEnum.IN_PROGRESS,
-              startedAt: new Date()
-            })
-          );
+          const startedService = await firstValueFrom(serviceService.start(service.id));
 
           patchState(store, {
-            service: updatedService,
+            service: startedService,
             isStartingService: false,
-            currentStep: 2 // Avanzar a inspección
+            currentStep: 2
           });
 
           return true;
@@ -527,185 +550,109 @@ export const ServiceWorkStore = signalStore(
         }
       },
 
-      /**
-       * Actualizar condición de un item (trigger auto-save)
-       */
-      updateItemCondition(
-        itemId: string,
-        condition: ItemConditionEnum
-      ): void {
-        const items = store.inspectableItems();
-        const itemIndex = items.findIndex(i => i.id === itemId);
+      updateItemCondition(inspectionId: string, condition: ItemConditionEnum | null): void {
+        const items = store.itemInspections();
+        const itemIndex = items.findIndex(i => i.id === inspectionId);
 
         if (itemIndex === -1) return;
 
         const item = items[itemIndex];
-        const requiresCrit = condition && [
-          ItemConditionEnum.FAILURE,
-          ItemConditionEnum.BAD_STATE,
-          ItemConditionEnum.DEFICIENT
-        ].includes(condition);
+        const requiresCrit = condition ? requiresCriticality(condition) : false;
+        let newCriticality = item.criticality;
 
-        // Si no requiere criticidad, limpiarla
-        const newInspection: Partial<ItemInspectionEntity> = {
-          ...item.inspection,
-          itemId: item.id,
-          itemType: item.type,
-          condition,
-          criticality: requiresCrit ? item.inspection?.criticality || null : null
-        };
+        if (!requiresCrit) {
+          newCriticality = null;
+        }
 
-        // Actualizar en el estado
         const updatedItems = [...items];
         updatedItems[itemIndex] = {
           ...item,
-          inspection: newInspection as ItemInspectionEntity,
+          condition: condition,
+          criticality: newCriticality,
           hasUnsavedChanges: true
         };
 
-        patchState(store, { inspectableItems: updatedItems });
-
-        // Trigger auto-save
-        const saveSubject = store.saveSubject();
-        if (saveSubject) {
-          saveSubject.next({ itemId, data: newInspection });
-        }
+        patchState(store, { itemInspections: updatedItems });
       },
 
-      /**
-       * Actualizar criticidad de un item (trigger auto-save)
-       */
-      updateItemCriticality(
-        itemId: string,
-        criticality: CriticalityEnum | null
-      ): void {
-        const items = store.inspectableItems();
-        const itemIndex = items.findIndex(i => i.id === itemId);
+      updateItemCriticality(inspectionId: string, criticality: CriticalityEnum | null): void {
+        const items = store.itemInspections();
+        const itemIndex = items.findIndex(i => i.id === inspectionId);
 
         if (itemIndex === -1) return;
 
         const item = items[itemIndex];
-        const newInspection: Partial<ItemInspectionEntity> = {
-          ...item.inspection,
-          criticality
-        };
 
-        // Actualizar en el estado
         const updatedItems = [...items];
         updatedItems[itemIndex] = {
           ...item,
-          inspection: newInspection as ItemInspectionEntity,
+          criticality: criticality,
           hasUnsavedChanges: true
         };
 
-        patchState(store, { inspectableItems: updatedItems });
-
-        // Trigger auto-save
-        const saveSubject = store.saveSubject();
-        if (saveSubject) {
-          saveSubject.next({ itemId, data: newInspection });
-        }
+        patchState(store, { itemInspections: updatedItems });
       },
 
-      /**
-       * Actualizar observación de un item (trigger auto-save)
-       */
-      updateItemObservation(
-        itemId: string,
-        observation: string
-      ): void {
-        const items = store.inspectableItems();
-        const itemIndex = items.findIndex(i => i.id === itemId);
+      updateItemObservation(inspectionId: string, observation: string | null): void {
+        const items = store.itemInspections();
+        const itemIndex = items.findIndex(i => i.id === inspectionId);
 
         if (itemIndex === -1) return;
 
         const item = items[itemIndex];
-        const newInspection: Partial<ItemInspectionEntity> = {
-          ...item.inspection,
-          observation
-        };
 
-        // Actualizar en el estado
         const updatedItems = [...items];
         updatedItems[itemIndex] = {
           ...item,
-          inspection: newInspection as ItemInspectionEntity,
+          observation: observation || '',
           hasUnsavedChanges: true
         };
 
-        patchState(store, { inspectableItems: updatedItems });
-
-        // Trigger auto-save
-        const saveSubject = store.saveSubject();
-        if (saveSubject) {
-          saveSubject.next({ itemId, data: newInspection });
-        }
+        patchState(store, { itemInspections: updatedItems });
       },
 
-      /**
-       * Guardar inspección de un item
-       */
-      async saveItemInspection(
-        itemId: string,
-        data: Partial<ItemInspectionEntity>,
-        isAutoSave = false
-      ): Promise<boolean> {
-        const service = store.service();
-        const items = store.inspectableItems();
-        const itemIndex = items.findIndex(i => i.id === itemId);
+      async saveItemInspection(inspectionId: string, _: Partial<ItemInspectionWithDetails>): Promise<boolean> {
 
-        if (!service || itemIndex === -1) return false;
+        const items = store.itemInspections();
+        const itemIndex = items.findIndex(i => i.id === inspectionId);
 
-        // Marcar como guardando
+        if (itemIndex === -1) return false;
+
+        const currentItem = items[itemIndex];
+
         const updatedItems = [...items];
         updatedItems[itemIndex] = {
           ...updatedItems[itemIndex],
           isSaving: true
         };
         patchState(store, {
-          inspectableItems: updatedItems,
-          isSavingInspection: true
+          itemInspections: updatedItems,
+          isSavingInspection: true,
+          error: null
         });
 
         try {
-          const item = items[itemIndex];
-          const inspectionData: ItemInspectionEntity = {
-            id: item.inspection?.id || '',
-            itemId: item.id,
-            itemType: item.type,
-            condition: data.condition || item.inspection?.condition || ItemConditionEnum.OPERATIONAL,
-            criticality: data.criticality !== undefined ? data.criticality : item.inspection?.criticality || null,
-            observation: data.observation || item.inspection?.observation || '',
-            previousBrandId: null,
-            previousCondition: null,
-            previousCriticality: null,
-            previousDescriptionId: null,
-            previousModelId: null,
-            previousObservation: null,
-            previousTag: null,
-          };
-
-          let savedInspection: ItemInspectionEntity;
-
-          // Si tiene ID, actualizar; si no, crear
-          if (inspectionData.id) {
-            savedInspection = await firstValueFrom(
-              itemInspectionService.update(inspectionData.id, inspectionData)
-            );
-          } else {
-            savedInspection = await firstValueFrom(
-              itemInspectionService.create(inspectionData, service.id)
-            );
+          if (!currentItem.id) {
+            console.error(`❌ Error fatal: Item ${currentItem.itemId} no tiene inspection ID`);
           }
 
-          // Actualizar item con inspección guardada
-          const finalItems = [...store.inspectableItems()];
-          const finalIndex = finalItems.findIndex(i => i.id === itemId);
+          const inspectionData: Partial<ItemInspectionEntity> = {
+            condition: currentItem.condition,
+            criticality: currentItem.criticality,
+            observation: currentItem.observation || ''
+          };
+
+          const savedInspection = await firstValueFrom(itemInspectionService.update(currentItem.id, inspectionData));
+
+          const finalItems = [...store.itemInspections()];
+          const finalIndex = finalItems.findIndex(i => i.id === inspectionId);
 
           if (finalIndex !== -1) {
             finalItems[finalIndex] = {
               ...finalItems[finalIndex],
-              inspection: savedInspection,
+              condition: savedInspection.condition,
+              criticality: savedInspection.criticality,
+              observation: savedInspection.observation,
               isSaving: false,
               hasUnsavedChanges: false,
               lastSaved: new Date()
@@ -713,22 +660,17 @@ export const ServiceWorkStore = signalStore(
           }
 
           patchState(store, {
-            inspectableItems: finalItems,
+            itemInspections: finalItems,
             isSavingInspection: false
           });
-
-          if (!isAutoSave) {
-            console.log('✅ Inspección guardada manualmente');
-          }
 
           return true;
 
         } catch (error: any) {
           console.error('❌ Error saving inspection:', error);
 
-          // Revertir estado de guardando
-          const revertItems = [...store.inspectableItems()];
-          const revertIndex = revertItems.findIndex(i => i.id === itemId);
+          const revertItems = [...store.itemInspections()];
+          const revertIndex = revertItems.findIndex(i => i.id === inspectionId);
           if (revertIndex !== -1) {
             revertItems[revertIndex] = {
               ...revertItems[revertIndex],
@@ -737,7 +679,7 @@ export const ServiceWorkStore = signalStore(
           }
 
           patchState(store, {
-            inspectableItems: revertItems,
+            itemInspections: revertItems,
             isSavingInspection: false,
             error: error.message || 'Error al guardar la inspección'
           });
@@ -746,29 +688,30 @@ export const ServiceWorkStore = signalStore(
         }
       },
 
-      /**
-       * Guardar todo el progreso manualmente
-       */
-      async saveAllProgress(): Promise<boolean> {
-        const items = store.inspectableItems().filter(item => item.hasUnsavedChanges);
+      async saveAllProgress(): Promise<{ success: boolean; errors: ValidationError[] }> {
+        const items = store.itemInspections().filter(item => item.hasUnsavedChanges);
 
         if (items.length === 0) {
-          console.log('✅ No hay cambios pendientes');
-          return true;
+          return { success: true, errors: [] };
+        }
+
+        const validationErrors = this.validateUnsavedItems();
+
+        if (validationErrors.length > 0) {
+          console.warn('⚠️ Validation errors found:', validationErrors);
+          return { success: false, errors: validationErrors };
         }
 
         patchState(store, { isSavingInspection: true });
 
         try {
-          // Guardar todos los items con cambios
           const savePromises = items.map(item =>
-            this.saveItemInspection(item.id, item.inspection || {}, false)
+            this.saveItemInspection(item.id, {})
           );
 
           await Promise.all(savePromises);
 
-          console.log(`✅ ${items.length} inspecciones guardadas`);
-          return true;
+          return { success: true, errors: [] };
 
         } catch (error: any) {
           console.error('❌ Error saving all progress:', error);
@@ -776,27 +719,30 @@ export const ServiceWorkStore = signalStore(
             isSavingInspection: false,
             error: 'Error al guardar el progreso'
           });
-          return false;
+          return { success: false, errors: [] };
         }
       },
 
-      /**
-       * Subir archivo (video, foto, PDF)
-       */
-      async uploadFile(
-        file: File,
-        type: 'videoStart' | 'videoEnd' | 'startPhoto' | 'midPhoto' | 'endPhoto' | 'report'
-      ): Promise<boolean> {
+      setCurrentInspectableType(type: InspectableItemTypeEnum): void {
+        patchState(store, { currentInspectableType: type });
+      },
+
+      async uploadFile(file: File, type: 'videoStart' | 'videoEnd' | 'startPhoto' | 'midPhoto' | 'endPhoto' | 'report'): Promise<boolean> {
+
         const service = store.service();
         if (!service) return false;
 
-        patchState(store, { isUploadingFile: true, error: null });
+        patchState(store, state => ({
+          error: null,
+          uploadingStatus: {
+            ...state.uploadingStatus,
+            [type]: true
+          }
+        }));
 
         try {
-          // 1. Subir archivo
           const uploadedFile = await firstValueFrom(fileService.upload(file));
 
-          // 2. Actualizar servicio según el tipo
           const updates: Partial<EquipmentServiceEntity> = {};
 
           switch (type) {
@@ -820,39 +766,44 @@ export const ServiceWorkStore = signalStore(
               break;
           }
 
-          // 3. Actualizar en backend
           const updatedService = await firstValueFrom(
             serviceService.update(service.id, { ...service, ...updates })
           );
 
-          patchState(store, {
+          patchState(store, state => ({
             service: updatedService,
-            isUploadingFile: false
-          });
+            uploadingStatus: {
+              ...state.uploadingStatus,
+              [type]: false
+            }
+          }));
 
           return true;
 
         } catch (error: any) {
           console.error('❌ Error uploading file:', error);
-          patchState(store, {
-            isUploadingFile: false,
-            error: error.message || 'Error al subir el archivo'
-          });
+          patchState(store, state => ({
+            error: error.message || 'Error al subir el archivo',
+            uploadingStatus: {
+              ...state.uploadingStatus,
+              [type]: false
+            }
+          }));
           return false;
         }
       },
 
-      /**
-       * Eliminar foto
-       */
-      async removePhoto(
-        photoId: string,
-        type: 'startPhoto' | 'midPhoto' | 'endPhoto'
-      ): Promise<boolean> {
+      async removePhoto(photoId: string, type: 'startPhoto' | 'midPhoto' | 'endPhoto'): Promise<boolean> {
         const service = store.service();
         if (!service) return false;
 
-        patchState(store, { isUploadingFile: true });
+        patchState(store, state => ({
+          error: null,
+          uploadingStatus: {
+            ...state.uploadingStatus,
+            [type]: true
+          }
+        }));
 
         try {
           const updates: Partial<EquipmentServiceEntity> = {};
@@ -873,26 +824,101 @@ export const ServiceWorkStore = signalStore(
             serviceService.update(service.id, { ...service, ...updates })
           );
 
-          patchState(store, {
+          patchState(store, state => ({
             service: updatedService,
-            isUploadingFile: false
-          });
+            uploadingStatus: {
+              ...state.uploadingStatus,
+              [type]: false
+            }
+          }));
 
           return true;
 
         } catch (error: any) {
           console.error('❌ Error removing photo:', error);
-          patchState(store, {
-            isUploadingFile: false,
-            error: 'Error al eliminar la foto'
-          });
+
+          patchState(store, state => ({
+            uploadingStatus: {
+              ...state.uploadingStatus,
+              [type]: false
+            },
+            error: error.message || 'Error al eliminar la foto'
+          }));
+
           return false;
         }
       },
 
-      /**
-       * Completar servicio
-       */
+      async removeVideo(type: 'videoStart' | 'videoEnd'): Promise<boolean> {
+        const service = store.service();
+        if (!service) return false;
+
+        patchState(store, state => ({
+          error: null,
+          uploadingStatus: { ...state.uploadingStatus, [type]: true }
+        }));
+
+        try {
+          const updates: Partial<EquipmentServiceEntity> = {
+            [type === 'videoStart' ? 'videoStartFileId' : 'videoEndFileId']: null
+          };
+
+          console.log(`🔄 Removing video ${type}, updates:`, updates);
+
+          const updatedService = await firstValueFrom(
+            serviceService.update(service.id, { ...service, ...updates })
+          );
+
+          patchState(store, state => ({
+            service: updatedService,
+            uploadingStatus: { ...state.uploadingStatus, [type]: false }
+          }));
+          return true;
+
+        } catch (error: any) {
+          console.error(`❌ Error removing video ${type}:`, error);
+          patchState(store, state => ({
+            uploadingStatus: { ...state.uploadingStatus, [type]: false },
+            error: error.message || 'Error al eliminar el video'
+          }));
+          return false;
+        }
+      },
+
+      async removeReport(): Promise<boolean> {
+        const service = store.service();
+        if (!service) return false;
+
+        patchState(store, state => ({
+          error: null,
+          uploadingStatus: { ...state.uploadingStatus, report: true }
+        }));
+
+        try {
+          const updates: Partial<EquipmentServiceEntity> = {
+            reportDocumentFileId: null
+          };
+
+          const updatedService = await firstValueFrom(
+            serviceService.update(service.id, { ...service, ...updates })
+          );
+
+          patchState(store, state => ({
+            service: updatedService,
+            uploadingStatus: { ...state.uploadingStatus, report: false }
+          }));
+          return true;
+
+        } catch (error: any) {
+          console.error('❌ Error removing report:', error);
+          patchState(store, state => ({
+            uploadingStatus: { ...state.uploadingStatus, report: false },
+            error: error.message || 'Error al eliminar el reporte'
+          }));
+          return false;
+        }
+      },
+
       async completeService(): Promise<boolean> {
         const service = store.service();
         if (!service || !store.canCompleteService()) {
@@ -902,19 +928,7 @@ export const ServiceWorkStore = signalStore(
         patchState(store, { isCompletingService: true, error: null });
 
         try {
-          // TODO: Usar endpoint específico cuando backend lo tenga
-          // const completedService = await firstValueFrom(
-          //   serviceService.completeService(service.id)
-          // );
-
-          // Por ahora usar update:
-          const completedService = await firstValueFrom(
-            serviceService.update(service.id, {
-              ...service,
-              status: ServiceStatusEnum.COMPLETED,
-              completedAt: new Date()
-            })
-          );
+          const completedService = await firstValueFrom(serviceService.complete(service.id));
 
           patchState(store, {
             service: completedService,
@@ -933,37 +947,54 @@ export const ServiceWorkStore = signalStore(
         }
       },
 
-      /**
-       * Cambiar step del stepper
-       */
+      async cancelService(): Promise<boolean> {
+        const service = store.service();
+        if (!service) {return false;}
+
+        patchState(store, { isCancelingService: true, error: null });
+
+        try {
+          const cancelledService = await firstValueFrom(serviceService.cancel(service.id));
+
+          patchState(store, {
+            service: cancelledService,
+            isCompletingService: false
+          });
+
+          return true;
+
+        } catch (error: any) {
+          console.error('❌ Error completing service:', error);
+          patchState(store, {
+            isCompletingService: false,
+            error: error.message || 'Error al completar el servicio'
+          });
+          return false;
+        }
+      },
+
+      validateUnsavedItems(): ValidationError[] {
+        const items = store.itemInspections().filter(item => item.hasUnsavedChanges);
+
+        return validateItems(items.map(item => ({
+          id: item.id,
+          tag: item.tag,
+          condition: item.condition,
+          criticality: item.criticality
+        })));
+      },
+
       setCurrentStep(step: number): void {
         if (step >= 1 && step <= 4) {
           patchState(store, { currentStep: step });
         }
       },
 
-      /**
-       * Cambiar tipo de inspectable item (tab)
-       */
-      setCurrentInspectableType(type: InspectableItemTypeEnum): void {
-        patchState(store, { currentInspectableType: type });
-      },
-
-      /**
-       * Limpiar error
-       */
       clearError(): void {
         patchState(store, { error: null });
       },
 
-      /**
-       * Reset del store
-       */
       reset(): void {
-        const saveSubject = store.saveSubject();
-        if (saveSubject) {
-          saveSubject.complete();
-        }
         patchState(store, initialState);
       }
     };

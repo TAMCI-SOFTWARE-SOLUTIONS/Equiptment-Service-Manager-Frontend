@@ -1,14 +1,18 @@
 import {computed, inject} from '@angular/core';
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
 import {firstValueFrom, forkJoin} from 'rxjs';
-import {EquipmentServiceEntity, EquipmentServiceService, ServiceStatusEnum} from '../../../entities/equipment-service';
-import {ProfileService} from '../../../entities/profile';
-import {SupervisorService} from '../../../entities/supervisor';
-import {EquipmentTypeEnum} from '../../../shared/model';
-import {AuthStore} from '../../../shared/stores';
-import {CabinetService} from '../../../entities/cabinet/api';
-import {PanelService} from '../../../entities/panel/api';
-import {ContextStore} from '../../../shared/model/context.store';
+import {
+  EquipmentServiceEntity,
+  EquipmentServiceService,
+  ServiceStatusEnum
+} from '../../../../entities/equipment-service';
+import {AuthStore} from '../../../../shared/stores';
+import {ContextStore} from '../../../../shared/model/context.store';
+import {ProfileService} from '../../../../entities/profile';
+import {SupervisorService} from '../../../../entities/supervisor';
+import {CabinetService} from '../../../../entities/cabinet/api';
+import {PanelService} from '../../../../entities/panel/api';
+import {EquipmentTypeEnum} from '../../../../shared/model';
 
 export interface ServiceWithDetails extends EquipmentServiceEntity {
   operatorName: string;
@@ -27,6 +31,7 @@ export interface ServicesActiveState {
   equipmentTags: Map<string, string>;
 
   // Loading states
+  isActivePage: boolean;
   isLoadingServices: boolean;
   isLoadingDetails: boolean;
   error: string | null;
@@ -46,6 +51,7 @@ const initialState: ServicesActiveState = {
   operatorNames: new Map(),
   supervisorNames: new Map(),
   equipmentTags: new Map(),
+  isActivePage: true,
   isLoadingServices: false,
   isLoadingDetails: false,
   error: null,
@@ -68,6 +74,28 @@ export const ServicesActiveStore = signalStore(
       isClient: computed(() => authStore.isClient()),
       currentUserId: computed(() => authStore.userId()),
       userRoles: computed(() => authStore.userRoles()),
+
+      // Page state
+      titlePage: computed(() =>
+        store.isActivePage() ? 'Servicios Activos' : 'Historial de Servicios'
+      ),
+      canCreateService: computed(() => authStore.isOperator() && store.isActivePage()),
+      textTitleEmptyState: computed(() => {
+          if (store.isActivePage()) {
+            return 'No hay servicios activos';
+          } else {
+            return 'No hay servicios históricos';
+          }
+        }
+      ),
+      textDescriptionEmptyState: computed(() => {
+          if (store.isActivePage()) {
+            return 'No hay servicios creados o en progreso en este momento.';
+          } else {
+            return 'No hay servicios completados o cancelados en el historial.';
+          }
+        }
+      ),
 
       // Loading state
       isLoading: computed(() =>
@@ -228,10 +256,24 @@ export const ServicesActiveStore = signalStore(
         });
 
         try {
+
+          let statuses: ServiceStatusEnum[] = [];
+          if (store.isActivePage()) {
+            statuses = [
+              ServiceStatusEnum.CREATED,
+              ServiceStatusEnum.IN_PROGRESS
+            ];
+          } else {
+            statuses = [
+              ServiceStatusEnum.COMPLETED,
+              ServiceStatusEnum.CANCELLED
+            ];
+          }
+
           const activeServices = await firstValueFrom(serviceService.getAll({
             projectId: contextStore.projectId() ?? "",
             operatorId: !store.isOperator() ? "" : authStore.userId() ?? "",
-            statuses: [ServiceStatusEnum.CREATED, ServiceStatusEnum.IN_PROGRESS]
+            statuses: statuses
           }));
 
           patchState(store, {
@@ -327,8 +369,8 @@ export const ServicesActiveStore = signalStore(
       },
 
       async cancelService(serviceId: string): Promise<boolean> {
-        if (!store.isAdmin()) {
-          console.warn('⚠️ Solo administradores pueden cancelar servicios');
+        if (store.isClient()) {
+          console.warn('⚠️ Solo administradores y operadores pueden cancelar servicios');
           return false;
         }
 
@@ -336,13 +378,7 @@ export const ServicesActiveStore = signalStore(
           const service = store.services().find(s => s.id === serviceId);
           if (!service) return false;
 
-          await firstValueFrom(
-            serviceService.update(serviceId, {
-              ...service,
-              status: ServiceStatusEnum.CANCELLED,
-              cancelledAt: new Date()
-            })
-          );
+          await firstValueFrom(serviceService.cancel(serviceId));
 
           await this.loadServices();
           return true;
@@ -354,6 +390,10 @@ export const ServicesActiveStore = signalStore(
           });
           return false;
         }
+      },
+
+      setIsActivePage(isActive: boolean): void {
+        patchState(store, { isActivePage: isActive });
       },
 
       setStatusFilter(status: ServiceStatusEnum | 'all'): void {

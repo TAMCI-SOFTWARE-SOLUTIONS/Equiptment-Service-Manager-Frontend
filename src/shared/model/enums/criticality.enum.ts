@@ -1,4 +1,4 @@
 export enum CriticalityEnum {
-  CRITICAL = 'critical',
-  NOT_CRITICAL = 'not_critical',
+  CRITICAL = 'CRITICAL',
+  NOT_CRITICAL = 'NOT_CRITICAL',
 }

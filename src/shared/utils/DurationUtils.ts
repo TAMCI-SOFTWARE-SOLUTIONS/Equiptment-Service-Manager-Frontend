@@ -18,7 +18,7 @@ export class DurationUtils {
    * Convierte una cadena ISO-8601 de duración (por ejemplo "PT1H15M10S")
    * a un formato legible como "1h 15m 10s".
    */
-  static formatReadable(duration: string): string {
+  static formatReadable(duration: string | null): string {
     if (!duration) return '0s';
     const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
     const [, hours, minutes, seconds] = duration.match(regex) || [];

@@ -1,20 +1,19 @@
-import {ItemConditionEnum} from '../../model/enums/item-condition.enum';
-
+import { ItemConditionEnum } from '../../model/enums/item-condition.enum';
 
 export class ItemConditionMapper {
-  static fromStringToEnum(condition: string): ItemConditionEnum {
-    const validConditions = Object.values(ItemConditionEnum) as string[];
+  static fromStringToEnum(condition: string): ItemConditionEnum | null {
+    const conditionKey = Object.keys(ItemConditionEnum).find(
+      key => ItemConditionEnum[key as keyof typeof ItemConditionEnum] === condition
+    );
 
-    const normalizedCondition = condition.toLowerCase();
-
-    if (validConditions.includes(normalizedCondition)) {
-      return normalizedCondition as ItemConditionEnum;
+    if (conditionKey) {
+      return ItemConditionEnum[conditionKey as keyof typeof ItemConditionEnum];
     }
-    console.warn(`Invalid item condition received: "${condition}". Defaulting to OK.`);
-    return ItemConditionEnum.OK;
+
+    return null;
   }
 
-  static fromEnumToString(condition: ItemConditionEnum): string {
+  static fromEnumToString(condition: ItemConditionEnum | null): string | null {
     return condition;
   }
 }

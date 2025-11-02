@@ -1,8 +1,8 @@
 export enum ItemConditionEnum {
-  OPERATIONAL = 'operational',
-  FAILURE = 'failure',
-  BAD_STATE = 'bad_state',
-  MISSING = 'missing',
-  OK = 'ok',
-  DEFICIENT = 'deficient',
+  OPERATIONAL = 'OPERATIONAL',
+  FAILURE = 'FAILURE',
+  BAD_STATE = 'BAD_STATE',
+  MISSING = 'MISSING',
+  OK = 'OK',
+  DEFICIENT = 'DEFICIENT',
 }

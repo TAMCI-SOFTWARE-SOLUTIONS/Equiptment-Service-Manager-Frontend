@@ -1,36 +1,61 @@
-import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { Ripple } from 'primeng/ripple';
-import { Steps } from 'primeng/steps';
-import { MenuItem } from 'primeng/api';
-import { ConfirmationModalComponent } from '../../../../shared/ui/confirmation-modal/confirmation-modal.component';
-import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
+import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ActivatedRoute, Router} from '@angular/router';
 import {ServiceWorkStore} from '../../model/store/service-work.store';
+import {ConfirmationModalComponent} from '../../../../shared/ui/confirmation-modal/confirmation-modal.component';
+import {EmptyStateComponent} from '../../../../shared/ui/empty-state/empty-state.component';
+import {MessageService} from 'primeng/api';
+import {ServiceTypeEnum} from '../../../../shared/model';
+import {ServiceWorkHeaderComponent} from '../service-work-header/service-work-header.component';
+import {ServiceWorkFooterComponent} from '../service-work-footer/service-work-footer.component';
+import {ServiceInfoCardComponent} from '../service-card-info/service-card-info.component';
+import {EquipmentInfoCardComponent} from '../equipment-card-info/equipment-card-info.component';
+import {PowerDistributionListComponent} from '../power-distribution-list/power-distribution-list.component';
 import {ServiceStatusEnum} from '../../../../entities/equipment-service';
-import {EquipmentTypeEnum, ServiceTypeEnum} from '../../../../shared/model';
 import {InspectableItemTypeEnum} from '../../../../shared/model/enums';
-import {
-  CONDITION_BY_TYPE,
-  CONDITION_LABELS,
-  CRITICALITY_LABELS,
-  INSPECTABLE_TYPE_LABELS, isItemCompleted, requiresCriticality
-} from '../../utils/service-work-validation.helpers';
-import {InspectableItemWithDetails} from '../../model/interfaces/inspectable-item-with-details.interface';
 import {ItemConditionEnum} from '../../../../shared/model/enums/item-condition.enum';
+import {CONDITION_BY_TYPE, ValidationError} from '../../utils/service-work-validation.helpers';
+import {ItemInspectionWithDetails} from '../../model/interfaces/item-inspection-with-details.interface';
 import {CriticalityEnum} from '../../../../shared/model/enums/criticality.enum';
+import {InspectionItemFormComponent} from '../inspection-item-form/inspection-item-form.component';
+import {InspectionTabsComponent} from '../inspection-tabs/inspection-tabs.component';
+import {InspectionProgressBannerComponent} from '../inspection-progress-banner/inspection-progress-banner.component';
+import {FileService} from '../../../../entities/file/api/file.service';
+import {FileEntity} from '../../../../entities/file/model/file.entity';
+import {firstValueFrom} from 'rxjs';
+import {WebcamModule} from 'ngx-webcam';
+import {EvidenceSectionComponent} from '../evidence-section/evidence-section.component';
+import {VideoUploaderComponent} from '../video-uploader/video-uploader.component';
+import {PhotoUploaderComponent} from '../photo-uploader/photo-uploader.component';
+import {ReportUploaderComponent} from '../report-uploader/report-uploader.component';
+import {FilePreviewModalComponent} from '../file-preview-modal/file-preview-modal.component';
+import {PreviewFile, PreviewFileType} from '../../model/types/file-preview-modal.types';
+import {CameraModalComponent} from '../camera-modal/camera-modal.component';
+import {ServiceWorkSummaryComponent} from '../service-work-summary/service-work-summary.component';
 
 @Component({
   selector: 'app-service-work',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    Ripple,
-    Steps,
+    ServiceWorkHeaderComponent,
+    ServiceWorkFooterComponent,
     ConfirmationModalComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    ServiceInfoCardComponent,
+    EquipmentInfoCardComponent,
+    PowerDistributionListComponent,
+    InspectionItemFormComponent,
+    InspectionTabsComponent,
+    InspectionProgressBannerComponent,
+    WebcamModule,
+    EvidenceSectionComponent,
+    VideoUploaderComponent,
+    PhotoUploaderComponent,
+    ReportUploaderComponent,
+    FilePreviewModalComponent,
+    CameraModalComponent,
+    ServiceWorkSummaryComponent
   ],
   providers: [ServiceWorkStore],
   templateUrl: './service-work.page.html',
@@ -40,53 +65,23 @@ export class ServiceWorkPage implements OnInit, OnDestroy {
   readonly store = inject(ServiceWorkStore);
   readonly route = inject(ActivatedRoute);
   readonly router = inject(Router);
+  private readonly fileService = inject(FileService);
+  private readonly messageService = inject(MessageService);
 
-  // Expose enums to template
-  readonly ServiceStatusEnum = ServiceStatusEnum;
-  readonly ServiceTypeEnum = ServiceTypeEnum;
-  readonly EquipmentTypeEnum = EquipmentTypeEnum;
-  readonly InspectableItemTypeEnum = InspectableItemTypeEnum;
-  readonly ItemConditionEnum = ItemConditionEnum;
-  readonly CriticalityEnum = CriticalityEnum;
-
-  // Expose helpers to template
-  readonly CONDITION_LABELS = CONDITION_LABELS;
-  readonly CRITICALITY_LABELS = CRITICALITY_LABELS;
-  readonly INSPECTABLE_TYPE_LABELS = INSPECTABLE_TYPE_LABELS;
-  readonly requiresCriticality = requiresCriticality;
-  readonly isItemCompleted = isItemCompleted;
-
-  // Stepper items
-  stepperItems: MenuItem[] = [
-    { label: 'Información' },
-    { label: 'Inspección' },
-    { label: 'Evidencias' },
-    { label: 'Completar' }
-  ];
-
-  // Tab items para tipos de inspectable
-  inspectableTypeTabs = [
-    { type: InspectableItemTypeEnum.COMMUNICATION, label: 'Comunicación', icon: 'pi-wifi' },
-    { type: InspectableItemTypeEnum.STATE, label: 'Estado', icon: 'pi-info-circle' },
-    { type: InspectableItemTypeEnum.POWER_SUPPLY, label: 'Fuentes', icon: 'pi-bolt' },
-    { type: InspectableItemTypeEnum.POWER_120VAC, label: '120 VAC', icon: 'pi-flash' },
-    { type: InspectableItemTypeEnum.ORDER_AND_CLEANLINESS, label: 'Orden y Limpieza', icon: 'pi-check-square' },
-    { type: InspectableItemTypeEnum.OTHERS, label: 'Otros', icon: 'pi-ellipsis-h' }
-  ];
-
-  // Modal states
   readonly showStartModal = signal(false);
   readonly showCompleteModal = signal(false);
   readonly showExitModal = signal(false);
+  readonly showPreviewModal = signal(false);
+  readonly previewFiles = signal<PreviewFile[]>([]);
+  readonly previewCurrentIndex = signal(0);
+  readonly showCameraModal = signal(false);
+  readonly cameraMode = signal<'photo' | 'video'>('photo');
+  readonly cameraTargetType = signal<string | null>(null);
 
-  // File input references
-  videoStartInput: HTMLInputElement | null = null;
-  videoEndInput: HTMLInputElement | null = null;
-  photoInputs: { [key: string]: HTMLInputElement | null } = {};
+  protected readonly ServiceStatusEnum = ServiceStatusEnum;
 
   ngOnInit(): void {
     const serviceId = this.route.snapshot.paramMap.get('id');
-    console.log('serviceId', serviceId);
     if (serviceId) {
       this.store.loadService(serviceId);
     } else {
@@ -96,62 +91,11 @@ export class ServiceWorkPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.store.reset();
-  }
-
-  // ==================== NAVIGATION ====================
-
-  onStepChange(step: number): void {
-    // Verificar que el servicio esté iniciado para avanzar más allá del step 1
-    if (step > 1 && !this.store.isServiceInProgress()) {
-      return;
-    }
-    this.store.setCurrentStep(step + 1); // Steps usa índice 0-based
-  }
-
-  goToStep(step: number): void {
-    if (step === 1 || this.store.isServiceInProgress()) {
-      this.store.setCurrentStep(step);
-    }
-  }
-
-  onBack(): void {
-    const currentStep = this.store.currentStep();
-    if (currentStep > 1) {
-      this.store.setCurrentStep(currentStep - 1);
-    }
-  }
-
-  onNext(): void {
-    const currentStep = this.store.currentStep();
-    if (currentStep < 4) {
-      this.store.setCurrentStep(currentStep + 1);
-    }
-  }
-
-  async onExit(): Promise<void> {
-    // Si hay cambios sin guardar, mostrar confirmación
-    if (this.store.hasUnsavedChanges()) {
-      this.showExitModal.set(true);
-    } else {
-      this.router.navigate(['/services/active']);
-    }
-  }
-
-  async confirmExit(): Promise<void> {
-    // Guardar cambios antes de salir
-    await this.store.saveAllProgress();
-    this.showExitModal.set(false);
-    this.router.navigate(['/services/active']);
+    this.closePreviewModal();
   }
 
   cancelExit(): void {
     this.showExitModal.set(false);
-  }
-
-  // ==================== SERVICE ACTIONS ====================
-
-  onStartServiceClick(): void {
-    this.showStartModal.set(true);
   }
 
   async confirmStartService(): Promise<void> {
@@ -165,93 +109,6 @@ export class ServiceWorkPage implements OnInit, OnDestroy {
     this.showStartModal.set(false);
   }
 
-  // ==================== STEP 2: INSPECTION ====================
-
-  onInspectableTypeChange(type: InspectableItemTypeEnum): void {
-    this.store.setCurrentInspectableType(type);
-  }
-
-  getConditionOptions(itemType: InspectableItemTypeEnum): ItemConditionEnum[] {
-    return CONDITION_BY_TYPE[itemType] || [];
-  }
-
-  onConditionChange(item: InspectableItemWithDetails, condition: ItemConditionEnum): void {
-    this.store.updateItemCondition(item.id, condition);
-  }
-
-  onCriticalityChange(item: InspectableItemWithDetails, criticality: CriticalityEnum | null): void {
-    this.store.updateItemCriticality(item.id, criticality);
-  }
-
-  onObservationChange(item: InspectableItemWithDetails, observation: string): void {
-    this.store.updateItemObservation(item.id, observation);
-  }
-
-  async saveProgress(): Promise<void> {
-    await this.store.saveAllProgress();
-  }
-
-  // ==================== STEP 3: EVIDENCES ====================
-
-  onVideoStartClick(): void {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'video/*';
-    input.onchange = (e: any) => {
-      const file = e.target?.files?.[0];
-      if (file) {
-        this.store.uploadFile(file, 'videoStart');
-      }
-    };
-    input.click();
-  }
-
-  onVideoEndClick(): void {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'video/*';
-    input.onchange = (e: any) => {
-      const file = e.target?.files?.[0];
-      if (file) {
-        this.store.uploadFile(file, 'videoEnd');
-      }
-    };
-    input.click();
-  }
-
-  onPhotoClick(type: 'startPhoto' | 'midPhoto' | 'endPhoto'): void {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.multiple = false;
-    input.onchange = (e: any) => {
-      const file = e.target?.files?.[0];
-      if (file) {
-        this.store.uploadFile(file, type);
-      }
-    };
-    input.click();
-  }
-
-  onReportClick(): void {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/pdf';
-    input.onchange = (e: any) => {
-      const file = e.target?.files?.[0];
-      if (file) {
-        this.store.uploadFile(file, 'report');
-      }
-    };
-    input.click();
-  }
-
-  async removePhoto(photoId: string, type: 'startPhoto' | 'midPhoto' | 'endPhoto'): Promise<void> {
-    await this.store.removePhoto(photoId, type);
-  }
-
-  // ==================== STEP 4: COMPLETE ====================
-
   onCompleteServiceClick(): void {
     if (!this.store.canCompleteService()) {
       return;
@@ -263,7 +120,7 @@ export class ServiceWorkPage implements OnInit, OnDestroy {
     const success = await this.store.completeService();
     if (success) {
       this.showCompleteModal.set(false);
-      this.router.navigate(['/services/active']);
+      await this.router.navigate(['/services/active']);
     }
   }
 
@@ -271,7 +128,189 @@ export class ServiceWorkPage implements OnInit, OnDestroy {
     this.showCompleteModal.set(false);
   }
 
-  // ==================== HELPERS ====================
+  async openPreviewModal(file: FileEntity): Promise<void> {
+    try {
+      const url = await firstValueFrom(this.fileService.viewFileAsUrl(file.id));
+
+      const type = this.getFileType(file.contentType);
+
+      const previewFile: PreviewFile = {
+        fileEntity: file,
+        url,
+        type
+      };
+
+      this.previewFiles.set([previewFile]);
+      this.previewCurrentIndex.set(0);
+      this.showPreviewModal.set(true);
+
+    } catch (error) {
+      console.error('❌ Error loading preview:', error);
+      alert('Error al cargar la vista previa. Intenta de nuevo.');
+    }
+  }
+
+  closePreviewModal(): void {
+    console.log('🚪 Closing preview modal');
+    this.showPreviewModal.set(false);
+
+    // Esperar a que termine la animación de cierre
+    setTimeout(() => {
+      // Liberar URLs de blob para evitar memory leaks
+      this.previewFiles().forEach(file => {
+        if (file.url && file.url.startsWith('blob:')) {
+          URL.revokeObjectURL(file.url);
+        }
+      });
+
+      // Limpiar estado
+      this.previewFiles.set([]);
+      this.previewCurrentIndex.set(0);
+
+      console.log('✅ Preview modal cleaned');
+    }, 300);
+  }
+
+  onDownloadFileFromPreview(previewFile: PreviewFile): void {
+    console.log('💾 Downloading:', previewFile.fileEntity.originalName);
+
+    const link = document.createElement('a');
+    link.href = previewFile.url!;
+    link.download = previewFile.fileEntity.originalName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log('✅ Download initiated');
+  }
+
+  handlePreviewError(error: string): void {
+    console.error('❌ Preview error:', error);
+    // TODO: Mostrar toast de error
+    alert(`Error: ${error}`);
+  }
+
+  private getFileType(contentType: string): PreviewFileType {
+    if (contentType.startsWith('image/')) return 'image';
+    if (contentType.startsWith('video/')) return 'video';
+    if (contentType === 'application/pdf') return 'pdf';
+    return 'unknown';
+  }
+
+  onInspectableTypeChange(type: InspectableItemTypeEnum): void {
+    this.store.setCurrentInspectableType(type);
+  }
+
+  getConditionOptions(itemType: InspectableItemTypeEnum): ItemConditionEnum[] {
+    return CONDITION_BY_TYPE[itemType] || [];
+  }
+
+  onConditionChange(item: ItemInspectionWithDetails, condition: ItemConditionEnum | null): void {
+    this.store.updateItemCondition(item.id, condition);
+  }
+
+  onCriticalityChange(item: ItemInspectionWithDetails, criticality: CriticalityEnum | null): void {
+    this.store.updateItemCriticality(item.id, criticality);
+  }
+
+  onObservationChange(item: ItemInspectionWithDetails, observation: string | null): void {
+    this.store.updateItemObservation(item.id, observation);
+  }
+
+  async onUploadVideo(file: File, type: 'videoStart' | 'videoEnd'): Promise<void> {
+    const success = await this.store.uploadFile(file, type);
+    if (success) {
+      console.log(`✅ Video ${type} subido correctamente`);
+      await this.store.loadEvidenceFiles();
+    }
+  }
+
+  async onUploadPhoto(file: File, type: 'startPhoto' | 'midPhoto' | 'endPhoto'): Promise<void> {
+    const success = await this.store.uploadFile(file, type);
+    if (success) {
+      console.log(`✅ Foto ${type} subida correctamente`);
+      await this.store.loadEvidenceFiles();
+    }
+  }
+
+  async onUploadReport(file: File): Promise<void> {
+    const success = await this.store.uploadFile(file, 'report');
+    if (success) {
+      console.log('✅ Reporte subido correctamente');
+      await this.store.loadEvidenceFiles();
+    }
+  }
+
+  async onRemoveVideo(type: 'videoStart' | 'videoEnd'): Promise<void> {
+    const success = await this.store.removeVideo(type);
+    if (success) {
+      console.log(`✅ Video ${type} eliminado correctamente`);
+      await this.store.loadEvidenceFiles();
+    }
+  }
+
+  async onRemovePhoto(photoId: string, type: 'startPhoto' | 'midPhoto' | 'endPhoto'): Promise<void> {
+    const success = await this.store.removePhoto(photoId, type);
+    if (success) {
+      console.log(`✅ Foto eliminada correctamente`);
+      await this.store.loadEvidenceFiles();
+    }
+  }
+
+  async onRemoveReport(): Promise<void> {
+    const success = await this.store.removeReport();
+    if (success) {
+      console.log('✅ Reporte eliminado correctamente');
+      await this.store.loadEvidenceFiles();
+    }
+  }
+
+  openCameraModal(targetType: string): void {
+    this.cameraTargetType.set(targetType);
+    this.cameraMode.set(targetType.startsWith('video') ? 'video' : 'photo');
+    this.showCameraModal.set(true);
+  }
+
+  closeCameraModal(): void {
+    this.showCameraModal.set(false);
+    this.cameraTargetType.set(null);
+  }
+
+  async onCameraCapture(file: File): Promise<void> {
+    const targetType = this.cameraTargetType();
+    if (!targetType) return;
+
+    const success = await this.store.uploadFile(file, targetType as any);
+    if (success) {
+      console.log(`✅ Archivo ${targetType} capturado y subido correctamente`);
+      await this.store.loadEvidenceFiles();
+    }
+  }
+
+  getStepLabel(step: number): string {
+    const labels: Record<number, string> = {
+      1: 'Información',
+      2: 'Inspección',
+      3: 'Evidencias',
+      4: 'Completar'
+    };
+    return labels[step] || '';
+  }
+
+  getServiceTitle(): string {
+    const service = this.store.service();
+    const equipment = this.store.equipment();
+
+    if (!service || !equipment) return 'Cargando...';
+
+    const typeLabel = this.getServiceTypeLabel(service.type);
+    return `${typeLabel} | ${equipment.tag}`;
+  }
+
+  getProgress(): number {
+    const currentStep = this.store.currentStep();
+    return (currentStep / 4) * 100;
+  }
 
   getServiceTypeLabel(type: ServiceTypeEnum): string {
     const labels: Record<ServiceTypeEnum, string> = {
@@ -282,91 +321,163 @@ export class ServiceWorkPage implements OnInit, OnDestroy {
     return labels[type] || type;
   }
 
-  getEquipmentTypeLabel(type: EquipmentTypeEnum): string {
-    return type === EquipmentTypeEnum.CABINET ? 'Cabinet' : 'Panel';
-  }
-
-  getProgressColor(percentage: number): string {
-    if (percentage === 0) return 'bg-gray-200';
-    if (percentage < 30) return 'bg-rose-500';
-    if (percentage < 70) return 'bg-amber-500';
-    if (percentage < 100) return 'bg-blue-500';
-    return 'bg-green-500';
-  }
-
-  getItemStatusIcon(item: InspectableItemWithDetails): string {
-    if (item.isSaving) return 'pi-spin pi-spinner';
-    if (isItemCompleted(item.inspection?.condition || null, item.inspection?.criticality || null)) {
-      return 'pi-check-circle';
-    }
-    if (item.inspection?.condition) return 'pi-clock';
-    return 'pi-circle';
-  }
-
-  getItemStatusClass(item: InspectableItemWithDetails): string {
-    if (item.isSaving) return 'text-blue-500';
-    if (isItemCompleted(item.inspection?.condition || null, item.inspection?.criticality || null)) {
-      return 'text-green-500';
-    }
-    if (item.inspection?.condition) return 'text-amber-500';
-    return 'text-gray-400';
-  }
-
-  formatDate(date: Date | null): string {
-    if (!date) return '-';
-    return new Date(date).toLocaleDateString('es-PE', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  getValidationMessages(): string[] {
-    const messages: string[] = [];
+  shouldShowStartButton(): boolean {
     const service = this.store.service();
-    const progress = this.store.inspectionProgress();
-    const evidence = this.store.evidenceValidation();
+    return service?.status === ServiceStatusEnum.CREATED && this.store.currentStep() === 1;
+  }
 
-    if (!service) return messages;
+  getNextButtonLabel(): string {
+    const service = this.store.service();
+    const step = this.store.currentStep();
 
-    // Inspecciones
-    if (progress.completed < progress.total) {
-      messages.push(`Completa las ${progress.total - progress.completed} inspecciones pendientes`);
+    if (service?.status === ServiceStatusEnum.CREATED && step === 1) {
+      return 'Comenzar';
     }
 
-    // Evidencias
-    if (evidence && !evidence.isComplete) {
-      if (!evidence.videoStart) messages.push('Sube el video de inicio');
-      if (!evidence.videoEnd) messages.push('Sube el video final');
-      if (!evidence.startPhotos) messages.push('Sube fotos de inicio (1-3)');
-      if (!evidence.midPhotos) messages.push('Sube fotos del medio (1-3)');
-      if (!evidence.endPhotos) messages.push('Sube fotos finales (1-3)');
-      if (!evidence.reportDocument) messages.push('Sube el reporte PDF');
-    }
+    if (step === 1) return 'Ir a Inspección';
+    if (step === 2) return 'Ir a Evidencias';
+    if (step === 3) return 'Ir a Resumen';
+    return 'Siguiente';
+  }
 
-    // Levantamiento
-    if (service.type === ServiceTypeEnum.RAISE_OBSERVATION) {
-      const items = this.store.inspectableItems();
-      const invalidItems = items.filter(item =>
-        !this.isValidForRaiseObservation(item)
-      );
-      if (invalidItems.length > 0) {
-        messages.push(`${invalidItems.length} items aún tienen criticidad (deben estar en estado OK u Operativo)`);
+  async onNextOrStart(): Promise<void> {
+    const service = this.store.service();
+    const currentStep = this.store.currentStep();
+
+    if (service?.status === ServiceStatusEnum.CREATED && currentStep === 1) {
+      const success = await this.store.startService();
+      if (success) {
+        console.log('✅ Servicio iniciado, avanzando a step 2');
+      }
+    } else {
+      this.onNext();
+    }
+  }
+
+  get unsavedChangesCount(): number {
+    return this.store.itemInspections().filter(i => i.hasUnsavedChanges).length;
+  }
+
+  async saveProgress(): Promise<void> {
+    console.log('💾 Attempting to save progress...');
+
+    const result = await this.store.saveAllProgress();
+
+    if (result.success) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Cambios guardados',
+        detail: 'Todos los cambios se guardaron correctamente',
+        life: 3000
+      });
+      console.log('✅ All changes saved successfully');
+    } else {
+      if (result.errors.length > 0) {
+        this.showValidationErrors(result.errors);
+      } else {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error al guardar',
+          detail: 'Ocurrió un error al guardar los cambios. Intenta de nuevo.',
+          life: 5000
+        });
       }
     }
-
-    return messages;
   }
 
-  isValidForRaiseObservation(item: InspectableItemWithDetails): boolean {
-    const condition = item.inspection?.condition;
-    const criticality = item.inspection?.criticality;
+  private showValidationErrors(errors: ValidationError[]): void {
+    console.error('❌ Validation errors:', errors);
 
-    if (!condition) return false;
+    // Mostrar primer error con detalle
+    const firstError = errors[0];
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Validación fallida',
+      detail: firstError.message,
+      life: 5000
+    });
 
-    const validConditions = [ItemConditionEnum.OPERATIONAL, ItemConditionEnum.OK];
-    return validConditions.includes(condition) && criticality === null;
+    if (errors.length > 1) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: `${errors.length - 1} errores adicionales`,
+        detail: 'Revisa todos los items marcados en rojo',
+        life: 5000
+      });
+    }
+  }
+
+  canNavigateToStep(_: number): boolean {
+    const currentStep = this.store.currentStep();
+
+    if (currentStep === 2 && this.store.hasUnsavedChanges()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cambios sin guardar',
+        detail: 'Guarda los cambios antes de continuar',
+        life: 4000
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  onNext(): void {
+    const currentStep = this.store.currentStep();
+    const targetStep = currentStep + 1;
+
+    if (!this.canNavigateToStep(targetStep)) {
+      return;
+    }
+
+    if (currentStep < 4) {
+      this.store.setCurrentStep(targetStep);
+    }
+  }
+
+  onBack(): void {
+    const currentStep = this.store.currentStep();
+    const targetStep = currentStep - 1;
+
+    if (!this.canNavigateToStep(targetStep)) {
+      return; // ❌ Bloqueado
+    }
+
+    // ✅ Permitir navegación
+    if (currentStep > 1) {
+      this.store.setCurrentStep(targetStep);
+    }
+  }
+
+  onStepClick(step: number): void {
+    if (!this.canNavigateToStep(step)) {
+      return; // ❌ Bloqueado
+    }
+
+    this.store.setCurrentStep(step);
+  }
+
+  async onExit(): Promise<void> {
+    if (this.store.hasUnsavedChanges()) {
+      // Mostrar modal de confirmación
+      this.showExitModal.set(true);
+    } else {
+      await this.router.navigate(['/services/active']);
+    }
+  }
+
+  async confirmExit(): Promise<void> {
+    const result = await this.store.saveAllProgress();
+
+    if (result.success) {
+      this.showExitModal.set(false);
+      await this.router.navigate(['/services/active']);
+    } else {
+      if (result.errors.length > 0) {
+        this.showValidationErrors(result.errors);
+      }
+      this.showExitModal.set(false);
+    }
   }
 }
