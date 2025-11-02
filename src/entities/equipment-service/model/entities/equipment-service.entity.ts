@@ -16,10 +16,10 @@ export interface EquipmentServiceEntity {
   completedAt: Date | null;
   cancelledAt: Date | null;
   totalWorkDuration: string;
-  videoStartFileId: string;
-  videoEndFileId: string;
+  videoStartFileId: string | null;
+  videoEndFileId: string | null;
   startPhotos: string[];
   midPhotos: string[];
   endPhotos: string[];
-  reportDocumentFileId: string;
+  reportDocumentFileId: string | null;
 }
