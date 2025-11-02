@@ -31,6 +31,7 @@ import {ReportUploaderComponent} from '../report-uploader/report-uploader.compon
 import {FilePreviewModalComponent} from '../file-preview-modal/file-preview-modal.component';
 import {PreviewFile, PreviewFileType} from '../../model/types/file-preview-modal.types';
 import {CameraModalComponent} from '../camera-modal/camera-modal.component';
+import {ServiceWorkSummaryComponent} from '../service-work-summary/service-work-summary.component';
 
 @Component({
   selector: 'app-service-work',
@@ -53,7 +54,8 @@ import {CameraModalComponent} from '../camera-modal/camera-modal.component';
     PhotoUploaderComponent,
     ReportUploaderComponent,
     FilePreviewModalComponent,
-    CameraModalComponent
+    CameraModalComponent,
+    ServiceWorkSummaryComponent
   ],
   providers: [ServiceWorkStore],
   templateUrl: './service-work.page.html',

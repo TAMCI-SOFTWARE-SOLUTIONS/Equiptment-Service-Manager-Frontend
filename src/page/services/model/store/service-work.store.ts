@@ -9,6 +9,7 @@ import {
 import {CabinetEntity} from '../../../../entities/cabinet/model';
 import {PanelEntity} from '../../../../entities/panel/model';
 import {SupervisorEntity, SupervisorService} from '../../../../entities/supervisor';
+import {ProfileEntity, ProfileService} from '../../../../entities/profile'; // ✅ NUEVO
 import {ItemInspectionWithDetails} from '../interfaces/item-inspection-with-details.interface';
 import {ItemInspectionEntity, ItemInspectionService} from '../../../../entities/item-inspection';
 import {InspectableItemService} from '../../../../entities/inspectable-item';
@@ -72,15 +73,16 @@ export interface ServiceWorkState {
   service: EquipmentServiceEntity | null;
   equipment: CabinetEntity | PanelEntity | null;
   supervisor: SupervisorEntity | null;
+  operator: ProfileEntity | null;
 
-  // 🆕 CAMBIO: Lista de inspecciones enriquecidas y planas
+  // Inspections
   itemInspections: ItemInspectionWithDetails[];
 
   // Power distribution
   powerDistributions: EquipmentPowerDistributionAssignmentEntity[];
   powerPanels: Map<string, PowerDistributionPanelEntity>;
 
-  // Evidence files cargados
+  // Evidence files
   evidenceFiles: {
     videoStart: EvidenceFile | null;
     videoEnd: EvidenceFile | null;
@@ -122,6 +124,7 @@ const initialState: ServiceWorkState = {
   service: null,
   equipment: null,
   supervisor: null,
+  operator: null,
   itemInspections: [],
   powerDistributions: [],
   powerPanels: new Map(),
@@ -160,14 +163,28 @@ export const ServiceWorkStore = signalStore(
   withComputed((state) => ({
     tabConfigs: computed(() => TAB_CONFIGS),
     serviceType: computed(() => state.service()?.type || null),
+
+    operatorFullName: computed(() => {
+      const operator = state.operator();
+      if (!operator) return '';
+
+      return [
+        operator.names,
+        operator.firstSurname,
+        operator.secondSurname
+      ]
+        .filter(Boolean)
+        .join(' ');
+    }),
+
     tabProgress: computed(() => {
-      const items = state.itemInspections(); // 🆕 CAMBIO
+      const items = state.itemInspections();
       const progressMap = new Map<InspectableItemTypeEnum, TabProgress>();
 
       TAB_CONFIGS.forEach(config => {
         const tabItems = items.filter(item => item.type === config.type);
         const completed = tabItems.filter(item =>
-          isItemCompleted(item.condition, item.criticality) // 🆕 CAMBIO
+          isItemCompleted(item.condition, item.criticality)
         ).length;
 
         progressMap.set(config.type, {
@@ -179,6 +196,7 @@ export const ServiceWorkStore = signalStore(
 
       return progressMap;
     }),
+
     inspectionProgress: computed(() => {
       const items = state.itemInspections();
       if (items.length === 0) return { completed: 0, total: 0, percentage: 0 };
@@ -193,6 +211,7 @@ export const ServiceWorkStore = signalStore(
         percentage: Math.round((completed / items.length) * 100)
       };
     }),
+
     evidenceValidation: computed(() => {
       const evidence = state.evidenceFiles();
       return {
@@ -211,14 +230,17 @@ export const ServiceWorkStore = signalStore(
         )
       };
     }),
+
     canStartService: computed(() => {
       const service = state.service();
       return service?.status === ServiceStatusEnum.CREATED;
     }),
+
     isServiceInProgress: computed(() => {
       const service = state.service();
       return service?.status === ServiceStatusEnum.IN_PROGRESS;
     }),
+
     canCompleteService: computed(() => {
       const service = state.service();
       const progress = state.itemInspections();
@@ -240,15 +262,18 @@ export const ServiceWorkStore = signalStore(
 
       return allInspectionsCompleted && allEvidencesUploaded;
     }),
+
     hasUnsavedChanges: computed(() => {
       const items = state.itemInspections();
       return items.some(item => item.hasUnsavedChanges);
     }),
+
     currentTypeItems: computed(() => {
       const currentType = state.currentInspectableType();
       const items = state.itemInspections();
       return items.filter(item => item.type === currentType);
     }),
+
     isLoading: computed(() => {
       const uploading = Object.values(state.uploadingStatus()).some(status => status === true);
       return state.isLoadingService() ||
@@ -259,21 +284,23 @@ export const ServiceWorkStore = signalStore(
         uploading ||
         state.isCompletingService() ||
         state.isCancelingService();
-    }), })),
+    })
+  })),
 
   withMethods((store) => {
     const serviceService = inject(EquipmentServiceService);
     const itemInspectionService = inject(ItemInspectionService);
     const inspectableItemService = inject(InspectableItemService);
     const supervisorService = inject(SupervisorService);
+    const profileService = inject(ProfileService);
     const brandService = inject(BrandService);
     const modelService = inject(ModelService);
     const descriptionService = inject(DescriptionService);
     const fileService = inject(FileService);
     const powerDistAssignService = inject(EquipmentPowerDistributionAssignmentService);
     const powerPanelService = inject(PowerDistributionPanelService);
-    const cabinetService = inject(CabinetService); // Para Paso 1
-    const panelService = inject(PanelService);     // Para Paso 1
+    const cabinetService = inject(CabinetService);
+    const panelService = inject(PanelService);
 
     return {
       async loadService(serviceId: string): Promise<void> {
@@ -287,12 +314,13 @@ export const ServiceWorkStore = signalStore(
 
           patchState(store, { service });
 
-          const [equipment, supervisor, powerDistributions] = await firstValueFrom(
+          const [equipment, supervisor, operator, powerDistributions] = await firstValueFrom(
             forkJoin([
               service.equipmentType === EquipmentTypeEnum.CABINET
                 ? cabinetService.getById(service.equipmentId)
                 : panelService.getById(service.equipmentId),
               supervisorService.getById(service.supervisorId),
+              profileService.getByUserId(service.operatorId),
               powerDistAssignService.getAllByEquipmentId(service.equipmentId)
             ])
           );
@@ -307,13 +335,13 @@ export const ServiceWorkStore = signalStore(
           patchState(store, {
             equipment,
             supervisor,
+            operator,
             powerDistributions,
             powerPanels: powerPanelsMap,
             isLoadingService: false
           });
 
           await this.loadItemInspections();
-
           await this.loadEvidenceFiles();
 
         } catch (error: any) {
@@ -524,9 +552,7 @@ export const ServiceWorkStore = signalStore(
         if (itemIndex === -1) return;
 
         const item = items[itemIndex];
-
         const requiresCrit = condition ? requiresCriticality(condition) : false;
-
         let newCriticality = item.criticality;
 
         if (!requiresCrit) {
@@ -562,7 +588,7 @@ export const ServiceWorkStore = signalStore(
         patchState(store, { itemInspections: updatedItems });
       },
 
-      updateItemObservation(inspectionId: string, observation: string | null): void { // 🆕 Acepta null
+      updateItemObservation(inspectionId: string, observation: string | null): void {
         const items = store.itemInspections();
         const itemIndex = items.findIndex(i => i.id === inspectionId);
 
@@ -689,30 +715,24 @@ export const ServiceWorkStore = signalStore(
         patchState(store, { currentInspectableType: type });
       },
 
-      // En service-work.store.ts
-
       async uploadFile(file: File, type: 'videoStart' | 'videoEnd' | 'startPhoto' | 'midPhoto' | 'endPhoto' | 'report'): Promise<boolean> {
 
         const service = store.service();
         if (!service) return false;
 
-        // 1. Poner ESE TIPO específico en 'true'
         patchState(store, state => ({
           error: null,
           uploadingStatus: {
             ...state.uploadingStatus,
-            [type]: true // Actualización dinámica
+            [type]: true
           }
         }));
 
         try {
-          // 2. Subir archivo
           const uploadedFile = await firstValueFrom(fileService.upload(file));
 
-          // 3. Actualizar servicio (ESTA ES LA PARTE CORREGIDA)
           const updates: Partial<EquipmentServiceEntity> = {};
 
-          // ⬇️ TU SWITCH ESTABA INCOMPLETO. ESTE ES EL CORRECTO. ⬇️
           switch (type) {
             case 'videoStart':
               updates.videoStartFileId = uploadedFile.id;
@@ -733,14 +753,11 @@ export const ServiceWorkStore = signalStore(
               updates.reportDocumentFileId = uploadedFile.id;
               break;
           }
-          // ⬆️ FIN DE LA CORRECCIÓN ⬆️
 
-          // 4. Actualizar en backend
           const updatedService = await firstValueFrom(
             serviceService.update(service.id, { ...service, ...updates })
           );
 
-          // 5. Poner ESE TIPO en 'false' y actualizar servicio
           patchState(store, state => ({
             service: updatedService,
             uploadingStatus: {
@@ -768,8 +785,6 @@ export const ServiceWorkStore = signalStore(
         const service = store.service();
         if (!service) return false;
 
-        // 1. Poner el estado de carga ESE TIPO en 'true'
-        // (Usamos el mismo flag de 'uploading' para mostrar 'eliminando...')
         patchState(store, state => ({
           error: null,
           uploadingStatus: {
@@ -779,7 +794,6 @@ export const ServiceWorkStore = signalStore(
         }));
 
         try {
-          // 2. Preparar la actualización
           const updates: Partial<EquipmentServiceEntity> = {};
 
           switch (type) {
@@ -794,12 +808,10 @@ export const ServiceWorkStore = signalStore(
               break;
           }
 
-          // 3. Llamar al servicio de backend para actualizar la entidad
           const updatedService = await firstValueFrom(
             serviceService.update(service.id, { ...service, ...updates })
           );
 
-          // 4. Actualizar el estado en éxito
           patchState(store, state => ({
             service: updatedService,
             uploadingStatus: {
@@ -813,7 +825,6 @@ export const ServiceWorkStore = signalStore(
         } catch (error: any) {
           console.error('❌ Error removing photo:', error);
 
-          // 5. Actualizar el estado en error
           patchState(store, state => ({
             uploadingStatus: {
               ...state.uploadingStatus,
@@ -826,33 +837,26 @@ export const ServiceWorkStore = signalStore(
         }
       },
 
-      /**
-       * 🆕 Eliminar Video (con estado de carga individual)
-       */
       async removeVideo(type: 'videoStart' | 'videoEnd'): Promise<boolean> {
         const service = store.service();
         if (!service) return false;
 
-        // 1. Poner el estado de carga en 'true'
         patchState(store, state => ({
           error: null,
           uploadingStatus: { ...state.uploadingStatus, [type]: true }
         }));
 
         try {
-          // 2. Preparar la actualización (setear a null)
           const updates: Partial<EquipmentServiceEntity> = {
             [type === 'videoStart' ? 'videoStartFileId' : 'videoEndFileId']: null
           };
 
           console.log(`🔄 Removing video ${type}, updates:`, updates);
 
-          // 3. Llamar al backend
           const updatedService = await firstValueFrom(
             serviceService.update(service.id, { ...service, ...updates })
           );
 
-          // 4. Actualizar estado en éxito
           patchState(store, state => ({
             service: updatedService,
             uploadingStatus: { ...state.uploadingStatus, [type]: false }
@@ -869,9 +873,6 @@ export const ServiceWorkStore = signalStore(
         }
       },
 
-      /**
-       * 🆕 Eliminar Reporte (con estado de carga individual)
-       */
       async removeReport(): Promise<boolean> {
         const service = store.service();
         if (!service) return false;
