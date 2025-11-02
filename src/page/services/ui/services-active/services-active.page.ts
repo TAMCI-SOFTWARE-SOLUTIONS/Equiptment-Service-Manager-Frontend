@@ -29,7 +29,7 @@ import {ServicesActiveStore, ServiceWithDetails} from '../../model/store/service
     Ripple,
     EmptyStateComponent,
     ConfirmationModalComponent,
-    Menu // ← NUEVO
+    Menu
   ],
   providers: [ServicesActiveStore],
   templateUrl: './services-active.page.html'
@@ -160,8 +160,12 @@ export class ServicesActivePage implements OnInit {
     return DateUtils.formatDateTime(date);
   }
 
-  formatDuration(duration: string | null): string {
-    if (!duration) return '-';
-    return DurationUtils.formatReadable(duration);
+  formatDuration(service: ServiceWithDetails): string {
+    if (service.totalWorkDuration && service.totalWorkDuration != "PT0S") return DurationUtils.formatReadable(service.totalWorkDuration);
+    if (service.startedAt) {
+      return DateUtils.diffReadable(service.startedAt, new Date());
+    } else {
+      return '0s';
+    }
   }
 }
