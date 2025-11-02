@@ -1,10 +1,7 @@
 import { InspectableItemTypeEnum } from '../../../shared/model/enums';
-import {ItemConditionEnum} from '../../../shared/model/enums/item-condition.enum';
-import {CriticalityEnum} from '../../../shared/model/enums/criticality.enum';
+import { ItemConditionEnum } from '../../../shared/model/enums/item-condition.enum';
+import { CriticalityEnum } from '../../../shared/model/enums/criticality.enum';
 
-/**
- * Condiciones permitidas por tipo de inspectable item
- */
 export const CONDITION_BY_TYPE: Record<InspectableItemTypeEnum, ItemConditionEnum[]> = {
   [InspectableItemTypeEnum.COMMUNICATION]: [
     ItemConditionEnum.OPERATIONAL,
@@ -32,34 +29,23 @@ export const CONDITION_BY_TYPE: Record<InspectableItemTypeEnum, ItemConditionEnu
   ]
 };
 
-/**
- * Condiciones que requieren mostrar criticidad
- */
 export const CONDITIONS_WITH_CRITICALITY: ItemConditionEnum[] = [
   ItemConditionEnum.FAILURE,
   ItemConditionEnum.BAD_STATE,
   ItemConditionEnum.DEFICIENT
 ];
 
-/**
- * Condiciones válidas para servicio de levantamiento (sin criticidad)
- */
+
 export const VALID_CONDITIONS_FOR_RAISE: ItemConditionEnum[] = [
   ItemConditionEnum.OPERATIONAL,
   ItemConditionEnum.OK
 ];
 
-/**
- * Verifica si una condición requiere criticidad
- */
 export function requiresCriticality(condition: ItemConditionEnum | null | undefined): boolean {
   if (!condition) return false;
   return CONDITIONS_WITH_CRITICALITY.includes(condition);
 }
 
-/**
- * Verifica si un item está completado (tiene condición y criticidad si aplica)
- */
 export function isItemCompleted(
   condition: ItemConditionEnum | null | undefined,
   criticality: CriticalityEnum | null | undefined
@@ -73,10 +59,6 @@ export function isItemCompleted(
   return true;
 }
 
-/**
- * Verifica si un item es válido para levantamiento de observaciones
- * ✅ ACTUALIZADO: Acepta undefined
- */
 export function isValidForRaiseObservation(
   condition: ItemConditionEnum | null | undefined,
   criticality: CriticalityEnum | null | undefined
@@ -85,9 +67,76 @@ export function isValidForRaiseObservation(
   return VALID_CONDITIONS_FOR_RAISE.includes(condition) && (criticality === null || criticality === undefined);
 }
 
-/**
- * Labels de condiciones en español
- */
+
+export interface ValidationError {
+  itemId: string;
+  itemTag: string;
+  field: 'condition' | 'criticality';
+  message: string;
+}
+
+
+export function shouldClearCriticality(condition: ItemConditionEnum | null): boolean {
+  if (!condition) return false;
+  return !requiresCriticality(condition);
+}
+
+export function validateItem(
+  itemId: string,
+  itemTag: string,
+  condition: ItemConditionEnum | null,
+  criticality: CriticalityEnum | null
+): ValidationError | null {
+  if (!condition) {
+    return {
+      itemId,
+      itemTag,
+      field: 'condition',
+      message: `${itemTag}: Debes seleccionar una condición`
+    };
+  }
+
+  if (requiresCriticality(condition) && !criticality) {
+    return {
+      itemId,
+      itemTag,
+      field: 'criticality',
+      message: `${itemTag}: La condición "${CONDITION_LABELS[condition]}" requiere criticidad`
+    };
+  }
+
+  if (!requiresCriticality(condition) && criticality) {
+    return {
+      itemId,
+      itemTag,
+      field: 'criticality',
+      message: `${itemTag}: La condición "${CONDITION_LABELS[condition]}" no requiere criticidad`
+    };
+  }
+
+  return null;
+}
+
+export function validateItems(
+  items: Array<{
+    id: string;
+    tag: string;
+    condition: ItemConditionEnum | null;
+    criticality: CriticalityEnum | null;
+  }>
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  items.forEach(item => {
+    const error = validateItem(item.id, item.tag, item.condition, item.criticality);
+    if (error) {
+      errors.push(error);
+    }
+  });
+
+  return errors;
+}
+
 export const CONDITION_LABELS: Record<ItemConditionEnum, string> = {
   [ItemConditionEnum.OPERATIONAL]: 'Operativo',
   [ItemConditionEnum.FAILURE]: 'Falla',
@@ -97,9 +146,6 @@ export const CONDITION_LABELS: Record<ItemConditionEnum, string> = {
   [ItemConditionEnum.DEFICIENT]: 'Deficiente'
 };
 
-/**
- * Labels de criticidad en español
- */
 export const CRITICALITY_LABELS: Record<CriticalityEnum, string> = {
   [CriticalityEnum.CRITICAL]: 'Crítico',
   [CriticalityEnum.NOT_CRITICAL]: 'No Crítico'
