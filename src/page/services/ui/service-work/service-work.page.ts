@@ -8,9 +8,6 @@ import {MessageService} from 'primeng/api';
 import {ServiceTypeEnum} from '../../../../shared/model';
 import {ServiceWorkHeaderComponent} from '../service-work-header/service-work-header.component';
 import {ServiceWorkFooterComponent} from '../service-work-footer/service-work-footer.component';
-import {ServiceInfoCardComponent} from '../service-card-info/service-card-info.component';
-import {EquipmentInfoCardComponent} from '../equipment-card-info/equipment-card-info.component';
-import {PowerDistributionListComponent} from '../power-distribution-list/power-distribution-list.component';
 import {ServiceStatusEnum} from '../../../../entities/equipment-service';
 import {InspectableItemTypeEnum} from '../../../../shared/model/enums';
 import {ItemConditionEnum} from '../../../../shared/model/enums/item-condition.enum';
@@ -32,6 +29,7 @@ import {FilePreviewModalComponent} from '../file-preview-modal/file-preview-moda
 import {PreviewFile, PreviewFileType} from '../../model/types/file-preview-modal.types';
 import {CameraModalComponent} from '../camera-modal/camera-modal.component';
 import {ServiceWorkSummaryComponent} from '../service-work-summary/service-work-summary.component';
+import {ServiceWorkStep1Component} from '../service-work-step1/service-work-step1.component';
 
 @Component({
   selector: 'app-service-work',
@@ -42,9 +40,6 @@ import {ServiceWorkSummaryComponent} from '../service-work-summary/service-work-
     ServiceWorkFooterComponent,
     ConfirmationModalComponent,
     EmptyStateComponent,
-    ServiceInfoCardComponent,
-    EquipmentInfoCardComponent,
-    PowerDistributionListComponent,
     InspectionItemFormComponent,
     InspectionTabsComponent,
     InspectionProgressBannerComponent,
@@ -55,7 +50,8 @@ import {ServiceWorkSummaryComponent} from '../service-work-summary/service-work-
     ReportUploaderComponent,
     FilePreviewModalComponent,
     CameraModalComponent,
-    ServiceWorkSummaryComponent
+    ServiceWorkSummaryComponent,
+    ServiceWorkStep1Component
   ],
   providers: [ServiceWorkStore],
   templateUrl: './service-work.page.html',
@@ -356,6 +352,13 @@ export class ServiceWorkPage implements OnInit, OnDestroy {
 
   get unsavedChangesCount(): number {
     return this.store.itemInspections().filter(i => i.hasUnsavedChanges).length;
+  }
+
+  get totalCircuits(): number {
+    return this.store.powerDistributions().reduce(
+      (sum, dist) => sum + dist.circuitAssignments.length,
+      0
+    );
   }
 
   async saveProgress(): Promise<void> {
