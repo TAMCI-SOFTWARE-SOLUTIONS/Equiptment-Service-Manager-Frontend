@@ -1,3 +1,6 @@
+import {CabinetStatusEnum} from '../../cabinet/model';
+import {PanelStatusEnum} from '../../panel/model';
+
 export enum EquipmentStatusEnum {
   OPERATIVE = 'OPERATIVE',
   STAND_BY = 'STAND_BY',
@@ -5,9 +8,6 @@ export enum EquipmentStatusEnum {
   RETIRED = 'RETIRED'
 }
 
-/**
- * Helper para obtener label del status
- */
 export function getEquipmentStatusLabel(status: EquipmentStatusEnum): string {
   const labels: Record<EquipmentStatusEnum, string> = {
     [EquipmentStatusEnum.OPERATIVE]: 'Operativo',
@@ -18,9 +18,6 @@ export function getEquipmentStatusLabel(status: EquipmentStatusEnum): string {
   return labels[status];
 }
 
-/**
- * Helper para obtener color del status
- */
 export function getEquipmentStatusColor(status: EquipmentStatusEnum): {
   bg: string;
   text: string;
@@ -56,9 +53,19 @@ export function getEquipmentStatusColor(status: EquipmentStatusEnum): {
   return colors[status];
 }
 
-/**
- * Helper para obtener icono del status
- */
+export function getEquipmentStatusBadgeClass(status: EquipmentStatusEnum): string {
+  const baseClasses = 'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold';
+
+  const statusClasses: Record<EquipmentStatusEnum, string> = {
+    [EquipmentStatusEnum.OPERATIVE]: 'bg-green-100 text-green-700 ring-1 ring-green-600/20',
+    [EquipmentStatusEnum.STAND_BY]: 'bg-amber-100 text-amber-700 ring-1 ring-amber-600/20',
+    [EquipmentStatusEnum.INOPERATIVE]: 'bg-red-100 text-red-700 ring-1 ring-red-600/20',
+    [EquipmentStatusEnum.RETIRED]: 'bg-gray-100 text-gray-700 ring-1 ring-gray-600/20'
+  };
+
+  return `${baseClasses} ${statusClasses[status] || 'bg-gray-100 text-gray-700'}`;
+}
+
 export function getEquipmentStatusIcon(status: EquipmentStatusEnum): string {
   const icons: Record<EquipmentStatusEnum, string> = {
     [EquipmentStatusEnum.OPERATIVE]: 'pi-check-circle',
@@ -67,4 +74,23 @@ export function getEquipmentStatusIcon(status: EquipmentStatusEnum): string {
     [EquipmentStatusEnum.RETIRED]: 'pi-ban'
   };
   return icons[status];
+}
+
+export function toEquipmentStatus(
+  status: CabinetStatusEnum | PanelStatusEnum | EquipmentStatusEnum | string
+): EquipmentStatusEnum {
+  // Si ya es EquipmentStatusEnum, retornar directamente
+  if (Object.values(EquipmentStatusEnum).includes(status as EquipmentStatusEnum)) {
+    return status as EquipmentStatusEnum;
+  }
+
+  // Mapeo de valores
+  const statusMap: Record<string, EquipmentStatusEnum> = {
+    'OPERATIVE': EquipmentStatusEnum.OPERATIVE,
+    'STAND_BY': EquipmentStatusEnum.STAND_BY,
+    'INOPERATIVE': EquipmentStatusEnum.INOPERATIVE,
+    'RETIRED': EquipmentStatusEnum.RETIRED
+  };
+
+  return statusMap[status] || EquipmentStatusEnum.OPERATIVE;
 }
