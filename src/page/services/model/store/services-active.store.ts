@@ -76,6 +76,9 @@ export const ServicesActiveStore = signalStore(
       userRoles: computed(() => authStore.userRoles()),
 
       // Page state
+      titlePage: computed(() =>
+        store.isActivePage() ? 'Servicios Activos' : 'Historial de Servicios'
+      ),
       canCreateService: computed(() => authStore.isOperator() && store.isActivePage()),
       textTitleEmptyState: computed(() => {
           if (store.isActivePage()) {
