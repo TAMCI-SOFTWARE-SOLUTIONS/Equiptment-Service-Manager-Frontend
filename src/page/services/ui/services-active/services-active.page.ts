@@ -38,18 +38,15 @@ export class ServicesActivePage implements OnInit {
   readonly store = inject(ServicesActiveStore);
   readonly router = inject(Router);
 
-  // Expose enums to template
   readonly ServiceStatusEnum = ServiceStatusEnum;
   readonly ServiceTypeEnum = ServiceTypeEnum;
   readonly EquipmentTypeEnum = EquipmentTypeEnum;
   readonly currentService = signal<ServiceWithDetails | null>(null);
 
-  // Modal state
   readonly showCancelModal = signal(false);
   readonly serviceToCancelSignal = signal<ServiceWithDetails | null>(null);
   readonly isCancelling = signal(false);
 
-  // Equipment helpers
   protected readonly getEquipmentTypeIcon = getEquipmentTypeIcon;
   protected readonly getEquipmentTypeLabel = getEquipmentTypeLabel;
   protected readonly getServiceTypeLabel = getServiceTypeLabel;
@@ -61,7 +58,6 @@ export class ServicesActivePage implements OnInit {
     this.store.loadServices();
   }
 
-  // ==================== MENU ACTIONS ====================
   openMenu(event: Event, menu: Menu, service: ServiceWithDetails): void {
     this.currentService.set(service);
     menu.toggle(event);
@@ -93,7 +89,6 @@ export class ServicesActivePage implements OnInit {
     return items;
   }
 
-  // ==================== NAVIGATION ====================
 
   onServiceClick(service: ServiceWithDetails): void {
     console.log('service', service);
@@ -109,7 +104,6 @@ export class ServicesActivePage implements OnInit {
     this.router.navigate(['/services/new']).then();
   }
 
-  // ==================== FILTERS ====================
 
   onStatusFilterChange(status: ServiceStatusEnum | 'all'): void {
     this.store.setStatusFilter(status);
@@ -122,8 +116,6 @@ export class ServicesActivePage implements OnInit {
   clearSearch(): void {
     this.store.clearSearch();
   }
-
-  // ==================== ACTIONS ====================
 
   onCancelClickFromMenu(service: ServiceWithDetails): void {
     this.serviceToCancelSignal.set(service);
@@ -151,21 +143,9 @@ export class ServicesActivePage implements OnInit {
     this.isCancelling.set(false);
   }
 
-  // ==================== PAGINATION ====================
-
-  onPreviousPage(): void {
-    this.store.previousPage();
-  }
-
-  onNextPage(): void {
-    this.store.nextPage();
-  }
-
   onPageClick(page: number): void {
     this.store.goToPage(page);
   }
-
-  // ==================== HELPERS ====================
 
   onRefresh(): void {
     this.store.loadServices();
