@@ -31,6 +31,7 @@ export interface ServicesActiveState {
   equipmentTags: Map<string, string>;
 
   // Loading states
+  isActivePage: boolean;
   isLoadingServices: boolean;
   isLoadingDetails: boolean;
   error: string | null;
@@ -50,6 +51,7 @@ const initialState: ServicesActiveState = {
   operatorNames: new Map(),
   supervisorNames: new Map(),
   equipmentTags: new Map(),
+  isActivePage: true,
   isLoadingServices: false,
   isLoadingDetails: false,
   error: null,
@@ -72,6 +74,25 @@ export const ServicesActiveStore = signalStore(
       isClient: computed(() => authStore.isClient()),
       currentUserId: computed(() => authStore.userId()),
       userRoles: computed(() => authStore.userRoles()),
+
+      // Page state
+      canCreateService: computed(() => authStore.isOperator() && store.isActivePage()),
+      textTitleEmptyState: computed(() => {
+          if (store.isActivePage()) {
+            return 'No hay servicios activos';
+          } else {
+            return 'No hay servicios históricos';
+          }
+        }
+      ),
+      textDescriptionEmptyState: computed(() => {
+          if (store.isActivePage()) {
+            return 'No hay servicios creados o en progreso en este momento.';
+          } else {
+            return 'No hay servicios completados o cancelados en el historial.';
+          }
+        }
+      ),
 
       // Loading state
       isLoading: computed(() =>
@@ -232,10 +253,24 @@ export const ServicesActiveStore = signalStore(
         });
 
         try {
+
+          let statuses: ServiceStatusEnum[] = [];
+          if (store.isActivePage()) {
+            statuses = [
+              ServiceStatusEnum.CREATED,
+              ServiceStatusEnum.IN_PROGRESS
+            ];
+          } else {
+            statuses = [
+              ServiceStatusEnum.COMPLETED,
+              ServiceStatusEnum.CANCELLED
+            ];
+          }
+
           const activeServices = await firstValueFrom(serviceService.getAll({
             projectId: contextStore.projectId() ?? "",
             operatorId: !store.isOperator() ? "" : authStore.userId() ?? "",
-            statuses: [ServiceStatusEnum.CREATED, ServiceStatusEnum.IN_PROGRESS]
+            statuses: statuses
           }));
 
           patchState(store, {
@@ -352,6 +387,10 @@ export const ServicesActiveStore = signalStore(
           });
           return false;
         }
+      },
+
+      setIsActivePage(isActive: boolean): void {
+        patchState(store, { isActivePage: isActive });
       },
 
       setStatusFilter(status: ServiceStatusEnum | 'all'): void {

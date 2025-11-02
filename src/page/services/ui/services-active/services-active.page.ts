@@ -55,6 +55,11 @@ export class ServicesActivePage implements OnInit {
   protected readonly getStatusBadgeClass = getStatusBadgeClass;
 
   ngOnInit(): void {
+    if(this.router.url.includes('services/active')) {
+      this.store.setIsActivePage(true);
+    } else {
+      this.store.setIsActivePage(false);
+    }
     this.store.loadServices();
   }
 
@@ -70,12 +75,12 @@ export class ServicesActivePage implements OnInit {
     const items: MenuItem[] = [];
 
     items.push({
-      label: this.store.isOperator() ? 'Continuar servicio' : 'Ver detalles',
+      label: (this.store.isOperator() && this.store.isActivePage()) ? 'Continuar servicio' : 'Ver detalles',
       icon: 'pi pi-eye',
       command: () => this.onServiceClick(service)
     });
 
-    if (this.store.isAdmin() || this.store.isOperator()) {
+    if ((this.store.isAdmin() || this.store.isOperator()) && this.store.isActivePage()) {
       items.push({ separator: true });
 
       items.push({
@@ -91,11 +96,10 @@ export class ServicesActivePage implements OnInit {
 
 
   onServiceClick(service: ServiceWithDetails): void {
-    console.log('service', service);
-    if (this.store.isOperator()) {
-      this.router.navigate(['/services/work', service.id]).then();
+    if (!this.store.isActivePage() || this.store.isAdmin()) {
+      this.router.navigate(['/services', service.id]).then();
     } else {
-      this.router.navigate(['/services/active', service.id]).then();
+      this.router.navigate(['/services/work', service.id]).then();
     }
   }
 
