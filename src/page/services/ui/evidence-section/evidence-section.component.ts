@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div class="border-b border-gray-100 bg-gradient-to-r from-sky-50 to-cyan-50 py-4">
+      <div class="border-b border-gray-100 bg-gradient-to-r from-sky-50 to-cyan-50 p-4">
         <div class="flex items-center gap-3">
           <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-cyan-500">
             <i [class]="'pi ' + icon + ' text-lg text-white'"></i>
@@ -16,7 +16,7 @@ import { CommonModule } from '@angular/common';
         </div>
       </div>
 
-      <div class="py-6">
+      <div class="p-6">
         <ng-content></ng-content>
       </div>
     </div>
