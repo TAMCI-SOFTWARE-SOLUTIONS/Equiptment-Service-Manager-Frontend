@@ -56,7 +56,7 @@ export const routes: Routes = [
           {
             path: 'history',
             title: 'Historial de Servicios',
-            loadComponent: () => import('../page/services/ui').then(m => m.ServicesHistoryPage)
+            loadComponent: () => import('../page/services/ui').then(m => m.ServicesActivePage)
           },
           {
             path: ':serviceId',
