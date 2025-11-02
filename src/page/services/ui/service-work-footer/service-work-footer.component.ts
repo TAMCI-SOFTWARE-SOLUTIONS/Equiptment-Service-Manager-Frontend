@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Ripple } from 'primeng/ripple';
 
@@ -12,7 +12,6 @@ import { Ripple } from 'primeng/ripple';
 
         <div class="flex items-center justify-between gap-3">
 
-          <!-- Back Button -->
           <button
             type="button"
             (click)="onPrevious.emit()"
@@ -23,8 +22,7 @@ import { Ripple } from 'primeng/ripple';
             <span class="hidden sm:inline">Atrás</span>
           </button>
 
-          <!-- Progress indicator (middle, desktop only) -->
-          @if (showProgress) {
+          @if (showProgress && !shouldShowSaveButton()) {
             <div class="hidden items-center gap-2 text-sm text-gray-600 md:flex">
               <span class="font-medium">Paso {{ currentStep }} de 4</span>
               <span class="text-gray-400">•</span>
@@ -32,9 +30,31 @@ import { Ripple } from 'primeng/ripple';
             </div>
           }
 
-          <!-- Next/Start/Complete Button -->
-          @if (isLastStep) {
-            <!-- Complete Button (Step 4) -->
+          @if (shouldShowSaveButton()) {
+            <div class="hidden items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 md:flex">
+              <i class="pi pi-exclamation-triangle text-sm"></i>
+              <span>{{ unsavedCount() }} cambio(s) sin guardar</span>
+            </div>
+          }
+
+          @if (shouldShowSaveButton()) {
+            <button
+              type="button"
+              (click)="onSave.emit()"
+              [disabled]="isLoading"
+              pRipple
+              class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-50 lg:px-6">
+              @if (isLoading) {
+                <i class="pi pi-spin pi-spinner text-sm"></i>
+                <span class="hidden sm:inline">Guardando...</span>
+                <span class="sm:hidden">...</span>
+              } @else {
+                <i class="pi pi-save text-sm"></i>
+                <span class="hidden sm:inline">Guardar Cambios</span>
+                <span class="sm:hidden">Guardar</span>
+              }
+            </button>
+          } @else if (isLastStep) {
             <button
               type="button"
               (click)="onComplete.emit()"
@@ -51,7 +71,6 @@ import { Ripple } from 'primeng/ripple';
               }
             </button>
           } @else if (showStartButton) {
-            <!-- Start Button (cuando status = CREATED) -->
             <button
               type="button"
               (click)="onNext.emit()"
@@ -67,7 +86,6 @@ import { Ripple } from 'primeng/ripple';
               }
             </button>
           } @else {
-            <!-- Next Button (navegación normal) -->
             <button
               type="button"
               (click)="onNext.emit()"
@@ -95,9 +113,17 @@ export class ServiceWorkFooterComponent {
   @Input() isLoading: boolean = false;
   @Input() showProgress: boolean = true;
   @Input() nextButtonLabel: string = 'Siguiente';
-  @Input() showStartButton: boolean = false; // 🆕 Indica si mostrar botón "Comenzar"
+  @Input() showStartButton: boolean = false;
+
+  readonly hasUnsavedChanges = input<boolean>(false);
+  readonly unsavedCount = input<number>(0);
 
   @Output() onPrevious = new EventEmitter<void>();
   @Output() onNext = new EventEmitter<void>();
   @Output() onComplete = new EventEmitter<void>();
+  @Output() onSave = new EventEmitter<void>();
+
+  shouldShowSaveButton(): boolean {
+    return this.currentStep === 2 && this.hasUnsavedChanges();
+  }
 }
