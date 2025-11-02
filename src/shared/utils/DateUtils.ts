@@ -102,4 +102,63 @@ export class DateUtils {
   static isAfter(date1: Date | string, date2: Date | string): boolean {
     return new Date(date1).getTime() > new Date(date2).getTime();
   }
+
+  /**
+   * Devuelve una fecha en formato corto legible: "15 Ene 2025"
+   */
+  static formatDateShort(date: Date | string | null): string {
+    if (!date) return '';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return '';
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const dateOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    // Formatear hora
+    const hours = d.getHours().toString().padStart(2, '0');
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+
+    // Si es hoy
+    if (dateOnly.getTime() === today.getTime()) {
+      return `Hoy a las ${timeStr}`;
+    }
+
+    // Si es ayer
+    if (dateOnly.getTime() === yesterday.getTime()) {
+      return `Ayer a las ${timeStr}`;
+    }
+
+    // Si es otra fecha (formato normal)
+    const months = [
+      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+    ];
+
+    const day = d.getDate();
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+
+    return `${day} ${month} ${year}`;
+  }
+  /**
+   * Calcula la duración entre dos fechas en formato legible
+   */
+  static calculateDuration(
+    startedAt: Date | string | null,
+    completedAt: Date | string | null = null
+  ): string {
+    if (!startedAt) return 'Por Iniciar';
+
+    const start = typeof startedAt === 'string' ? new Date(startedAt) : startedAt;
+    const end = completedAt
+      ? (typeof completedAt === 'string' ? new Date(completedAt) : completedAt)
+      : new Date(); // Si no hay completedAt, usar ahora
+
+    return this.diffReadable(start, end);
+  }
 }
