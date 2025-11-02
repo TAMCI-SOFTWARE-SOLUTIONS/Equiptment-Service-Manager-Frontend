@@ -24,14 +24,3 @@ export function getEquipmentTypeIcon(type: EquipmentTypeEnum): string {
   };
   return icons[type];
 }
-
-/**
- * Helper para obtener emoji del tipo
- */
-export function getEquipmentTypeEmoji(type: EquipmentTypeEnum): string {
-  const emojis: Record<EquipmentTypeEnum, string> = {
-    [EquipmentTypeEnum.CABINET]: '📦',
-    [EquipmentTypeEnum.PANEL]: '📋'
-  };
-  return emojis[type];
-}
