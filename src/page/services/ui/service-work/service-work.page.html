@@ -92,21 +92,6 @@
                 </app-inspection-progress-banner>
               }
 
-              <!-- Unsaved Changes Warning -->
-              @if (store.hasUnsavedChanges()) {
-                <div class="rounded-xl border-l-4 border-amber-400 bg-amber-50 p-4">
-                  <div class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                      <i class="pi pi-exclamation-triangle text-xl text-amber-600"></i>
-                      <div>
-                        <p class="font-semibold text-amber-900">Tienes cambios sin guardar</p>
-                        <p class="text-sm text-amber-700">Haz clic en el botón "Guardar" del encabezado para guardar tus cambios</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-
               <!-- Inspection Tabs -->
               <app-inspection-tabs
                 [tabConfigs]="store.tabConfigs()"
@@ -284,12 +269,15 @@
     [canGoPrevious]="store.currentStep() > 1"
     [canGoNext]="true"
     [canComplete]="store.canCompleteService()"
-    [isLoading]="store.isStartingService() || store.isCompletingService()"
+    [isLoading]="store.isStartingService() || store.isCompletingService() || store.isSavingInspection()"
     [nextButtonLabel]="getNextButtonLabel()"
     [showStartButton]="shouldShowStartButton()"
+    [hasUnsavedChanges]="store.hasUnsavedChanges()"
+    [unsavedCount]="unsavedChangesCount"
     (onPrevious)="onBack()"
     (onNext)="onNextOrStart()"
-    (onComplete)="onCompleteServiceClick()">
+    (onComplete)="onCompleteServiceClick()"
+    (onSave)="saveProgress()">
   </app-service-work-footer>
 
 </div>
