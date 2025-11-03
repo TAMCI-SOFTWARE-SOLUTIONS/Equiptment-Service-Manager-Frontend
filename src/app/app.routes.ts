@@ -326,18 +326,23 @@ export const routes: Routes = [
       // --- Users Management ---
       {
         path: 'users',
-        title: 'Gestión de Usuarios',
-        loadComponent: () => import('../page/users/ui/users/users.page').then(m => m.UsersPage)
-      },
-      {
-        path: 'users/new',
-        title: 'Nuevo Usuario',
-        loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
-      },
-      {
-        path: 'users/:userId',
-        title: 'Editar Usuario',
-        loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
+        children: [
+          {
+            path: '',
+            title: 'Usuarios',
+            loadComponent: () => import('../page/users/ui/users/users.page').then(m => m.UsersPage)
+          },
+          {
+            path: 'new',
+            title: 'Crear Usuario',
+            loadComponent: () => import('../page/users/ui/create-user/create-user.page').then(m => m.CreateUserPage)
+          },
+          {
+            path: ':id',
+            title: 'Detalle Usuario',
+            loadComponent: () => import('../page/users/ui/user-details/user-details.page').then(m => m.UserDetailsPage)
+          }
+        ]
       },
 
       // ==================== PROFILE & SETTINGS ====================
