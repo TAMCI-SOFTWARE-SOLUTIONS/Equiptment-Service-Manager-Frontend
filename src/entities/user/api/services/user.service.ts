@@ -30,4 +30,12 @@ export class UserService extends BaseService {
       catchError(this.handleError)
     );
   }
+
+  create(user: UserEntity): Observable<UserEntity> {
+    return this.http.post<UserResponse>(this.resourcePath(), user, this.httpOptions).pipe(
+      map((response: UserResponse) => UserEntityFromResponseMapper.fromDtoToEntity(response)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
 }
