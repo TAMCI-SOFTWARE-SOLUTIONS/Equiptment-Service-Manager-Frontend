@@ -1,0 +1,280 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Title & Actions -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            Supervisores
+          </h1>
+          @if (store.hasSupervisors() && !store.isLoading()) {
+            <span class="flex h-6 items-center rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-700">
+              {{ store.supervisorsCount() }}
+            </span>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2">
+          <!-- Refresh Button -->
+          @if (store.hasSupervisors() && !store.isLoading()) {
+            <button
+              type="button"
+              (click)="onRefresh()"
+              pRipple
+              class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 lg:h-10 lg:w-10">
+              <i class="pi pi-refresh text-sm"></i>
+            </button>
+          }
+
+          <!-- Create Button -->
+          <button
+            type="button"
+            (click)="onCreateNew()"
+            [disabled]="showCreateForm() || store.isLoading()"
+            pRipple
+            class="inline-flex items-center gap-2 rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50 lg:px-4">
+            <i class="pi pi-plus text-sm"></i>
+            <span class="hidden sm:inline">Nuevo Supervisor</span>
+            <span class="sm:hidden">Nuevo</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      @if (store.hasSupervisors() && !store.isLoading()) {
+        <div class="mt-4">
+          <div class="relative">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <i class="pi pi-search text-sm text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              [value]="store.searchQuery()"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Buscar supervisor..."
+              class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+
+            @if (store.searchQuery()) {
+              <button
+                type="button"
+                (click)="clearSearch()"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                <i class="pi pi-times text-xs"></i>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Loading State -->
+      @if (store.isLoading()) {
+        <div class="space-y-3">
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="animate-pulse rounded-lg border border-gray-200 bg-white p-4">
+              <div class="flex items-center justify-between">
+                <div class="h-5 w-48 rounded bg-gray-200"></div>
+                <div class="flex gap-2">
+                  <div class="h-8 w-16 rounded bg-gray-200"></div>
+                  <div class="h-8 w-16 rounded bg-gray-200"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @else {
+        <!-- Create Form (Inline) - SIEMPRE VISIBLE -->
+        @if (showCreateForm()) {
+          <div class="mb-4 rounded-lg border-2 border-sky-500 bg-white p-4 shadow-sm">
+            <div class="flex items-center gap-3">
+              <!-- Input -->
+              <div class="flex-1">
+                <input
+                  id="new-supervisor-input"
+                  type="text"
+                  [(ngModel)]="newSupervisorName"
+                  (keydown)="onKeyDownCreate($event)"
+                  placeholder="Nombre completo del supervisor (ej: Juan Pérez Gómez)"
+                  class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                  [class.border-rose-500]="newSupervisorName().trim().length > 0 && newSupervisorName().trim().length < 3">
+
+                @if (newSupervisorName().trim().length > 0 && newSupervisorName().trim().length < 3) {
+                  <p class="mt-1 text-xs text-rose-500">
+                    Mínimo 3 caracteres
+                  </p>
+                }
+              </div>
+
+              <!-- Actions -->
+              <div class="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  (click)="onCancelCreate()"
+                  pRipple
+                  class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  (click)="onSaveNew()"
+                  [disabled]="!newSupervisorName().trim() || newSupervisorName().trim().length < 3"
+                  pRipple
+                  class="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50">
+                  Guardar
+                </button>
+              </div>
+            </div>
+
+            <!-- Hint (solo desktop) -->
+            <p class="mt-2 hidden text-xs text-gray-500 lg:block">
+              Presiona <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700">Enter</kbd> para guardar o <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700">Esc</kbd> para cancelar
+            </p>
+          </div>
+        }
+
+        <!-- Empty State (cuando no hay supervisores Y no está creando) -->
+        @if (!store.hasSupervisors() && !showCreateForm()) {
+          <app-empty-state
+            icon="pi-users"
+            iconBgClass="bg-gradient-to-br from-sky-100 to-cyan-100"
+            iconColorClass="text-sky-600"
+            title="No hay supervisores registrados"
+            description="Comienza agregando tu primer supervisor para asignar a los servicios."
+            [showButton]="true"
+            buttonText="Agregar Supervisor"
+            buttonIcon="pi-plus"
+            (onAction)="onCreateNew()">
+          </app-empty-state>
+        }
+
+        @else if (store.hasNoSearchResults()) {
+          <app-empty-state
+            icon="pi-search"
+            iconBgClass="bg-gradient-to-br from-gray-100 to-gray-200"
+            iconColorClass="text-gray-500"
+            title="No se encontraron resultados"
+            [description]="'No hay supervisores que coincidan con' + store.searchQuery() + '.'"
+            [showButton]="true"
+            buttonText="Limpiar búsqueda"
+            buttonIcon="pi-times"
+            (onAction)="clearSearch()">
+          </app-empty-state>
+        }
+        @else if (store.hasSupervisors()) {
+          <div class="space-y-3">
+            @for (supervisor of store.filteredSupervisors(); track supervisor.id) {
+              <div class="group rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-gray-300 hover:shadow-sm">
+
+                <!-- Editing Mode -->
+                @if (isEditing(supervisor.id)) {
+                  <div class="flex items-center gap-3">
+                    <!-- Input -->
+                    <div class="flex-1">
+                      <input
+                        [id]="'edit-supervisor-' + supervisor.id"
+                        type="text"
+                        [(ngModel)]="editingName"
+                        (keydown)="onKeyDownEdit($event, supervisor.id)"
+                        placeholder="Nombre completo del supervisor"
+                        class="block w-full rounded-lg border border-sky-500 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                        [class.border-rose-500]="editingName().trim().length > 0 && editingName().trim().length < 3">
+
+                      @if (editingName().trim().length > 0 && editingName().trim().length < 3) {
+                        <p class="mt-1 text-xs text-rose-500">
+                          Mínimo 3 caracteres
+                        </p>
+                      }
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        (click)="onCancelEdit()"
+                        pRipple
+                        class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        (click)="onSaveEdit(supervisor.id)"
+                        [disabled]="!editingName().trim() || editingName().trim().length < 3"
+                        pRipple
+                        class="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50">
+                        Guardar
+                      </button>
+                    </div>
+                  </div>
+                }
+
+                @else {
+                  <div class="flex items-center justify-between">
+                    <!-- Name -->
+                    <div class="flex items-center gap-3">
+                      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500">
+                        <i class="pi pi-user text-sm text-white"></i>
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-900">
+                          {{ supervisor.fullName }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                      <button
+                        type="button"
+                        (click)="onEdit(supervisor)"
+                        pRipple
+                        class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                        <i class="pi pi-pencil mr-1.5 text-xs"></i>
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        (click)="onDeleteClick(supervisor)"
+                        pRipple
+                        class="rounded-lg border border-rose-300 bg-white px-3 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50">
+                        <i class="pi pi-trash mr-1.5 text-xs"></i>
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                }
+
+              </div>
+            }
+          </div>
+        }
+      }
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal
+  [show]="showDeleteModal()"
+  [title]="'¿Eliminar supervisor?'"
+  [message]="'Estás a punto de eliminar al supervisor:'"
+  [itemName]="supervisorToDelete()?.fullName"
+  [warningText]="'Esta acción no se puede deshacer.'"
+  [confirmText]="'Sí, eliminar'"
+  [isLoading]="isDeleting()"
+  (onConfirm)="confirmDelete()"
+  (onCancel)="closeDeleteModal()">
+</app-confirmation-modal>

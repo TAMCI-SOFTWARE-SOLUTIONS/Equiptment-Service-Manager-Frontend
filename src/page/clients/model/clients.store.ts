@@ -4,6 +4,7 @@ import { ClientService } from '../../../entities/client/api';
 import { ClientEntity } from '../../../entities/client/model';
 import {FileService} from '../../../entities/file/api/file.service';
 import {firstValueFrom} from 'rxjs';
+import {AuthStore} from '../../../shared/stores';
 
 export interface ClientWithImages extends ClientEntity {
   logoUrl?: string;
@@ -28,23 +29,28 @@ const initialState: ClientsState = {
 };
 
 export const ClientsStore = signalStore(
-  { providedIn: 'root' },
   withState<ClientsState>(initialState),
 
-  withComputed((state) => ({
-    selectedClient: computed(() => {
-      const selectedId = state.selectedClientId();
-      return selectedId
-        ? state.clientsWithImages().find(client => client.id === selectedId) || null
-        : null;
-    }),
+  withComputed((state) => {
+    const authStore = inject(AuthStore);
 
-    clientsCount: computed(() => state.clients().length),
+    return {
+      isAdmin: computed(() => authStore.isAdmin()),
 
-    hasClients: computed(() => state.clients().length > 0),
+      selectedClient: computed(() => {
+        const selectedId = state.selectedClientId();
+        return selectedId
+          ? state.clientsWithImages().find(client => client.id === selectedId) || null
+          : null;
+      }),
 
-    isClientsLoading: computed(() => state.isLoading())
-  })),
+      clientsCount: computed(() => state.clients().length),
+
+      hasClients: computed(() => state.clients().length > 0),
+
+      isClientsLoading: computed(() => state.isLoading())
+    };
+  }),
 
   withMethods((store) => {
     const clientService = inject(ClientService);

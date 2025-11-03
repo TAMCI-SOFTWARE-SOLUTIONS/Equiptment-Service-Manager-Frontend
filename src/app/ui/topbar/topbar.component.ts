@@ -50,6 +50,7 @@ export class TopbarComponent {
     const roleMap: Record<RolesEnum, string> = {
       [RolesEnum.ROLE_OPERATOR]: 'Operador',
       [RolesEnum.ROLE_ADMIN]: 'Administrador',
+      [RolesEnum.ROLE_CLIENT_VIEWER]: 'Cliente',
     };
 
     const formattedRoles = roles

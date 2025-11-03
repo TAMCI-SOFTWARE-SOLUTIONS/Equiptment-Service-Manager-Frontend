@@ -1,0 +1,129 @@
+<div class="group rounded-xl border border-gray-200 bg-white transition-all hover:border-gray-300 hover:shadow-md">
+
+  <!-- Header with Tag -->
+  <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
+
+    <!-- Tag con icono -->
+    <div class="flex items-center gap-3">
+      <div [class]="'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ' + getColorClasses().bg + ' ' + getColorClasses().bgHover">
+        <i class="pi pi-tag text-sm" [class]="getColorClasses().text"></i>
+      </div>
+
+      <div>
+        <p class="font-mono text-base font-semibold text-gray-900">
+          {{ item.tag }}
+        </p>
+
+        <!-- Metadata pequeña -->
+        @if (item.lastObservation) {
+          <p class="text-xs text-gray-500">
+            <i class="pi pi-info-circle mr-1"></i>
+            Con observaciones
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex shrink-0 gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+      <button
+        type="button"
+        (click)="onEditClick()"
+        pRipple
+        class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-sky-500 hover:bg-sky-50 hover:text-sky-700">
+        <i class="pi pi-pencil text-sm"></i>
+      </button>
+
+<!--      <button
+        type="button"
+        (click)="onDeleteClick()"
+        pRipple
+        class="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-300 bg-white text-rose-600 transition-all hover:border-rose-500 hover:bg-rose-50">
+        <i class="pi pi-trash text-sm"></i>
+      </button>-->
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="px-4 py-3">
+    @if (isLoadingDetails) {
+      <!-- Loading state -->
+      <div class="space-y-3">
+        <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
+        <div class="h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
+        <div class="h-4 w-2/3 animate-pulse rounded bg-gray-200"></div>
+      </div>
+    } @else {
+      <div class="space-y-2.5">
+
+        <!-- Marca -->
+        <div class="flex items-start gap-2">
+          <div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-gray-100">
+            <i class="pi pi-bookmark text-[10px] text-gray-600"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+              Marca
+            </p>
+            <p class="mt-0.5 text-sm font-medium text-gray-900">
+              {{ brandName }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Modelo -->
+        <div class="flex items-start gap-2">
+          <div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-gray-100">
+            <i class="pi pi-box text-[10px] text-gray-600"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+              Modelo
+            </p>
+            <p class="mt-0.5 text-sm font-medium text-gray-900">
+              {{ modelName }}
+            </p>
+          </div>
+        </div>
+
+        <!-- 🆕 Descripción -->
+        <div class="flex items-start gap-2">
+          <div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-gray-100">
+            <i class="pi pi-align-left text-[10px] text-gray-600"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+              Descripción
+            </p>
+            <p class="mt-0.5 text-sm text-gray-700">
+              {{ descriptionName }}
+            </p>
+          </div>
+        </div>
+
+      </div>
+    }
+  </div>
+
+<!--  &lt;!&ndash; Footer con metadata adicional (opcional) &ndash;&gt;
+  @if (!isLoadingDetails && (item.currentCondition || item.currentCriticality)) {
+    <div class="border-t border-gray-100 px-4 py-2">
+      <div class="flex items-center gap-3">
+        @if (item.currentCondition) {
+          <span class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
+            <i class="pi pi-circle-fill text-[8px]"></i>
+            {{ item.currentCondition }}
+          </span>
+        }
+
+        @if (item.currentCriticality) {
+          <span class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
+            <i class="pi pi-exclamation-triangle text-[10px]"></i>
+            {{ item.currentCriticality }}
+          </span>
+        }
+      </div>
+    </div>
+  }-->
+
+</div>

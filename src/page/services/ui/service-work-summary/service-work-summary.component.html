@@ -1,0 +1,454 @@
+<div class="space-y-6">
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-5 lg:px-8">
+
+      <!-- Estado y Tipo de Servicio -->
+      <div class="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div class="flex-1">
+          <div class="mb-2 inline-flex items-center gap-2 rounded-lg border px-3 py-1 text-xs font-semibold"
+               [ngClass]="getServiceStatusColor(service().status)">
+            <div class="h-2 w-2 rounded-full"
+                 [ngClass]="service().status === 'IN_PROGRESS' ? 'bg-sky-600' : service().status === 'COMPLETED' ? 'bg-green-600' : 'bg-gray-400'">
+            </div>
+            <span>{{ getServiceStatusLabel(service().status) }}</span>
+          </div>
+
+          <h2 class="text-2xl font-bold text-gray-900 lg:text-3xl">
+            {{ getServiceTypeLabel(service().type) }}
+          </h2>
+          <p class="mt-1 text-sm text-gray-600">
+            Equipo: <span class="font-semibold text-gray-900">{{ equipment().tag }}</span>
+          </p>
+        </div>
+
+        <!-- Badge de Completitud -->
+        @if (canComplete()) {
+          <div class="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2">
+            <i class="pi pi-check-circle text-lg text-green-700"></i>
+            <span class="text-sm font-semibold text-green-800">Listo para completar</span>
+          </div>
+        } @else {
+          <div class="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2">
+            <i class="pi pi-exclamation-triangle text-lg text-amber-700"></i>
+            <span class="text-sm font-semibold text-amber-800">Información incompleta</span>
+          </div>
+        }
+      </div>
+
+      <!-- Información de Personal y Fechas -->
+      <div class="grid gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+
+        <!-- Operador -->
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100">
+            <i class="pi pi-user text-gray-600"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium text-gray-500">Operador</p>
+            <p class="truncate text-sm font-semibold text-gray-900">{{ operatorFullName() }}</p>
+          </div>
+        </div>
+
+        <!-- Supervisor -->
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100">
+            <i class="pi pi-shield text-gray-600"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium text-gray-500">Supervisor</p>
+            <p class="truncate text-sm font-semibold text-gray-900">{{ supervisor().fullName }}</p>
+          </div>
+        </div>
+
+        <!-- Duración -->
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100">
+            <i class="pi pi-clock text-gray-600"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium text-gray-500">Duración</p>
+            <p class="truncate text-sm font-semibold text-gray-900">{{ formatDuration(service().totalWorkDuration) }}</p>
+          </div>
+        </div>
+
+        <!-- Fechas -->
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100">
+            <i class="pi pi-calendar text-gray-600"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium text-gray-500">
+              @if (service().startedAt && service().completedAt) {
+                Inicio → Fin
+              } @else if (service().startedAt) {
+                Inicio
+              } @else {
+                Creado
+              }
+            </p>
+            <p class="truncate text-sm font-semibold text-gray-900">
+              @if (service().startedAt && service().completedAt) {
+                {{ formatDateTime(service().startedAt) }}
+              } @else if (service().startedAt) {
+                {{ formatDateTime(service().startedAt) }}
+              } @else {
+                {{ formatDateTime(service().createdAt) }}
+              }
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- GRID DE MÉTRICAS (3 Cards)                  -->
+  <!-- ============================================ -->
+
+  <div class="grid gap-6 lg:grid-cols-3">
+
+    <!-- CARD 1: Inspección -->
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+            <i class="pi pi-list-check text-lg text-sky-700"></i>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900">Inspección</h3>
+            <p class="text-xs text-gray-600">Estado general</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <div class="space-y-4">
+          <div class="text-center">
+            <div class="text-4xl font-bold text-gray-900">{{ inspectionSummary().total }}</div>
+            <div class="mt-1 text-sm text-gray-600">Items totales</div>
+          </div>
+
+          <div class="h-px bg-gray-200"></div>
+
+          <div class="text-center">
+            <div class="text-2xl font-bold text-sky-600">{{ getTypesWithData().length }}</div>
+            <div class="mt-1 text-sm text-gray-600">Categorías</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: Progreso -->
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+            <i class="pi pi-chart-line text-lg text-sky-700"></i>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900">Progreso</h3>
+            <p class="text-xs text-gray-600">Completitud</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <div class="space-y-4">
+          <!-- Barra de progreso -->
+          <div>
+            <div class="mb-2 flex items-center justify-between">
+              <span class="text-sm font-medium text-gray-700">Completado</span>
+              <span class="text-sm font-semibold text-sky-600">
+                {{ inspectionSummary().completed }} / {{ inspectionSummary().total }}
+              </span>
+            </div>
+            <div class="h-3 overflow-hidden rounded-full bg-gray-200">
+              <div
+                class="h-full rounded-full bg-sky-500 transition-all duration-500"
+                [style.width.%]="(inspectionSummary().completed / inspectionSummary().total) * 100">
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center">
+            <div class="text-4xl font-bold text-sky-600">
+              {{ inspectionSummary().completed === inspectionSummary().total ? '100' : ((inspectionSummary().completed / inspectionSummary().total) * 100).toFixed(0) }}%
+            </div>
+            <div class="mt-1 text-sm text-gray-600">Progreso total</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: Evidencias -->
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+            <i class="pi pi-images text-lg text-sky-700"></i>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900">Evidencias</h3>
+            <p class="text-xs text-gray-600">Archivos cargados</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <div class="space-y-3">
+          <!-- Videos -->
+          <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-video text-gray-600"></i>
+              <span class="text-sm font-medium text-gray-700">Videos</span>
+            </div>
+            <span class="text-sm font-semibold"
+                  [class]="evidenceSummary().videoStart && evidenceSummary().videoEnd ? 'text-green-600' : 'text-gray-400'">
+              {{ (evidenceSummary().videoStart ? 1 : 0) + (evidenceSummary().videoEnd ? 1 : 0) }}/2
+            </span>
+          </div>
+
+          <!-- Fotos -->
+          <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-camera text-gray-600"></i>
+              <span class="text-sm font-medium text-gray-700">Fotos</span>
+            </div>
+            <span class="text-sm font-semibold"
+                  [class]="evidenceSummary().startPhotos >= 1 && evidenceSummary().midPhotos >= 1 && evidenceSummary().endPhotos >= 1 ? 'text-green-600' : 'text-gray-400'">
+              {{ evidenceSummary().startPhotos + evidenceSummary().midPhotos + evidenceSummary().endPhotos }}/3+
+            </span>
+          </div>
+
+          <!-- Reporte -->
+          <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-file-pdf text-gray-600"></i>
+              <span class="text-sm font-medium text-gray-700">Reporte</span>
+            </div>
+            <span class="text-xs font-medium"
+                  [class]="evidenceSummary().report ? 'text-green-600' : 'text-gray-500'">
+              {{ evidenceSummary().report ? 'Cargado' : 'Opcional' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- DESGLOSE POR ESTADO                         -->
+  <!-- ============================================ -->
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+          <i class="pi pi-chart-bar text-lg text-gray-700"></i>
+        </div>
+        <h3 class="font-semibold text-gray-900">Desglose por Estado</h3>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <div class="space-y-4">
+
+        <!-- Operativos -->
+        <div>
+          <div class="mb-2 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="h-2 w-2 rounded-full bg-green-500"></div>
+              <span class="text-sm font-medium text-gray-700">Operativos</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-semibold text-gray-900">{{ inspectionSummary().operational }}</span>
+              <span class="text-xs text-gray-500">
+                {{ inspectionSummary().total > 0 ? ((inspectionSummary().operational / inspectionSummary().total) * 100).toFixed(0) : 0 }}%
+              </span>
+            </div>
+          </div>
+          <div class="h-2 overflow-hidden rounded-full bg-gray-200">
+            <div
+              class="h-full rounded-full bg-green-500 transition-all duration-500"
+              [style.width.%]="inspectionSummary().total > 0 ? (inspectionSummary().operational / inspectionSummary().total) * 100 : 0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Advertencias -->
+        <div>
+          <div class="mb-2 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="h-2 w-2 rounded-full bg-amber-500"></div>
+              <span class="text-sm font-medium text-gray-700">Advertencias</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-semibold text-gray-900">{{ inspectionSummary().warning }}</span>
+              <span class="text-xs text-gray-500">
+                {{ inspectionSummary().total > 0 ? ((inspectionSummary().warning / inspectionSummary().total) * 100).toFixed(0) : 0 }}%
+              </span>
+            </div>
+          </div>
+          <div class="h-2 overflow-hidden rounded-full bg-gray-200">
+            <div
+              class="h-full rounded-full bg-amber-500 transition-all duration-500"
+              [style.width.%]="inspectionSummary().total > 0 ? (inspectionSummary().warning / inspectionSummary().total) * 100 : 0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Críticos -->
+        <div>
+          <div class="mb-2 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="h-2 w-2 rounded-full bg-red-500"></div>
+              <span class="text-sm font-medium text-gray-700">Críticos</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-semibold text-gray-900">{{ inspectionSummary().critical }}</span>
+              <span class="text-xs text-gray-500">
+                {{ inspectionSummary().total > 0 ? ((inspectionSummary().critical / inspectionSummary().total) * 100).toFixed(0) : 0 }}%
+              </span>
+            </div>
+          </div>
+          <div class="h-2 overflow-hidden rounded-full bg-gray-200">
+            <div
+              class="h-full rounded-full bg-red-500 transition-all duration-500"
+              [style.width.%]="inspectionSummary().total > 0 ? (inspectionSummary().critical / inspectionSummary().total) * 100 : 0">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PROGRESO POR CATEGORÍA                      -->
+  <!-- ============================================ -->
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+          <i class="pi pi-th-large text-lg text-gray-700"></i>
+        </div>
+        <h3 class="font-semibold text-gray-900">Progreso por Categoría</h3>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <div class="space-y-4">
+
+        @for (item of getTypesWithData(); track item.type) {
+          <div>
+            <div class="mb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="pi text-gray-600" [ngClass]="item.icon"></i>
+                <span class="text-sm font-medium text-gray-700">{{ item.label }}</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-sm font-semibold text-gray-900">
+                  {{ item.data.completed }}/{{ item.data.total }}
+                </span>
+                <span class="text-xs text-gray-500">{{ item.data.percentage }}%</span>
+              </div>
+            </div>
+            <div class="h-2 overflow-hidden rounded-full bg-gray-200">
+              <div
+                class="h-full rounded-full bg-sky-500 transition-all duration-500"
+                [style.width.%]="item.data.percentage">
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (getTypesWithData().length === 0) {
+          <div class="py-8 text-center">
+            <i class="pi pi-inbox text-4xl text-gray-300"></i>
+            <p class="mt-2 text-sm text-gray-500">No hay categorías con items</p>
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- VALIDACIÓN FINAL                            -->
+  <!-- ============================================ -->
+
+  <div class="overflow-hidden rounded-xl border shadow-sm"
+       [ngClass]="canComplete() ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'">
+
+    <div class="border-b px-6 py-4"
+         [ngClass]="canComplete() ? 'border-green-200 bg-white' : 'border-amber-200 bg-white'">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg"
+             [ngClass]="canComplete() ? 'bg-green-100' : 'bg-amber-100'">
+          <i class="text-lg"
+             [ngClass]="canComplete() ? 'pi pi-check-circle text-green-700' : 'pi pi-exclamation-triangle text-amber-700'"></i>
+        </div>
+        <h3 class="font-semibold"
+            [ngClass]="canComplete() ? 'text-green-900' : 'text-amber-900'">
+          {{ canComplete() ? 'Validación Completa' : 'Validación Pendiente' }}
+        </h3>
+      </div>
+    </div>
+
+    <div class="p-6">
+
+      <!-- Lista de validación -->
+      <div class="space-y-3">
+        @for (item of validationItems(); track item.label) {
+          <div class="flex items-start gap-3 rounded-lg border bg-white px-4 py-3"
+               [ngClass]="item.isValid ? 'border-green-200' : 'border-gray-200'">
+            <div class="mt-0.5 shrink-0">
+              @if (item.isValid) {
+                <i class="pi pi-check-circle text-lg text-green-600"></i>
+              } @else {
+                <i class="pi pi-times-circle text-lg text-gray-400"></i>
+              }
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-medium"
+                 [ngClass]="item.isValid ? 'text-green-900' : 'text-gray-700'">
+                {{ item.label }}
+              </p>
+              <p class="mt-0.5 text-xs"
+                 [ngClass]="item.isValid ? 'text-green-600' : 'text-gray-500'">
+                {{ item.message }}
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Mensaje final -->
+      @if (canComplete()) {
+        <div class="mt-6 rounded-lg border border-green-200 bg-white p-4 text-center">
+          <p class="text-sm font-semibold text-green-900">
+            ✅ Todo listo para completar el servicio
+          </p>
+          <p class="mt-1 text-xs text-green-600">
+            Haz clic en el botón "Completar Servicio" del pie de página
+          </p>
+        </div>
+      } @else {
+        <div class="mt-6 rounded-lg border border-amber-200 bg-white p-4 text-center">
+          <p class="text-sm font-semibold text-amber-900">
+            ⚠️ Completa los items pendientes para continuar
+          </p>
+          <p class="mt-1 text-xs text-amber-600">
+            Revisa los pasos anteriores y completa la información requerida
+          </p>
+        </div>
+      }
+
+    </div>
+  </div>
+
+</div>

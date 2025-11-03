@@ -1,7 +1,7 @@
 import { CabinetEntity } from '../../cabinet/model';
 import { PanelEntity } from '../../panel/model';
-import {EquipmentTypeEnum} from './equipment-type.enum';
 import {EquipmentStatusEnum} from './equipment-status.enum';
+import {EquipmentTypeEnum} from '../../../shared/model';
 
 /**
  * Unified Equipment Entity
@@ -30,12 +30,15 @@ export interface EquipmentEntity {
   communicationProtocolId: string | null;
   communicationProtocol: string | null;
   equipmentTypeId: string | null;  // cabinetTypeId or panelTypeId
-  equipmentTypeName: string | null; // cabinetType or panelType
+  equipmentTypeCode: string | null; // cabinetType or panelType
+  equipmentTypeName?: string | null; // Lazy loaded type name
 
   // Timestamps
   createdAt: Date;
   updatedAt: Date | null;
-  lastServiceAt: Date | null;
+  lastInspectionAt: Date | null;
+  lastMaintenanceAt: Date | null;
+  lastRaiseObservationsAt: Date | null;
 }
 
 /**
@@ -55,10 +58,12 @@ export function cabinetToEquipment(cabinet: CabinetEntity): EquipmentEntity {
     communicationProtocolId: cabinet.communicationProtocolId,
     communicationProtocol: cabinet.communicationProtocol,
     equipmentTypeId: cabinet.cabinetTypeId,
-    equipmentTypeName: cabinet.cabinetType,
+    equipmentTypeCode: cabinet.cabinetType,
     createdAt: cabinet.createdAt,
     updatedAt: cabinet.updatedAt,
-    lastServiceAt: cabinet.lastServiceAt
+    lastInspectionAt: cabinet.lastInspectionAt,
+    lastMaintenanceAt: cabinet.lastMaintenanceAt,
+    lastRaiseObservationsAt: cabinet.lastRaiseObservationsAt,
   };
 }
 
@@ -79,9 +84,11 @@ export function panelToEquipment(panel: PanelEntity): EquipmentEntity {
     communicationProtocolId: panel.communicationProtocolId,
     communicationProtocol: panel.communicationProtocol,
     equipmentTypeId: panel.panelTypeId,
-    equipmentTypeName: panel.panelType,
+    equipmentTypeCode: panel.panelType,
     createdAt: panel.createdAt,
     updatedAt: panel.updatedAt,
-    lastServiceAt: panel.lastServiceAt
+    lastInspectionAt: panel.lastInspectionAt,
+    lastMaintenanceAt: panel.lastMaintenanceAt,
+    lastRaiseObservationsAt: panel.lastRaiseObservationsAt,
   };
 }

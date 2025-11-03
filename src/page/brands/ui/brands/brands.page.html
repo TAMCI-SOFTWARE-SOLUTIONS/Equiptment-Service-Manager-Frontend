@@ -1,0 +1,73 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <app-brands-header
+    [totalCount]="store.totalBrandsCount()"
+    [searchQuery]="store.searchQuery()"
+    [isLoading]="store.isLoadingBrands()"
+    (searchChange)="onSearchChange($event)"
+    (clearSearch)="onClearSearch()"
+    (refresh)="onRefresh()"
+    (showHelp)="onShowHelp()"
+  />
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+
+      <!-- Loading State -->
+      @if (store.isLoadingBrands()) {
+        <app-brands-loading />
+      }
+
+      @else if (!store.hasBrands()) {
+        <app-brands-empty-state />
+      }
+
+      @else if (hasNoSearchResults) {
+        <div class="flex min-h-[400px] flex-col items-center justify-center px-4 py-12">
+          <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200">
+            <i class="pi pi-search text-3xl text-gray-500"></i>
+          </div>
+
+          <h3 class="mb-2 text-xl font-semibold text-gray-900">
+            No se encontraron resultados
+          </h3>
+
+          <p class="mb-8 max-w-md text-center text-sm text-gray-500">
+            No hay marcas, modelos ni descripciones que coincidan con
+            <span class="font-medium text-gray-700">"{{ store.searchQuery() }}"</span>
+          </p>
+
+          <button
+            type="button"
+            (click)="onClearSearch()"
+            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+            <i class="pi pi-times text-sm"></i>
+            <span>Limpiar búsqueda</span>
+          </button>
+        </div>
+      }
+
+      @else {
+        <app-brands-group-list />
+      }
+
+    </div>
+  </main>
+
+</div>
+
+<!-- Keyboard Shortcuts Help Drawer -->
+<app-keyboard-shortcuts-help
+  [(visible)]="isHelpVisible"
+/>
+
+<!-- Create Brand Drawer -->
+<app-select-brand-type-drawer
+  [(visible)]="isDrawerVisible"
+  (brandCreated)="onBrandCreatedFromDrawer($event)"
+/>
+
+<!-- Toast Notifications -->
+<p-toast position="top-right" />

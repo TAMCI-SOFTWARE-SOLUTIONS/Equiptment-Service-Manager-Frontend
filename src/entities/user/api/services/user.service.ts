@@ -5,6 +5,8 @@ import { UserEntity } from '../../model';
 import { UserResponse } from '../types/user-response.type';
 import { UserEntityFromResponseMapper } from '../mappers/user-entity-from-response.mapper';
 import {catchError} from 'rxjs/operators';
+import {CreateUserRequestFromEntityMapper} from '../mappers/create-user-request-from-entity.mapper';
+import {CreateUserRequestType} from '../types/create-user-request.type';
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +27,18 @@ export class UserService extends BaseService {
 
   getById(id: string): Observable<UserEntity> {
     return this.http.get<UserResponse>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      map((response: UserResponse) => UserEntityFromResponseMapper.fromDtoToEntity(response)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  create(user: UserEntity): Observable<UserEntity> {
+    const request: CreateUserRequestType = CreateUserRequestFromEntityMapper.fromEntityToDto(user);
+
+    console.log(request);
+
+    return this.http.post<UserResponse>(this.resourcePath(), request, this.httpOptions).pipe(
       map((response: UserResponse) => UserEntityFromResponseMapper.fromDtoToEntity(response)),
       retry(2),
       catchError(this.handleError)

@@ -1,172 +1,39 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { EquipmentsStore } from '../../model/equipments.store';
-import { EquipmentStatusEnum, getEquipmentStatusLabel } from '../../../../entities/equipment/model/equipment-status.enum';
-import { Ripple } from 'primeng/ripple';
+import {Component, EventEmitter, inject, Input, Output} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {EquipmentsStore} from '../../model/equipments.store';
+import {EquipmentStatusEnum, getEquipmentStatusLabel} from '../../../../entities/equipment/model/equipment-status.enum';
+import {Ripple} from 'primeng/ripple';
+import {Drawer} from 'primeng/drawer';
+
+// 🆕 Interface para filtros locales (draft mode)
+interface LocalFilters {
+  typeFilter: 'all' | 'cabinet' | 'panel';
+  equipmentTypeId: string | null;
+  plantId: string | null;
+  areaId: string | null;
+  locationId: string | null;
+  statusFilter: EquipmentStatusEnum | null;
+  communicationProtocolId: string | null;
+
+  // Date ranges (local strings)
+  createdAtFrom: string;
+  createdAtTo: string;
+  updatedAtFrom: string;
+  updatedAtTo: string;
+  lastInspectionFrom: string;
+  lastInspectionTo: string;
+  lastMaintenanceFrom: string;
+  lastMaintenanceTo: string;
+  lastObservationsFrom: string;
+  lastObservationsTo: string;
+}
 
 @Component({
   selector: 'app-equipment-filters-aside',
   standalone: true,
-  imports: [CommonModule, FormsModule, Ripple],
-  template: `
-    <!-- Overlay -->
-    @if (show) {
-      <div
-        class="fixed inset-0 z-40 bg-black/50 transition-opacity lg:hidden"
-        (click)="onClose.emit()">
-      </div>
-    }
-
-    <!-- Aside Panel -->
-    <aside
-      class="fixed bottom-0 right-0 top-0 z-50 flex w-80 max-w-full flex-col bg-white shadow-xl transition-transform lg:hidden"
-      [class.translate-x-0]="show"
-      [class.translate-x-full]="!show">
-
-      <!-- Header -->
-      <div class="flex items-center justify-between border-b border-gray-200 p-4">
-        <h2 class="text-lg font-semibold text-gray-900">Filtros</h2>
-
-        <div class="flex items-center gap-2">
-          @if (store.hasActiveFilters()) {
-            <button
-              pRipple
-              type="button"
-              (click)="onClearFilters()"
-              class="text-sm font-medium text-sky-600 hover:text-sky-700">
-              Limpiar todo
-            </button>
-          }
-
-          <button
-            pRipple
-            type="button"
-            (click)="onClose.emit()"
-            class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100">
-            <i class="pi pi-times text-base"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Filters Content -->
-      <div class="flex-1 overflow-y-auto p-4">
-        <div class="space-y-6">
-
-          <!-- Plant Filter -->
-          <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700">
-              Planta
-            </label>
-            <select
-              [value]="store.filters().plantId || ''"
-              (change)="onPlantChange($any($event.target).value)"
-              class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-              <option value="">Todas las plantas</option>
-              @for (plant of store.uniquePlants(); track plant.id) {
-                <option [value]="plant.id">{{ plant.name }}</option>
-              }
-            </select>
-            @if (store.filters().plantId) {
-              <p class="mt-1.5 text-xs text-sky-600">
-                <i class="pi pi-filter text-xs"></i>
-                Filtro aplicado
-              </p>
-            }
-          </div>
-
-          <!-- Status Filter -->
-          <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700">
-              Estado
-            </label>
-            <select
-              [value]="store.filters().statusFilter || ''"
-              (change)="onStatusChange($any($event.target).value)"
-              class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-              <option value="">Todos los estados</option>
-              <option [value]="EquipmentStatusEnum.OPERATIVE">
-                {{ getEquipmentStatusLabel(EquipmentStatusEnum.OPERATIVE) }}
-              </option>
-              <option [value]="EquipmentStatusEnum.STAND_BY">
-                {{ getEquipmentStatusLabel(EquipmentStatusEnum.STAND_BY) }}
-              </option>
-              <option [value]="EquipmentStatusEnum.INOPERATIVE">
-                {{ getEquipmentStatusLabel(EquipmentStatusEnum.INOPERATIVE) }}
-              </option>
-              <option [value]="EquipmentStatusEnum.RETIRED">
-                {{ getEquipmentStatusLabel(EquipmentStatusEnum.RETIRED) }}
-              </option>
-            </select>
-            @if (store.filters().statusFilter) {
-              <p class="mt-1.5 text-xs text-sky-600">
-                <i class="pi pi-filter text-xs"></i>
-                Filtro aplicado
-              </p>
-            }
-          </div>
-
-          <!-- Active Filters Summary -->
-          @if (store.hasActiveFilters()) {
-            <div class="rounded-lg border border-sky-200 bg-sky-50 p-3">
-              <p class="mb-2 text-xs font-semibold text-sky-900">
-                Filtros activos
-              </p>
-              <div class="space-y-1">
-                @if (store.filters().typeFilter !== 'all') {
-                  <p class="text-xs text-sky-700">
-                    • Tipo: {{ store.filters().typeFilter === 'cabinet' ? 'Gabinetes' : 'Paneles' }}
-                  </p>
-                }
-                @if (store.filters().plantId) {
-                  <p class="text-xs text-sky-700">
-                    • Planta seleccionada
-                  </p>
-                }
-                @if (store.filters().statusFilter) {
-                  <p class="text-xs text-sky-700">
-                    • Estado: {{ getEquipmentStatusLabel(store.filters().statusFilter!) }}
-                  </p>
-                }
-                @if (store.filters().searchQuery) {
-                  <p class="text-xs text-sky-700">
-                    • Búsqueda: "{{ store.filters().searchQuery }}"
-                  </p>
-                }
-              </div>
-            </div>
-          }
-
-        </div>
-      </div>
-
-      <!-- Footer Actions -->
-      <div class="border-t border-gray-200 p-4">
-        <div class="flex gap-3">
-          <button
-            pRipple
-            type="button"
-            (click)="onClose.emit()"
-            class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
-            Cancelar
-          </button>
-
-          <button
-            pRipple
-            type="button"
-            (click)="onApplyFilters()"
-            class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
-            <i class="pi pi-check text-sm"></i>
-            Aplicar
-          </button>
-        </div>
-      </div>
-
-    </aside>
-  `,
-  animations: [
-    // Puedes agregar animaciones si quieres, o usar solo CSS transitions
-  ]
+  imports: [CommonModule, FormsModule, Ripple, Drawer],
+  templateUrl: './equipment-filters-aside.component.html',
 })
 export class EquipmentFiltersAsideComponent {
   readonly store = inject(EquipmentsStore);
@@ -177,21 +44,266 @@ export class EquipmentFiltersAsideComponent {
   // Expose enum to template
   readonly EquipmentStatusEnum = EquipmentStatusEnum;
 
+  // 🆕 Local draft filters (no se aplican hasta dar "Aplicar")
+  localFilters: LocalFilters = this.initializeLocalFilters();
+
+  // Accordion state
+  showLocationFilters = true;
+  showDateFilters = false;
+
+  ngOnChanges(): void {
+    if (this.show) {
+      // Cargar filtros actuales del store al abrir
+      this.loadFiltersFromStore();
+    }
+  }
+
+  private initializeLocalFilters(): LocalFilters {
+    return {
+      typeFilter: 'all',
+      equipmentTypeId: null,
+      plantId: null,
+      areaId: null,
+      locationId: null,
+      statusFilter: null,
+      communicationProtocolId: null,
+      createdAtFrom: '',
+      createdAtTo: '',
+      updatedAtFrom: '',
+      updatedAtTo: '',
+      lastInspectionFrom: '',
+      lastInspectionTo: '',
+      lastMaintenanceFrom: '',
+      lastMaintenanceTo: '',
+      lastObservationsFrom: '',
+      lastObservationsTo: ''
+    };
+  }
+
+  private loadFiltersFromStore(): void {
+    const storeFilters = this.store.filters();
+
+    this.localFilters = {
+      typeFilter: storeFilters.typeFilter,
+      equipmentTypeId: storeFilters.equipmentTypeId,
+      plantId: storeFilters.plantId,
+      areaId: storeFilters.areaId,
+      locationId: storeFilters.locationId,
+      statusFilter: storeFilters.statusFilter,
+      communicationProtocolId: storeFilters.communicationProtocolId,
+
+      createdAtFrom: storeFilters.createdAtRange.from ? this.dateToString(storeFilters.createdAtRange.from) : '',
+      createdAtTo: storeFilters.createdAtRange.to ? this.dateToString(storeFilters.createdAtRange.to) : '',
+
+      updatedAtFrom: storeFilters.updatedAtRange.from ? this.dateToString(storeFilters.updatedAtRange.from) : '',
+      updatedAtTo: storeFilters.updatedAtRange.to ? this.dateToString(storeFilters.updatedAtRange.to) : '',
+
+      lastInspectionFrom: storeFilters.lastInspectionAtRange.from ? this.dateToString(storeFilters.lastInspectionAtRange.from) : '',
+      lastInspectionTo: storeFilters.lastInspectionAtRange.to ? this.dateToString(storeFilters.lastInspectionAtRange.to) : '',
+
+      lastMaintenanceFrom: storeFilters.lastMaintenanceAtRange.from ? this.dateToString(storeFilters.lastMaintenanceAtRange.from) : '',
+      lastMaintenanceTo: storeFilters.lastMaintenanceAtRange.to ? this.dateToString(storeFilters.lastMaintenanceAtRange.to) : '',
+
+      lastObservationsFrom: storeFilters.lastRaiseObservationsAtRange.from ? this.dateToString(storeFilters.lastRaiseObservationsAtRange.from) : '',
+      lastObservationsTo: storeFilters.lastRaiseObservationsAtRange.to ? this.dateToString(storeFilters.lastRaiseObservationsAtRange.to) : ''
+    };
+  }
+
+  private dateToString(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  private stringToDate(str: string): Date | null {
+    return str ? new Date(str) : null;
+  }
+
+  // ==================== LOCAL FILTER HANDLERS (NO APLICAN TODAVÍA) ====================
+
+  onTypeFilterChange(value: 'all' | 'cabinet' | 'panel'): void {
+    this.localFilters.typeFilter = value;
+    // Reset equipmentTypeId cuando cambia el tipo
+    if (value === 'all') {
+      this.localFilters.equipmentTypeId = null;
+    }
+  }
+
+  onEquipmentTypeChange(value: string): void {
+    this.localFilters.equipmentTypeId = value || null;
+  }
+
   onPlantChange(value: string): void {
-    this.store.setPlantFilter(value || null);
+    this.localFilters.plantId = value || null;
+    // Reset dependientes
+    this.localFilters.areaId = null;
+    this.localFilters.locationId = null;
+  }
+
+  onAreaChange(value: string): void {
+    this.localFilters.areaId = value || null;
+    // Reset dependiente
+    this.localFilters.locationId = null;
+  }
+
+  onLocationChange(value: string): void {
+    this.localFilters.locationId = value || null;
   }
 
   onStatusChange(value: string): void {
-    this.store.setStatusFilter(value as EquipmentStatusEnum || null);
+    this.localFilters.statusFilter = value as EquipmentStatusEnum || null;
   }
 
+  onProtocolChange(value: string): void {
+    this.localFilters.communicationProtocolId = value || null;
+  }
+
+  // ==================== ACTIONS ====================
+
   onClearFilters(): void {
-    this.store.clearFilters();
+    this.localFilters = this.initializeLocalFilters();
   }
 
   onApplyFilters(): void {
+    // 🆕 AQUÍ SE APLICAN LOS FILTROS AL STORE
+    console.log('🚀 Applying filters:', this.localFilters);
+
+    // Basic filters
+    this.store.setTypeFilter(this.localFilters.typeFilter);
+    this.store.setEquipmentTypeFilter(this.localFilters.equipmentTypeId);
+    this.store.setPlantFilter(this.localFilters.plantId);
+    this.store.setAreaFilter(this.localFilters.areaId);
+    this.store.setLocationFilter(this.localFilters.locationId);
+    this.store.setStatusFilter(this.localFilters.statusFilter);
+    this.store.setProtocolFilter(this.localFilters.communicationProtocolId);
+
+    // Date ranges
+    this.store.setCreatedAtRange({
+      from: this.stringToDate(this.localFilters.createdAtFrom),
+      to: this.stringToDate(this.localFilters.createdAtTo)
+    });
+
+    this.store.setUpdatedAtRange({
+      from: this.stringToDate(this.localFilters.updatedAtFrom),
+      to: this.stringToDate(this.localFilters.updatedAtTo)
+    });
+
+    this.store.setLastInspectionAtRange({
+      from: this.stringToDate(this.localFilters.lastInspectionFrom),
+      to: this.stringToDate(this.localFilters.lastInspectionTo)
+    });
+
+    this.store.setLastMaintenanceAtRange({
+      from: this.stringToDate(this.localFilters.lastMaintenanceFrom),
+      to: this.stringToDate(this.localFilters.lastMaintenanceTo)
+    });
+
+    this.store.setLastRaiseObservationsAtRange({
+      from: this.stringToDate(this.localFilters.lastObservationsFrom),
+      to: this.stringToDate(this.localFilters.lastObservationsTo)
+    });
+
+    this.store.clearSearchQuery();
+
+    // Cerrar drawer
     this.onClose.emit();
   }
 
+  toggleLocationFilters(): void {
+    this.showLocationFilters = !this.showLocationFilters;
+  }
+
+  toggleDateFilters(): void {
+    this.showDateFilters = !this.showDateFilters;
+  }
+
+  // ==================== HELPERS ====================
+
   getEquipmentStatusLabel = getEquipmentStatusLabel;
+
+  get isEquipmentTypeDisabled(): boolean {
+    return this.localFilters.typeFilter === 'all';
+  }
+
+  get equipmentTypeLabel(): string {
+    if (this.localFilters.typeFilter === 'cabinet') return 'Tipo de Gabinete';
+    if (this.localFilters.typeFilter === 'panel') return 'Tipo de Panel';
+    return 'Tipo de Equipo';
+  }
+
+  // 🆕 Computed para tipos de equipos según el tipo local
+  get uniqueEquipmentTypes() {
+    const equipments = this.store.equipments();
+    const typeFilter = this.localFilters.typeFilter;
+
+    if (typeFilter === 'all') return [];
+
+    const filtered = equipments.filter(e => {
+      if (typeFilter === 'cabinet') return e.type === 'CABINET';
+      if (typeFilter === 'panel') return e.type === 'PANEL';
+      return false;
+    });
+
+    const uniqueTypes = new Map<string, string>();
+
+    filtered.forEach(equipment => {
+      // 🔍 DEBUG
+      if (equipment.equipmentTypeId && equipment.equipmentTypeCode) {
+        uniqueTypes.set(equipment.equipmentTypeId, equipment.equipmentTypeCode);
+      }
+    });
+
+    const result = Array.from(uniqueTypes.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    console.log('🔍 Unique Equipment Types:', result);
+    return result;
+  }
+
+  // 🆕 Computed para protocolos
+  get uniqueProtocols() {
+    const equipments = this.store.equipments();
+    const protocols = new Map<string, string>();
+
+    equipments.forEach(equipment => {
+      if (equipment.communicationProtocolId && equipment.communicationProtocol) {
+        protocols.set(equipment.communicationProtocolId, equipment.communicationProtocol);
+      }
+    });
+
+    return Array.from(protocols.entries())
+      .map(([id, name]) => ({id, name}))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  get hasLocalDateFilters(): boolean {
+    return !!(
+      this.localFilters.createdAtFrom ||
+      this.localFilters.createdAtTo ||
+      this.localFilters.updatedAtFrom ||
+      this.localFilters.updatedAtTo ||
+      this.localFilters.lastInspectionFrom ||
+      this.localFilters.lastInspectionTo ||
+      this.localFilters.lastMaintenanceFrom ||
+      this.localFilters.lastMaintenanceTo ||
+      this.localFilters.lastObservationsFrom ||
+      this.localFilters.lastObservationsTo
+    );
+  }
+
+  get hasLocalLocationFilters(): boolean {
+    return !!(
+      this.localFilters.plantId ||
+      this.localFilters.areaId ||
+      this.localFilters.locationId ||
+      this.localFilters.communicationProtocolId ||
+      this.localFilters.statusFilter
+    );
+  }
+
+  get hasAnyLocalFilters(): boolean {
+    return this.localFilters.typeFilter !== 'all' ||
+      !!this.localFilters.equipmentTypeId ||
+      this.hasLocalLocationFilters ||
+      this.hasLocalDateFilters;
+  }
 }

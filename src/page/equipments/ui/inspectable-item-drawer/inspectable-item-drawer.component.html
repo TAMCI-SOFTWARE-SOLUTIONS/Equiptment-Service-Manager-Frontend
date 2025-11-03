@@ -1,0 +1,325 @@
+<p-drawer
+  [visible]="store.isDrawerOpen()"
+  position="right"
+  [style]="{ width: '32rem', maxWidth: '100vw' }"
+  (onHide)="onClose()">
+
+  <!-- Header -->
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100">
+        <i class="pi pi-box text-lg text-sky-600"></i>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900">
+          {{ store.drawerTitle() }}
+        </h2>
+        <p class="text-xs text-gray-600">
+          Configura componente o dispositivo
+        </p>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Content -->
+  <div class="space-y-6">
+
+    <!-- Error Message -->
+    @if (store.error()) {
+      <div class="flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3 animate-in fade-in slide-in-from-top-2 duration-300">
+        <i class="pi pi-exclamation-circle mt-0.5 text-base text-rose-600"></i>
+        <div class="flex-1">
+          <p class="text-sm font-medium text-rose-800">{{ store.error() }}</p>
+        </div>
+        <button
+          type="button"
+          (click)="store.clearError()"
+          class="rounded-md p-1 text-rose-600 transition-colors hover:bg-rose-100">
+          <i class="pi pi-times text-xs"></i>
+        </button>
+      </div>
+    }
+
+    <!-- Tag Input -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Tag
+        <span class="text-rose-500">*</span>
+      </label>
+      <input
+        type="text"
+        [value]="store.formData().tag"
+        (input)="onTagChange($any($event.target).value)"
+        placeholder="Ej: PLC-001, SW-001"
+        [disabled]="store.isSubmitting()"
+        class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-50">
+
+      @if (!store.formData().tag.trim() && store.formData().type) {
+        <p class="text-xs text-gray-500">
+          <i class="pi pi-info-circle mr-1"></i>
+          Ingresa un identificador único para el item
+        </p>
+      }
+    </div>
+
+    <!-- Type Selection -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Tipo
+        <span class="text-rose-500">*</span>
+      </label>
+
+      <p-select
+        [options]="getTypeOptions()"
+        [ngModel]="store.formData().type"
+        (onChange)="onTypeChange($event.value)"
+        optionLabel="label"
+        optionValue="value"
+        [group]="true"
+        placeholder="Selecciona el tipo"
+        [disabled]="store.isSubmitting()"
+        [showClear]="false"
+        filterPlaceholder="Buscar tipo..."
+        [style]="{ width: '100%' }"
+        class="w-full">
+
+        <!-- Template para items dentro de grupos -->
+        <ng-template let-type pTemplate="item">
+          <div class="flex items-center gap-3 py-2">
+            <div [class]="'flex h-8 w-8 items-center justify-center rounded-lg ' + getColorClasses(type.color).bg">
+              <i [class]="'pi ' + type.icon + ' text-sm ' + getColorClasses(type.color).text"></i>
+            </div>
+            <span class="text-sm text-gray-900">{{ type.label }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Template para item seleccionado -->
+        <ng-template pTemplate="selectedItem">
+          @if (getSelectedTypeConfig(); as config) {
+            <div class="flex items-center gap-2">
+              <i [class]="'pi ' + config.icon + ' text-sm ' + getColorClasses(config.color).text"></i>
+              <span class="text-sm text-gray-900">{{ config.label }}</span>
+            </div>
+          }
+        </ng-template>
+
+        <!-- Template para headers de grupos -->
+        <ng-template let-group pTemplate="group">
+          <div class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <i [class]="'pi ' + group.icon + ' mr-1 text-sm ' + getColorClasses(group.color).text"></i>
+            <span>{{ group.label }}</span>
+          </div>
+        </ng-template>
+      </p-select>
+
+      @if (!store.formData().type) {
+        <p class="text-xs text-gray-500">
+          <i class="pi pi-info-circle mr-1"></i>
+          El tipo determina qué marcas estarán disponibles
+        </p>
+      }
+    </div>
+
+    <!-- Brand Selection -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Marca
+        <span class="text-rose-500">*</span>
+      </label>
+
+      @if (!store.formData().type) {
+        <div class="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-500">
+          <i class="pi pi-info-circle"></i>
+          <span>Selecciona primero el tipo</span>
+        </div>
+      } @else if (store.isLoadingBrands()) {
+        <div class="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
+          <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+          <span class="text-sm text-gray-500">Cargando marcas...</span>
+        </div>
+      } @else if (store.availableBrands().length === 0) {
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-exclamation-triangle mt-0.5 text-sm text-amber-600"></i>
+            <div>
+              <p class="text-sm font-medium text-amber-900">
+                No hay marcas disponibles
+              </p>
+              <p class="mt-1 text-xs text-amber-700">
+                No hay marcas registradas para este tipo
+              </p>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <p-select
+          [options]="getBrandOptions()"
+          [ngModel]="store.formData().brandId"
+          (onChange)="onBrandChange($event.value)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Selecciona la marca"
+          [filter]="true"
+          filterPlaceholder="Buscar marca..."
+          [disabled]="store.isSubmitting()"
+          [showClear]="false"
+          appendTo="body"
+          [style]="{ width: '100%' }"
+          class="w-full">
+        </p-select>
+      }
+    </div>
+
+    <!-- Model Selection -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Modelo
+        <span class="text-rose-500">*</span>
+      </label>
+
+      @if (!store.formData().brandId) {
+        <div class="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-500">
+          <i class="pi pi-info-circle"></i>
+          <span>Selecciona primero la marca</span>
+        </div>
+      } @else if (store.isLoadingModels()) {
+        <div class="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
+          <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+          <span class="text-sm text-gray-500">Cargando modelos...</span>
+        </div>
+      } @else if (store.availableModels().length === 0) {
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-exclamation-triangle mt-0.5 text-sm text-amber-600"></i>
+            <div>
+              <p class="text-sm font-medium text-amber-900">
+                No hay modelos disponibles
+              </p>
+              <p class="mt-1 text-xs text-amber-700">
+                Esta marca no tiene modelos registrados
+              </p>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <p-select
+          [options]="getModelOptions()"
+          [ngModel]="store.formData().modelId"
+          (onChange)="onModelChange($event.value)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Selecciona el modelo"
+          [filter]="true"
+          filterPlaceholder="Buscar modelo..."
+          [disabled]="store.isSubmitting()"
+          [showClear]="false"
+          appendTo="body"
+          [style]="{ width: '100%' }"
+          class="w-full">
+        </p-select>
+      }
+    </div>
+
+    <!-- 🆕 Description Selection -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">
+        Descripción
+        <span class="text-rose-500">*</span>
+      </label>
+
+      @if (!store.formData().modelId) {
+        <div class="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-500">
+          <i class="pi pi-info-circle"></i>
+          <span>Selecciona primero el modelo</span>
+        </div>
+      } @else if (store.isLoadingDescriptions()) {
+        <div class="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
+          <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+          <span class="text-sm text-gray-500">Cargando descripciones...</span>
+        </div>
+      } @else if (store.availableDescriptions().length === 0) {
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-exclamation-triangle mt-0.5 text-sm text-amber-600"></i>
+            <div>
+              <p class="text-sm font-medium text-amber-900">
+                No hay descripciones disponibles
+              </p>
+              <p class="mt-1 text-xs text-amber-700">
+                Este modelo no tiene descripciones registradas
+              </p>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <p-select
+          [options]="getDescriptionOptions()"
+          [ngModel]="store.formData().descriptionId"
+          (onChange)="onDescriptionChange($event.value)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Selecciona la descripción"
+          [filter]="true"
+          filterPlaceholder="Buscar descripción..."
+          [disabled]="store.isSubmitting()"
+          [showClear]="false"
+          appendTo="body"
+          [style]="{ width: '100%' }"
+          class="w-full">
+        </p-select>
+      }
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <ng-template pTemplate="footer">
+    <div class="flex flex-col gap-3">
+
+      <!-- Summary -->
+      @if (store.isFormValid()) {
+        <div class="rounded-lg border border-green-200 bg-green-50 p-3">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-check-circle mt-0.5 text-sm text-green-600"></i>
+            <div class="flex-1">
+              <p class="text-xs font-medium text-green-900">
+                Listo para guardar
+              </p>
+              <p class="mt-0.5 text-xs text-green-700">
+                Todos los campos obligatorios están completos
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="flex gap-3">
+        <button
+          pRipple
+          type="button"
+          (click)="onClose()"
+          [disabled]="store.isSubmitting()"
+          class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+          Cancelar
+        </button>
+
+        <button
+          pRipple
+          type="button"
+          (click)="onSubmit()"
+          [disabled]="!store.canSubmit()"
+          class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+          @if (store.isSubmitting()) {
+            <i class="pi pi-spinner pi-spin text-sm"></i>
+            <span>Guardando...</span>
+          } @else {
+            <i class="pi pi-check text-sm"></i>
+            <span>{{ store.drawerMode() === 'create' ? 'Crear Item' : 'Guardar Cambios' }}</span>
+          }
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+</p-drawer>

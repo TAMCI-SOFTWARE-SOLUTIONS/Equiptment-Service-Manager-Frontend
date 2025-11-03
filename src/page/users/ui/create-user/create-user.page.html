@@ -1,0 +1,309 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto">
+      <div class="flex items-center justify-between">
+        <!-- Title -->
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
+            Crear Usuario
+          </h1>
+          <p class="mt-0.5 text-sm text-gray-600">
+            Agrega un nuevo usuario al sistema
+          </p>
+        </div>
+
+        <!-- Cancel Button -->
+        <button
+          pRipple
+          type="button"
+          (click)="onCancel()"
+          [disabled]="isSubmitting()"
+          class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+          <i class="pi pi-times text-sm"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto">
+
+      <!-- Form Card -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+
+          <!-- Form Body -->
+          <div class="space-y-6 p-6">
+
+            <!-- Email Field -->
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700">
+                Email <span class="text-red-500">*</span>
+              </label>
+              <div class="mt-1.5">
+                <input
+                  id="email"
+                  type="email"
+                  formControlName="email"
+                  placeholder="usuario@ejemplo.com"
+                  autocomplete="email"
+                  class="block w-full rounded-lg border px-4 py-2.5 text-sm transition-all focus:outline-none focus:ring-2"
+                  [class.border-gray-300]="!isFieldInvalid('email')"
+                  [class.focus:border-sky-500]="!isFieldInvalid('email')"
+                  [class.border-red-300]="isFieldInvalid('email')"
+                  [class.focus:border-red-500]="isFieldInvalid('email')"
+                  [class.bg-red-50]="isFieldInvalid('email')">
+              </div>
+              @if (isFieldInvalid('email')) {
+                <p class="mt-1.5 flex items-center gap-1.5 text-sm text-red-600">
+                  <i class="pi pi-exclamation-circle text-xs"></i>
+                  {{ getFieldError('email') }}
+                </p>
+              }
+              <p class="mt-1.5 text-xs text-gray-500">
+                Este será el email de acceso del usuario
+              </p>
+
+              <!-- TODO: Email Availability Check -->
+              <!--
+              <div class="mt-2 flex items-center gap-2">
+                @if (checkingEmail()) {
+                  <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
+                  <span class="text-xs text-gray-600">Verificando disponibilidad...</span>
+                }
+                @if (emailTaken()) {
+                  <i class="pi pi-times-circle text-sm text-red-500"></i>
+                  <span class="text-xs text-red-600">Este email ya está registrado</span>
+                }
+                @if (emailAvailable()) {
+                  <i class="pi pi-check-circle text-sm text-green-500"></i>
+                  <span class="text-xs text-green-600">Email disponible</span>
+                }
+              </div>
+              -->
+            </div>
+
+            <!-- Role Field -->
+            <div>
+              <label for="role" class="block text-sm font-medium text-gray-700">
+                Rol <span class="text-red-500">*</span>
+              </label>
+              <div class="mt-1.5">
+                <p-select
+                  inputId="role"
+                  formControlName="role"
+                  [options]="roleOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Selecciona un rol"
+                  styleClass="w-full"
+                  [class.ng-invalid]="isFieldInvalid('role')"
+                  [class.ng-dirty]="roleControl.touched">
+
+                  <ng-template #item let-option>
+                    <div class="flex flex-col gap-1 py-1">
+                      <span class="font-medium text-gray-900">{{ option.label }}</span>
+                      <span class="text-xs text-gray-500">{{ option.description }}</span>
+                    </div>
+                  </ng-template>
+
+                </p-select>
+              </div>
+              @if (isFieldInvalid('role')) {
+                <p class="mt-1.5 flex items-center gap-1.5 text-sm text-red-600">
+                  <i class="pi pi-exclamation-circle text-xs"></i>
+                  {{ getFieldError('role') }}
+                </p>
+              }
+              @if (roleControl.value) {
+                <p class="mt-1.5 text-xs text-gray-500">
+                  <i class="pi pi-info-circle mr-1"></i>
+                  {{ getSelectedRoleDescription() }}
+                </p>
+              }
+            </div>
+
+            <!-- Password Info (Auto-generated) -->
+            <div class="rounded-lg border border-sky-200 bg-sky-50 p-4">
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-100">
+                  <i class="pi pi-key text-lg text-sky-600"></i>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-sky-900">
+                    Contraseña Automática
+                  </h3>
+                  <p class="mt-1 text-sm text-sky-700">
+                    Se generará una contraseña segura de <strong>12 caracteres</strong> automáticamente.
+                    Se mostrará después de crear el usuario.
+                  </p>
+                  <div class="mt-2 flex items-center gap-2 text-xs text-sky-600">
+                    <i class="pi pi-check-circle"></i>
+                    <span>Mayúsculas, minúsculas, números y símbolos</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Form Footer -->
+          <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
+            <p class="text-sm text-gray-600">
+              <span class="text-red-500">*</span> Campos requeridos
+            </p>
+            <div class="flex items-center gap-3">
+              <button
+                pRipple
+                type="button"
+                (click)="onCancel()"
+                [disabled]="isSubmitting()"
+                class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                Cancelar
+              </button>
+
+              <button
+                pRipple
+                type="submit"
+                [disabled]="form.invalid || isSubmitting()"
+                class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+                @if (isSubmitting()) {
+                  <i class="pi pi-spinner pi-spin text-sm"></i>
+                  <span>Creando...</span>
+                } @else {
+                  <i class="pi pi-check text-sm"></i>
+                  <span>Crear Usuario</span>
+                }
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </form>
+
+      <!-- Error Display -->
+      @if (store.error()) {
+        <div class="mt-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
+          <div class="flex-1">
+            <p class="font-medium text-red-800">Error al crear usuario</p>
+            <p class="mt-1 text-sm text-red-700">{{ store.error() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="store.clearError()"
+            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
+            <i class="pi pi-times text-sm"></i>
+          </button>
+        </div>
+      }
+
+    </div>
+  </main>
+
+  <!-- Success Modal -->
+  @if (showSuccessModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
+      <div class="w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+
+        <!-- Modal Header -->
+        <div class="border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <i class="pi pi-check-circle text-2xl text-green-600"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                Usuario Creado Exitosamente
+              </h3>
+              <p class="mt-0.5 text-sm text-gray-600">
+                {{ createdUserEmail() }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+
+          <!-- Password Display -->
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-gray-700">
+              Contraseña Temporal
+            </label>
+
+            <div class="flex items-center gap-2">
+              <div class="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-4 py-3">
+                <code
+                  id="generated-password"
+                  class="select-all font-mono text-base font-semibold tracking-wider text-gray-900">
+                  {{ generatedPassword }}
+                </code>
+              </div>
+
+              <button
+                pRipple
+                type="button"
+                (click)="onCopyPassword()"
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
+                [class.border-green-500]="passwordCopied()"
+                [class.bg-green-50]="passwordCopied()"
+                [class.text-green-600]="passwordCopied()"
+                [class.border-gray-300]="!passwordCopied()"
+                [class.bg-white]="!passwordCopied()"
+                [class.text-gray-700]="!passwordCopied()"
+                [class.hover:bg-gray-50]="!passwordCopied()"
+                [class.focus:ring-sky-500]="!passwordCopied()">
+                @if (passwordCopied()) {
+                  <i class="pi pi-check text-base"></i>
+                } @else {
+                  <i class="pi pi-copy text-base"></i>
+                }
+              </button>
+            </div>
+
+            @if (passwordCopied()) {
+              <p class="flex items-center gap-1.5 text-sm text-green-600 animate-in fade-in slide-in-from-top-1 duration-200">
+                <i class="pi pi-check-circle text-xs"></i>
+                Contraseña copiada al portapapeles
+              </p>
+            }
+          </div>
+
+          <!-- Warning Message -->
+          <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <div class="flex items-start gap-3">
+              <i class="pi pi-exclamation-triangle mt-0.5 text-base text-amber-600"></i>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-amber-900">
+                  Importante
+                </p>
+                <p class="mt-1 text-sm text-amber-700">
+                  Guarda esta contraseña en un lugar seguro. No se volverá a mostrar por razones de seguridad.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-end border-t border-gray-200 p-4">
+          <button
+            pRipple
+            type="button"
+            (click)="onCloseSuccessModal()"
+            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+            <i class="pi pi-arrow-left text-sm"></i>
+            Volver a Lista de Usuarios
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

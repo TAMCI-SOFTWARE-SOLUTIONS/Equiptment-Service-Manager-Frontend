@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 import { BaseService } from '../../../../shared/api';
 import { PowerDistributionPanelEntity } from '../../model';
@@ -11,6 +11,7 @@ import {
   UpdatePowerDistributionPanelRequestFromEntityMapper
 } from '../mappers/update-power-distribution-panel-request-from-entity.mapper';
 import {UpdatePowerDistributionPanelRequest} from '../types/update-power-distribution-panel-request.type';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -58,14 +59,11 @@ export class PowerDistributionPanelService extends BaseService {
    * Batch get power distribution panels by IDs
    */
   batchGetByIds(ids: string[]): Observable<PowerDistributionPanelEntity[]> {
-    const params = ids.join(',');
-    return this.http.get<PowerDistributionPanelResponse[]>(
-      `${this.resourcePath()}:batchGet`,
-      { ...this.httpOptions, params: { ids: params } }
-    ).pipe(
-      map((responses: PowerDistributionPanelResponse[]) =>
-        responses.map(r => PowerDistributionPanelEntityFromResponseMapper.fromDtoToEntity(r))
-      ),
+    if (!ids || ids.length === 0) {return of([]);}
+    const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
+    const options = { ...this.httpOptions, params };
+    return this.http.get<PowerDistributionPanelResponse[]>(`${this.resourcePath()}/:batchGet`, options).pipe(
+      map((responses: PowerDistributionPanelResponse[]) => responses.map(r => PowerDistributionPanelEntityFromResponseMapper.fromDtoToEntity(r))),
       retry(2),
       catchError(this.handleError)
     );

@@ -8,14 +8,14 @@
   <ng-template pTemplate="header">
     <div class="flex items-center gap-3">
       <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100">
-        <i class="pi pi-bolt text-lg text-sky-600"></i>
+        <i class="pi pi-lock text-lg text-sky-600"></i>
       </div>
       <div>
         <h2 class="text-lg font-semibold text-gray-900">
           {{ store.drawerTitle() }}
         </h2>
         <p class="text-xs text-gray-600">
-          Asigna un panel y sus circuitos
+          Asignar punto de bloqueo
         </p>
       </div>
     </div>
@@ -50,7 +50,7 @@
       @if (store.isLoadingPanels()) {
         <div class="flex h-11 items-center rounded-lg border border-gray-300 bg-gray-50 px-3">
           <i class="pi pi-spinner pi-spin text-sm text-gray-400"></i>
-          <span class="ml-2 text-sm text-gray-500">Cargando paneles...</span>
+          <span class="ml-2 text-sm text-gray-500">Cargando tableros de alimentación eléctrica...</span>
         </div>
       } @else {
         <p-select
@@ -59,7 +59,12 @@
           (onChange)="onPanelChange($event.value)"
           optionLabel="code"
           optionValue="id"
-          placeholder="Selecciona un panel"
+          placeholder="Selecciona un tablero de alimentación eléctrica"
+          [filter]="true"
+          [filterBy]="'code'"
+          [filterMatchMode]="'contains'"
+          [filterLocale]="'es'"
+          filterPlaceholder="Buscar tablero de alimentación eléctrica..."
           [disabled]="store.isSubmitting()"
           [showClear]="false"
           [style]="{ width: '100%' }"
@@ -100,7 +105,7 @@
         @if (!store.formData().powerDistributionPanelId) {
           <p class="mt-1.5 text-xs text-gray-500">
             <i class="pi pi-info-circle mr-1"></i>
-            Selecciona el panel al que conectarás el equipo
+            Selecciona el tablero al que conectarás el equipo
           </p>
         }
       }
@@ -145,7 +150,7 @@
       </div>
 
       <!-- Checkboxes Grid -->
-      <div class="max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white p-4">
+      <div class="max-h-90 overflow-y-hidden rounded-lg border border-gray-200 bg-white p-4">
         <div class="grid grid-cols-5 gap-2">
           @for (circuit of availableCircuits; track circuit) {
             <label
@@ -243,7 +248,7 @@
             <span>Asignando...</span>
           } @else {
             <i class="pi pi-check text-sm"></i>
-            <span>Asignar Panel</span>
+            <span>Asignar Punto de Bloqueo</span>
           }
         </button>
       </div>

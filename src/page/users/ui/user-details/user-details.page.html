@@ -1,0 +1,435 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+
+      <!-- Breadcrumb -->
+      <div class="mb-3 flex items-center gap-2 text-sm text-gray-600">
+        <button
+          type="button"
+          (click)="onGoBack()"
+          class="transition-colors hover:text-sky-600">
+          Usuarios
+        </button>
+        <i class="pi pi-angle-right text-xs"></i>
+        @if (user()) {
+          <span class="font-medium text-gray-900">{{ user()!.email }}</span>
+        } @else {
+          <span class="text-gray-400">Cargando...</span>
+        }
+      </div>
+
+      <div class="flex items-center justify-between gap-4">
+        <!-- Title -->
+        <div class="min-w-0 flex-1">
+          <h1 class="truncate text-xl font-bold text-gray-900 lg:text-2xl">
+            @if (user()) {
+              {{ user()!.email }}
+            } @else {
+              Detalle de Usuario
+            }
+          </h1>
+          @if (user()) {
+            <p class="mt-0.5 text-sm text-gray-600">
+              Información completa del usuario
+            </p>
+          }
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2">
+          <!-- Refresh Button -->
+          <button
+            pRipple
+            type="button"
+            (click)="onRefresh()"
+            [disabled]="isLoading()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (isLoading()) {
+              <i class="pi pi-spinner pi-spin text-base"></i>
+            } @else {
+              <i class="pi pi-refresh text-base"></i>
+            }
+          </button>
+
+          <!-- Actions Menu (solo si hay usuario cargado) -->
+          @if (user() && !isLoading()) {
+            <button
+              #actionsBtn
+              pRipple
+              type="button"
+              (click)="toggleActionsMenu($event, actionsMenu, user()!)"
+              class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+              <i class="pi pi-ellipsis-v text-sm"></i>
+              <span class="hidden sm:inline">Acciones</span>
+            </button>
+
+            <p-menu
+              #actionsMenu
+              [popup]="true"
+              appendTo="body">
+            </p-menu>
+          }
+
+          <!-- Back Button -->
+          <button
+            pRipple
+            type="button"
+            (click)="onGoBack()"
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1">
+            <i class="pi pi-arrow-left text-sm"></i>
+            <span class="hidden sm:inline">Volver</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+
+      <!-- Loading State -->
+      @if (isLoading()) {
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div class="p-12 text-center">
+            <i class="pi pi-spinner pi-spin text-4xl text-gray-400"></i>
+            <p class="mt-4 text-sm text-gray-600">Cargando usuario...</p>
+          </div>
+        </div>
+      }
+
+      @else if (error()) {
+        <div class="rounded-xl border border-red-200 bg-white shadow-sm">
+          <div class="p-12 text-center">
+            <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-100">
+              <i class="pi pi-exclamation-circle text-3xl text-red-600"></i>
+            </div>
+            <h3 class="mt-4 text-lg font-semibold text-gray-900">
+              Error al cargar usuario
+            </h3>
+            <p class="mt-2 text-sm text-gray-600">
+              {{ error() }}
+            </p>
+            <div class="mt-6 flex items-center justify-center gap-3">
+              <button
+                pRipple
+                type="button"
+                (click)="onGoBack()"
+                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
+                <i class="pi pi-arrow-left text-sm"></i>
+                Volver a Lista
+              </button>
+              <button
+                pRipple
+                type="button"
+                (click)="onRefresh()"
+                class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:shadow-sky-500/30">
+                <i class="pi pi-refresh text-sm"></i>
+                Reintentar
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @else if (user()) {
+        <div class="space-y-6">
+
+          <!-- Hero Card - Estado del Usuario -->
+          <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-8">
+              <div class="flex items-center gap-6">
+                <!-- Avatar -->
+                <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm lg:h-24 lg:w-24">
+                  <i class="pi pi-user text-3xl text-white lg:text-4xl"></i>
+                </div>
+
+                <!-- User Info -->
+                <div class="min-w-0 flex-1">
+                  <h2 class="truncate text-2xl font-bold text-white lg:text-3xl">
+                    {{ user()!.email }}
+                  </h2>
+                  <div class="mt-3 flex flex-wrap items-center gap-3">
+                    <!-- Status Badge -->
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded-full border-2 border-white/30 bg-white/20 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
+                      <i class="pi text-xs" [ngClass]="getStatusIcon(user()!.accountStatus)"></i>
+                      {{ getStatusLabel(user()!.accountStatus) }}
+                    </span>
+
+                    <!-- Roles -->
+                    @for (role of user()!.roles; track role.id) {
+                      <span
+                        class="inline-flex items-center gap-1.5 rounded-full border-2 border-white/30 bg-white/20 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
+                        {{ getRoleLabel(role.name) }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Information Grid -->
+          <div class="grid gap-6 lg:grid-cols-2">
+
+            <!-- Información General -->
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+              <div class="border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                    <i class="pi pi-info-circle text-lg text-sky-600"></i>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    Información General
+                  </h3>
+                </div>
+              </div>
+
+              <div class="divide-y divide-gray-200">
+                <!-- Email -->
+                <div class="px-6 py-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                      <i class="pi pi-envelope text-gray-400"></i>
+                      <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                          Email
+                        </p>
+                        <p class="mt-1 text-sm font-medium text-gray-900">
+                          {{ user()!.email }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Estado -->
+                <div class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <i class="pi pi-shield text-gray-400"></i>
+                    <div>
+                      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Estado de Cuenta
+                      </p>
+                      <div class="mt-1.5">
+                        <span
+                          class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
+                          [ngClass]="getStatusClass(user()!.accountStatus)">
+                          <i class="pi text-xs" [ngClass]="getStatusIcon(user()!.accountStatus)"></i>
+                          {{ getStatusLabel(user()!.accountStatus) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Roles -->
+                <div class="px-6 py-4">
+                  <div class="flex items-start gap-3">
+                    <i class="pi pi-users mt-0.5 text-gray-400"></i>
+                    <div class="flex-1">
+                      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Roles Asignados
+                      </p>
+                      <div class="mt-1.5 flex flex-wrap gap-2">
+                        @for (role of user()!.roles; track role.id) {
+                          <span
+                            class="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
+                            [ngClass]="getRoleClass(role.name)">
+                            {{ getRoleLabel(role.name) }}
+                          </span>
+                        }
+                        @if (user()!.roles.length === 0) {
+                          <span class="text-sm italic text-gray-400">Sin roles asignados</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Fecha de Creación -->
+                <div class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <i class="pi pi-calendar-plus text-gray-400"></i>
+                    <div>
+                      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Fecha de Creación
+                      </p>
+                      <p class="mt-1 text-sm font-medium text-gray-900">
+                        {{ formatDateShort(user()!.createdAt) }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Última Actualización -->
+                @if (user()!.updatedAt) {
+                  <div class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <i class="pi pi-history text-gray-400"></i>
+                      <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                          Última Actualización
+                        </p>
+                        <p class="mt-1 text-sm font-medium text-gray-900">
+                          {{ formatDateShort(user()!.updatedAt) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Seguridad y Acceso -->
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+              <div class="border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
+                    <i class="pi pi-lock text-lg text-sky-600"></i>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    Seguridad y Acceso
+                  </h3>
+                </div>
+              </div>
+
+              <div class="divide-y divide-gray-200">
+                <!-- Último Login -->
+                <div class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <i class="pi pi-sign-in text-gray-400"></i>
+                    <div>
+                      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Último Inicio de Sesión
+                      </p>
+                      <p class="mt-1 text-sm font-medium text-gray-900">
+                        @if (user()!.lastLoginAt) {
+                          {{ formatDate(user()!.lastLoginAt) }}
+                        } @else {
+                          <span class="italic text-gray-400">Nunca</span>
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Intentos Fallidos -->
+                <div class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <i class="text-gray-400"
+                       [class.pi-exclamation-triangle]="user()!.failedLoginAttempts > 0"
+                       [class.pi-check-circle]="user()!.failedLoginAttempts === 0"
+                       [class.text-red-500]="user()!.failedLoginAttempts > 0"
+                       [class.text-green-500]="user()!.failedLoginAttempts === 0"></i>
+                    <div>
+                      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Intentos Fallidos de Login
+                      </p>
+                      <p class="mt-1 text-sm font-medium"
+                         [class.text-red-600]="user()!.failedLoginAttempts > 0"
+                         [class.text-gray-900]="user()!.failedLoginAttempts === 0">
+                        {{ user()!.failedLoginAttempts }}
+                        @if (user()!.failedLoginAttempts > 0) {
+                          <span class="text-xs text-red-500">(⚠️ Verificar)</span>
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Cambio de Contraseña -->
+                <div class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <i class="pi pi-key text-gray-400"></i>
+                    <div>
+                      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Última Cambio de Contraseña
+                      </p>
+                      <p class="mt-1 text-sm font-medium text-gray-900">
+                        @if (user()!.passwordChangedAt) {
+                          {{ formatDate(user()!.passwordChangedAt) }}
+                        } @else {
+                          <span class="italic text-gray-400">Nunca</span>
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </main>
+
+  <!-- Confirmation Modal -->
+  @if (showActionConfirm()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
+      <div class="w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+
+        <!-- Modal Header -->
+        <div class="border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full"
+              [ngClass]="getConfirmColor()">
+              <i
+                class="text-2xl pi"
+                [ngClass]="[getConfirmIcon(), getConfirmTextColor()]">
+              </i>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                {{ getConfirmTitle() }}
+              </h3>
+              <p class="mt-0.5 text-sm text-gray-600">
+                Esta acción modificará el estado del usuario
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+          <p class="text-sm text-gray-700" [innerHTML]="getConfirmMessage()"></p>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-end gap-3 border-t border-gray-200 p-4">
+          <button
+            pRipple
+            type="button"
+            (click)="onCancelAction()"
+            class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+            Cancelar
+          </button>
+
+          <button
+            pRipple
+            type="button"
+            (click)="onConfirmAction()"
+            class="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
+            [ngClass]="{
+              'bg-green-600 hover:bg-green-700 focus:ring-green-500': confirmAction()?.type === 'activate',
+              'bg-red-600 hover:bg-red-700 focus:ring-red-500': confirmAction()?.type === 'lock',
+              'bg-gray-600 hover:bg-gray-700 focus:ring-gray-500': confirmAction()?.type === 'disable'
+            }">
+            <i class="mr-2 pi" [ngClass]="getConfirmIcon()"></i>
+            Confirmar
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

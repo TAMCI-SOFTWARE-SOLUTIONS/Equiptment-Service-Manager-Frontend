@@ -1,0 +1,23 @@
+export interface EquipmentServiceResponse {
+  id: string | null;
+  operatorId: string | null;
+  projectId: string | null;
+  equipmentId: string | null;
+  equipmentType: string | null;
+  status: string | null;
+  supervisorId: string | null;
+  type: string | null;
+  previousServiceId: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  totalWorkDuration: string | null;
+  videoStartFileId: string | null;
+  videoEndFileId: string | null;
+  startPhotos: string[] | null;
+  midPhotos: string[] | null;
+  endPhotos: string[] | null;
+  reportDocumentFileId: string | null;
+}

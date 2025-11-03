@@ -1,9 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EquipmentEntity } from '../../../../entities/equipment/model/equipment.entity';
-import { getEquipmentTypeEmoji, getEquipmentTypeLabel } from '../../../../entities/equipment/model/equipment-type.enum';
 import { getEquipmentStatusLabel, getEquipmentStatusColor } from '../../../../entities/equipment/model/equipment-status.enum';
 import { Ripple } from 'primeng/ripple';
+import {
+  getEquipmentTypeIcon,
+  getEquipmentTypeLabel
+} from '../../../../shared/model/enums/equipment-type.enum';
 
 @Component({
   selector: 'app-equipment-card',
@@ -15,8 +18,9 @@ import { Ripple } from 'primeng/ripple';
       <!-- Header -->
       <div class="mb-3 flex items-start justify-between gap-3">
         <div class="flex items-center gap-3">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100 text-2xl">
-            {{ getEquipmentTypeEmoji(equipment.type) }}
+          <div
+            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100 text-2xl">
+            <span class="text-2xl {{getEquipmentTypeIcon(equipment.type)}}"></span>
           </div>
           <div class="flex-1">
             <h3 class="text-base font-semibold text-gray-900">
@@ -45,7 +49,7 @@ import { Ripple } from 'primeng/ripple';
           <div class="flex-1">
             <p class="text-xs text-gray-500">Tipo</p>
             <p class="text-sm font-medium text-gray-900">
-              {{ equipment.equipmentTypeName || 'No especificado' }}
+              {{ equipment.equipmentTypeCode || 'No especificado' }}
             </p>
           </div>
         </div>
@@ -60,11 +64,11 @@ import { Ripple } from 'primeng/ripple';
             </p>
             <p class="text-xs text-gray-600">
               {{ equipment.areaName || 'N/A' }}
-              @if (equipment.locationName ) {
+              @if (equipment.locationName) {
                 • {{ equipment.locationName || 'N/A' }}
               }
             </p>
-            @if (equipment.referenceLocation ) {
+            @if (equipment.referenceLocation) {
               <p class="text-xs text-gray-600">{{ equipment.referenceLocation || 'N/A' }}</p>
             }
           </div>
@@ -78,19 +82,6 @@ import { Ripple } from 'primeng/ripple';
               <p class="text-xs text-gray-500">Protocolo</p>
               <p class="text-sm text-gray-900">
                 {{ equipment.communicationProtocol }}
-              </p>
-            </div>
-          </div>
-        }
-
-        <!-- Última revisión -->
-        @if (equipment.lastServiceAt) {
-          <div class="flex items-start gap-2">
-            <i class="pi pi-clock mt-0.5 text-xs text-gray-400"></i>
-            <div class="flex-1">
-              <p class="text-xs text-gray-500">Última revisión</p>
-              <p class="text-sm text-gray-900">
-                {{ equipment.lastServiceAt | date:'short' }}
               </p>
             </div>
           </div>
@@ -115,14 +106,6 @@ import { Ripple } from 'primeng/ripple';
           class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-600">
           <i class="pi pi-pencil text-sm"></i>
         </button>
-
-        <button
-          pRipple
-          type="button"
-          (click)="onDelete.emit(equipment)"
-          class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600">
-          <i class="pi pi-trash text-sm"></i>
-        </button>
       </div>
 
     </div>
@@ -135,9 +118,8 @@ export class EquipmentCardComponent {
   @Output() onEdit = new EventEmitter<EquipmentEntity>();
   @Output() onDelete = new EventEmitter<EquipmentEntity>();
 
-  // Expose helpers to template
-  getEquipmentTypeEmoji = getEquipmentTypeEmoji;
   getEquipmentTypeLabel = getEquipmentTypeLabel;
   getEquipmentStatusLabel = getEquipmentStatusLabel;
   getEquipmentStatusColor = getEquipmentStatusColor;
+  protected readonly getEquipmentTypeIcon = getEquipmentTypeIcon;
 }

@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-clients',
   imports: [CommonModule, Ripple, FormsModule],
   standalone: true,
+  providers: [ClientsStore],
   templateUrl: './clients.page.html'
 })
 export class ClientsPage implements OnInit, OnDestroy {

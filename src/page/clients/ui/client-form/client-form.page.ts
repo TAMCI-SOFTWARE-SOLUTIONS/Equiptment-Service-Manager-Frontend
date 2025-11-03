@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Ripple } from 'primeng/ripple';
-import {ClientFormStore, ClientsStore} from '../../model';
+import {ClientFormStore} from '../../model';
 
 @Component({
   selector: 'app-client-form',
@@ -14,7 +14,6 @@ import {ClientFormStore, ClientsStore} from '../../model';
 })
 export class ClientFormPage implements OnInit, OnDestroy {
   readonly store = inject(ClientFormStore);
-  readonly clientsStore = inject(ClientsStore);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -64,12 +63,6 @@ export class ClientFormPage implements OnInit, OnDestroy {
     const result = await this.store.submit();
 
     if (result) {
-      if (this.store.isEditing()) {
-        this.clientsStore.updateClient(result);
-      } else {
-        this.clientsStore.addClient(result);
-      }
-
       this.router.navigate(['/clients']).then(() => {});
     }
   }

@@ -13,13 +13,15 @@ export class CabinetEntityFromResponseMapper {
       locationId: dto.locationId ?? '',
       referenceLocation: dto.referenceLocation ?? '',
       communicationProtocol: dto.communicationProtocol ?? '',
-      communicationProtocolId: null,
+      communicationProtocolId: dto.communicationProtocolId ?? null,
       cabinetType: dto.cabinetType ?? '',
-      cabinetTypeId: null,
+      cabinetTypeId: dto.cabinetTypeId ?? null,
       status: this.mapStatusStringToEnum(dto.status ?? ''),
       createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
       updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : null,
-      lastServiceAt: dto.lastServiceAt ? new Date(dto.lastServiceAt) : null
+      lastInspectionAt: dto.lastInspectionAt ? new Date(dto.lastInspectionAt) : null,
+      lastMaintenanceAt: dto.lastMaintenanceAt ? new Date(dto.lastMaintenanceAt) : null,
+      lastRaiseObservationsAt: dto.lastRaiseObservationsAt ? new Date(dto.lastRaiseObservationsAt) : null,
     };
   }
 

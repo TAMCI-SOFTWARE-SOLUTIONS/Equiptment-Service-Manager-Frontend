@@ -1,0 +1,340 @@
+<div class="flex h-full flex-col bg-gray-50">
+
+  <!-- Header Fijo -->
+  <app-service-work-header
+    [title]="getServiceTitle()"
+    [currentStep]="store.currentStep()"
+    [stepLabel]="getStepLabel(store.currentStep())"
+    [progress]="getProgress()"
+    [hasUnsavedChanges]="store.hasUnsavedChanges()"
+    [isSaving]="store.isSavingInspection()"
+    [isLoading]="store.isLoading()"
+    [serviceStatus]="store.service()?.status || ServiceStatusEnum.CREATED"
+    (onClose)="onExit()"
+    (onStepClick)="onStepClick($event)"
+    (onSave)="saveProgress()">
+  </app-service-work-header>
+
+  <!-- Main Content (Scrollable) -->
+  <main class="flex-1 overflow-y-auto">
+    <div class="mx-auto max-w-7xl px-4 py-6 lg:px-8">
+
+      <!-- Loading State -->
+      @if (store.isLoading() && !store.service()) {
+        <div class="space-y-4">
+          @for (i of [1,2,3]; track i) {
+            <div class="animate-pulse rounded-lg border border-gray-200 bg-white p-6">
+              <div class="h-4 w-1/3 rounded bg-gray-200"></div>
+              <div class="mt-4 space-y-3">
+                <div class="h-3 w-full rounded bg-gray-200"></div>
+                <div class="h-3 w-2/3 rounded bg-gray-200"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @else if (store.error()) {
+        <app-empty-state
+          icon="pi-exclamation-triangle"
+          iconBgClass="bg-gradient-to-br from-rose-100 to-red-100"
+          iconColorClass="text-rose-600"
+          [title]="'Error al cargar el servicio'"
+          [description]="store.error()!"
+          [showButton]="true"
+          buttonText="Reintentar"
+          buttonIcon="pi-refresh"
+          (onAction)="ngOnInit()">
+        </app-empty-state>
+      }
+
+      @else {
+        @switch (store.currentStep()) {
+
+          <!-- STEP 1: Información -->
+          @case (1) {
+          @if (store.service() && store.equipment() && store.supervisor() && store.operator()) {
+            <app-service-work-step1
+              [service]="store.service()!"
+              [supervisor]="store.supervisor()!"
+              [equipment]="store.equipment()!"
+              [equipmentType]="store.service()!.equipmentType"
+              [operatorFullName]="store.operatorFullName()"
+              [totalItems]="store.itemInspections().length"
+              [totalCircuits]="totalCircuits"
+              [powerDistributions]="store.powerDistributions()"
+              [powerPanels]="store.powerPanels()">
+            </app-service-work-step1>
+          } @else {
+            <!-- Loading state para Step 1 -->
+            <div class="space-y-4">
+              @for (i of [1,2]; track i) {
+                <div class="animate-pulse rounded-lg border border-gray-200 bg-white p-6">
+                  <div class="h-4 w-1/3 rounded bg-gray-200"></div>
+                  <div class="mt-4 space-y-3">
+                    <div class="h-3 w-full rounded bg-gray-200"></div>
+                    <div class="h-3 w-2/3 rounded bg-gray-200"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+          }
+
+          <!-- STEP 2: Inspección -->
+          @case (2) {
+            <div class="space-y-6">
+
+              <!-- Progress Banner -->
+              @if (store.inspectionProgress(); as progress) {
+                <app-inspection-progress-banner
+                  [completed]="progress.completed"
+                  [total]="progress.total"
+                  [percentage]="progress.percentage">
+                </app-inspection-progress-banner>
+              }
+
+              <!-- Inspection Tabs -->
+              <app-inspection-tabs
+                [tabConfigs]="store.tabConfigs()"
+                [currentTab]="store.currentInspectableType()"
+                [tabProgressMap]="store.tabProgress()"
+                (onTabChange)="onInspectableTypeChange($event)">
+
+                <!-- Items Loading -->
+                @if (store.isLoadingItems()) {
+                  <div class="space-y-4">
+                    @for (i of [1,2,3]; track i) {
+                      <div class="animate-pulse rounded-lg border border-gray-200 p-4">
+                        <div class="h-4 w-1/4 rounded bg-gray-200"></div>
+                        <div class="mt-3 flex gap-3">
+                          <div class="h-10 flex-1 rounded bg-gray-200"></div>
+                          <div class="h-10 flex-1 rounded bg-gray-200"></div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @else if (store.currentTypeItems().length === 0) {
+                  <app-empty-state
+                    icon="pi-inbox"
+                    iconBgClass="bg-gradient-to-br from-gray-100 to-gray-200"
+                    iconColorClass="text-gray-500"
+                    [title]="'No hay items en esta categoría'"
+                    [description]="'No se encontraron items inspeccionables en esta sección'"
+                    [showButton]="false">
+                  </app-empty-state>
+                }
+
+                @else {
+                  <div class="space-y-4">
+                    @for (item of store.currentTypeItems(); track item.id) {
+                      <app-inspection-item-form
+                        [item]="item"
+                        [conditionOptions]="getConditionOptions(item.type)"
+                        [serviceType]="store.serviceType()"
+                        (onConditionChange)="onConditionChange(item, $event)"
+                        (onCriticalityChange)="onCriticalityChange(item, $event)"
+                        (onObservationChange)="onObservationChange(item, $event)">
+                      </app-inspection-item-form>
+                    }
+                  </div>
+                }
+
+              </app-inspection-tabs>
+
+            </div>
+          }
+
+          <!-- STEP 3: Evidencias -->
+          @case (3) {
+            <div class="space-y-8">
+              <app-evidence-section title="Videos del Servicio" icon="pi-video">
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <app-video-uploader
+                  label="Video de Inicio"
+                  [file]="store.evidenceFiles().videoStart"
+                  [isLoading]="store.uploadingStatus().videoStart"
+                  [uploadType]="'videoStart'"
+                  (onUpload)="onUploadVideo($event, 'videoStart')"
+                  (onRemove)="onRemoveVideo('videoStart')"
+                  (onPreview)="openPreviewModal($event)"
+                  (onOpenCamera)="openCameraModal($event)">
+                </app-video-uploader>
+
+                <app-video-uploader
+                  label="Video de Fin"
+                  [file]="store.evidenceFiles().videoEnd"
+                  [isLoading]="store.uploadingStatus().videoEnd"
+                  [uploadType]="'videoEnd'"
+                  (onUpload)="onUploadVideo($event, 'videoEnd')"
+                  (onRemove)="onRemoveVideo('videoEnd')"
+                  (onPreview)="openPreviewModal($event)"
+                  (onOpenCamera)="openCameraModal($event)">
+                </app-video-uploader>
+              </div>
+            </app-evidence-section>
+
+              <app-evidence-section title="Reporte Fotográfico" icon="pi-camera">
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  <app-photo-uploader
+                    label="Fotos de Inicio (1-3)"
+                    [files]="store.evidenceFiles().startPhotos"
+                    [isLoading]="store.uploadingStatus().startPhoto"
+                    [maxFiles]="3"
+                    [uploadType]="'startPhoto'"
+                    (onUpload)="onUploadPhoto($event, 'startPhoto')"
+                    (onRemove)="onRemovePhoto($event, 'startPhoto')"
+                    (onPreview)="openPreviewModal($event)"
+                    (onOpenCamera)="openCameraModal($event)">
+                  </app-photo-uploader>
+
+                  <app-photo-uploader
+                    label="Fotos de Proceso (1-3)"
+                    [files]="store.evidenceFiles().midPhotos"
+                    [isLoading]="store.uploadingStatus().midPhoto"
+                    [maxFiles]="3"
+                    [uploadType]="'midPhoto'"
+                    (onUpload)="onUploadPhoto($event, 'midPhoto')"
+                    (onRemove)="onRemovePhoto($event, 'midPhoto')"
+                    (onPreview)="openPreviewModal($event)"
+                    (onOpenCamera)="openCameraModal($event)">
+                  </app-photo-uploader>
+
+                  <app-photo-uploader
+                    label="Fotos de Fin (1-3)"
+                    [files]="store.evidenceFiles().endPhotos"
+                    [isLoading]="store.uploadingStatus().endPhoto"
+                    [maxFiles]="3"
+                    [uploadType]="'endPhoto'"
+                    (onUpload)="onUploadPhoto($event, 'endPhoto')"
+                    (onRemove)="onRemovePhoto($event, 'endPhoto')"
+                    (onPreview)="openPreviewModal($event)"
+                    (onOpenCamera)="openCameraModal($event)">
+                  </app-photo-uploader>
+                </div>
+              </app-evidence-section>
+
+              <app-evidence-section title="Reporte (PDF Opcional)" icon="pi-file-pdf">
+                <app-report-uploader
+                  label="Documento de Reporte"
+                  [file]="store.evidenceFiles().report"
+                  [isLoading]="store.uploadingStatus().report"
+                  [uploadType]="'report'"
+                  (onUpload)="onUploadReport($event)"
+                  (onRemove)="onRemoveReport()"
+                  (onPreview)="openPreviewModal($event)">
+                </app-report-uploader>
+              </app-evidence-section>
+            </div>
+          }
+
+          <!-- STEP 4: Resumen -->
+          @case (4) {
+            @if (store.service() && store.equipment() && store.supervisor() && store.operator()) {
+              <app-service-work-summary
+                [service]="store.service()!"
+                [equipment]="store.equipment()!"
+                [supervisor]="store.supervisor()!"
+                [operator]="store.operator()!"
+                [itemInspections]="store.itemInspections()"
+                [evidenceFiles]="store.evidenceFiles()">
+              </app-service-work-summary>
+            } @else {
+              <!-- Loading state mientras carga el operador -->
+              <div class="space-y-4">
+                @for (i of [1,2,3]; track i) {
+                  <div class="animate-pulse rounded-lg border border-gray-200 bg-white p-6">
+                    <div class="h-4 w-1/3 rounded bg-gray-200"></div>
+                    <div class="mt-4 space-y-3">
+                      <div class="h-3 w-full rounded bg-gray-200"></div>
+                      <div class="h-3 w-2/3 rounded bg-gray-200"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          }
+
+        }
+      }
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <app-service-work-footer
+    [currentStep]="store.currentStep()"
+    [stepLabel]="getStepLabel(store.currentStep())"
+    [isLastStep]="store.currentStep() === 4"
+    [canGoPrevious]="store.currentStep() > 1"
+    [canGoNext]="true"
+    [canComplete]="store.canCompleteService()"
+    [isLoading]="store.isStartingService() || store.isCompletingService() || store.isSavingInspection()"
+    [nextButtonLabel]="getNextButtonLabel()"
+    [showStartButton]="shouldShowStartButton()"
+    [hasUnsavedChanges]="store.hasUnsavedChanges()"
+    [unsavedCount]="unsavedChangesCount"
+    (onPrevious)="onBack()"
+    (onNext)="onNextOrStart()"
+    (onComplete)="onCompleteServiceClick()"
+    (onSave)="saveProgress()">
+  </app-service-work-footer>
+
+</div>
+
+<app-file-preview-modal
+  [show]="showPreviewModal()"
+  [fileList]="previewFiles()"
+  [initialIndex]="previewCurrentIndex()"
+  [config]="{
+    allowFullscreen: true,
+    allowZoom: true,
+    allowDownload: true,
+    showThumbnails: true,
+    closeOnBackdrop: true,
+    closeOnEsc: true,
+    darkMode: true
+  }"
+  (closeModal)="closePreviewModal()"
+  (downloadFile)="onDownloadFileFromPreview($event)"
+  (errorOccurred)="handlePreviewError($event)">
+</app-file-preview-modal>
+
+<app-camera-modal
+  [show]="showCameraModal()"
+  [mode]="cameraMode()"
+  (closeModal)="closeCameraModal()"
+  (captureConfirmed)="onCameraCapture($event)">
+</app-camera-modal>
+
+<app-confirmation-modal
+  [show]="showStartModal()"
+  [title]="'¿Comenzar servicio?'"
+  [message]="'Estás a punto de iniciar el servicio. Una vez iniciado, podrás comenzar con las inspecciones.'"
+  [confirmText]="'Sí, comenzar'"
+  [isLoading]="store.isStartingService()"
+  (onConfirm)="confirmStartService()"
+  (onCancel)="cancelStartService()">
+</app-confirmation-modal>
+
+<app-confirmation-modal
+  [show]="showCompleteModal()"
+  [title]="'¿Completar servicio?'"
+  [message]="'Estás a punto de completar el servicio. Verifica que toda la información esté correcta.'"
+  [confirmText]="'Sí, completar'"
+  [isLoading]="store.isCompletingService()"
+  (onConfirm)="confirmCompleteService()"
+  (onCancel)="cancelCompleteService()">
+</app-confirmation-modal>
+
+<app-confirmation-modal
+  [show]="showExitModal()"
+  [title]="'¿Salir del servicio?'"
+  [message]="'Tienes cambios sin guardar. Se guardarán automáticamente antes de salir.'"
+  [confirmText]="'Guardar y salir'"
+  [isLoading]="store.isSavingInspection()"
+  (onConfirm)="confirmExit()"
+  (onCancel)="cancelExit()">
+</app-confirmation-modal>

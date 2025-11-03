@@ -4,7 +4,7 @@ import { Ripple } from 'primeng/ripple';
 import { ProjectWithClient } from '../../model/projects.store';
 import { ProjectStatusEnum } from '../../../../entities/project/model/project-status.enum';
 import { EquipmentTypeEnum } from '../../../../shared/model';
-import {getEquipmentTypeIcon, getEquipmentTypeLabel} from '../../../../entities/equipment/model/equipment-type.enum';
+import {getEquipmentTypeIcon, getEquipmentTypeLabel} from '../../../../shared/model/enums/equipment-type.enum';
 
 @Component({
   selector: 'app-project-card',

@@ -1,1 +1,230 @@
-<p>equipment-filters-aside works!</p>
+<p-drawer
+  [(visible)]="show"
+  [position]="'right'"
+  [modal]="true"
+  [dismissible]="true"
+  (onHide)="onClose.emit()"
+>
+  <ng-template #header>
+    <div class="flex flex-1 items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-cyan-500">
+          <i class="pi pi-filter text-sm text-white"></i>
+        </div>
+        <h2 class="text-lg font-semibold text-gray-900">Filtros</h2>
+      </div>
+
+      @if (hasAnyLocalFilters) {
+        <button
+          pRipple
+          type="button"
+          (click)="onClearFilters()"
+          class="text-sm font-medium text-sky-600 transition-colors hover:text-sky-700">
+          Limpiar todo
+        </button>
+      }
+    </div>
+  </ng-template>
+
+  <!-- Filters Content -->
+  <div class="space-y-4 py-2">
+
+    <!-- ==================== 1. TIPO DE EQUIPO (GABINETE/PANEL) ==================== -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-700">
+        Tipo de Equipo
+      </label>
+      <select
+        [value]="localFilters.typeFilter"
+        (change)="onTypeFilterChange($any($event.target).value)"
+        class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+        <option value="all">Todos los equipos</option>
+        <option value="cabinet">Gabinetes</option>
+        <option value="panel">Tableros</option>
+      </select>
+      @if (localFilters.typeFilter !== 'all') {
+        <p class="mt-1.5 flex items-center gap-1 text-xs text-sky-600">
+          <i class="pi pi-filter text-xs"></i>
+          Filtrando por {{ localFilters.typeFilter === 'cabinet' ? 'Gabinetes' : 'Tableros' }}
+        </p>
+      }
+    </div>
+
+    <!-- ==================== 2. TIPO ESPECÍFICO (DINÁMICO) ==================== -->
+    <div>
+      <label class="mb-2 block text-sm font-medium text-gray-700">
+        {{ equipmentTypeLabel }}
+      </label>
+      <select
+        [value]="localFilters.equipmentTypeId || ''"
+        (change)="onEquipmentTypeChange($any($event.target).value)"
+        [disabled]="isEquipmentTypeDisabled"
+        class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400">
+        <option value="">{{ isEquipmentTypeDisabled ? 'Selecciona Gabinete o Tablero primero' : 'Todos los tipos' }}</option>
+        @for (type of uniqueEquipmentTypes; track type.id) {
+          <option [value]="type.id">{{ type.name }}</option>
+        }
+      </select>
+      @if (localFilters.equipmentTypeId) {
+        <p class="mt-1.5 flex items-center gap-1 text-xs text-sky-600">
+          <i class="pi pi-filter text-xs"></i>
+          Tipo seleccionado
+        </p>
+      }
+      @if (isEquipmentTypeDisabled) {
+        <p class="mt-1.5 flex items-center gap-1 text-xs text-gray-500">
+          <i class="pi pi-info-circle text-xs"></i>
+          Selecciona "Gabinetes" o "Tableros" arriba
+        </p>
+      }
+    </div>
+
+    <!-- ==================== ACCORDION: UBICACIÓN Y BÁSICOS ==================== -->
+    <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <button
+        type="button"
+        (click)="toggleLocationFilters()"
+        pRipple
+        class="flex w-full items-center justify-between p-3 text-left transition-colors hover:bg-gray-50">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-map-marker text-sm text-gray-600"></i>
+          <span class="font-medium text-gray-900">Ubicación y Estado</span>
+          @if (hasLocalLocationFilters) {
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-xs font-semibold text-white">
+              !
+            </span>
+          }
+        </div>
+        <i [class]="'pi text-sm text-gray-400 transition-transform duration-200 ' + (showLocationFilters ? 'pi-chevron-up' : 'pi-chevron-down')"></i>
+      </button>
+
+      @if (showLocationFilters) {
+        <div class="space-y-4 border-t border-gray-100 bg-gray-50/50 p-3">
+
+          <!-- Planta -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-gray-700">
+              Planta
+            </label>
+            <select
+              [value]="localFilters.plantId || ''"
+              (change)="onPlantChange($any($event.target).value)"
+              class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+              <option value="">Todas las plantas</option>
+              @for (plant of store.uniquePlants(); track plant.id) {
+                <option [value]="plant.id">{{ plant.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Área -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-gray-700">
+              Área
+            </label>
+            <select
+              [value]="localFilters.areaId || ''"
+              (change)="onAreaChange($any($event.target).value)"
+              class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+              <option value="">Todas las áreas</option>
+              @for (area of store.uniqueAreas(); track area.id) {
+                <option [value]="area.id">{{ area.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Ubicación -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-gray-700">
+              Ubicación
+            </label>
+            <select
+              [value]="localFilters.locationId || ''"
+              (change)="onLocationChange($any($event.target).value)"
+              class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+              <option value="">Todas las ubicaciones</option>
+              @for (location of store.uniqueLocations(); track location.id) {
+                <option [value]="location.id">{{ location.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Protocolo -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-gray-700">
+              Protocolo de Comunicación
+            </label>
+            <select
+              [value]="localFilters.communicationProtocolId || ''"
+              (change)="onProtocolChange($any($event.target).value)"
+              class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+              <option value="">Todos los protocolos</option>
+              @for (protocol of uniqueProtocols; track protocol.id) {
+                <option [value]="protocol.id">{{ protocol.name }}</option>
+              }
+            </select>
+            @if (uniqueProtocols.length === 0) {
+              <p class="mt-1.5 flex items-center gap-1 text-xs text-amber-600">
+                <i class="pi pi-exclamation-triangle text-xs"></i>
+                No se encontraron protocolos
+              </p>
+            }
+          </div>
+
+          <!-- Estado -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-gray-700">
+              Estado
+            </label>
+            <select
+              [value]="localFilters.statusFilter || ''"
+              (change)="onStatusChange($any($event.target).value)"
+              class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-all hover:border-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+              <option value="">Todos los estados</option>
+              <option [value]="EquipmentStatusEnum.OPERATIVE">
+                {{ getEquipmentStatusLabel(EquipmentStatusEnum.OPERATIVE) }}
+              </option>
+              <option [value]="EquipmentStatusEnum.STAND_BY">
+                {{ getEquipmentStatusLabel(EquipmentStatusEnum.STAND_BY) }}
+              </option>
+              <option [value]="EquipmentStatusEnum.INOPERATIVE">
+                {{ getEquipmentStatusLabel(EquipmentStatusEnum.INOPERATIVE) }}
+              </option>
+              <option [value]="EquipmentStatusEnum.RETIRED">
+                {{ getEquipmentStatusLabel(EquipmentStatusEnum.RETIRED) }}
+              </option>
+            </select>
+          </div>
+
+        </div>
+      }
+    </div>
+
+    <!-- ==================== ACCORDION: FILTROS DE FECHAS ==================== -->
+    <!-- (Mismo código de antes, sin cambios) -->
+
+  </div>
+
+  <!-- Footer Actions -->
+  <ng-template #footer>
+    <div class="flex gap-3 border-t border-gray-200 pt-4">
+      <button
+        pRipple
+        type="button"
+        (click)="onClose.emit()"
+        class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
+        Cancelar
+      </button>
+
+      <button
+        pRipple
+        type="button"
+        (click)="onApplyFilters()"
+        class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
+        <i class="pi pi-check text-sm"></i>
+        Aplicar Filtros
+      </button>
+    </div>
+  </ng-template>
+
+</p-drawer>

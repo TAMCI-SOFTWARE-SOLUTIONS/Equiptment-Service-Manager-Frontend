@@ -65,6 +65,14 @@ export class FileService extends BaseService {
     );
   }
 
+  getById(id: string): Observable<FileEntity> {
+    return this.http.get<FileResponseDto>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      map((response: FileResponseDto) => FileEntityFromResponseMapper.fromDtoToEntity(response)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
   private handleFileError(error: any): Observable<never> {
     let errorMessage = 'Error desconocido con el archivo';
 

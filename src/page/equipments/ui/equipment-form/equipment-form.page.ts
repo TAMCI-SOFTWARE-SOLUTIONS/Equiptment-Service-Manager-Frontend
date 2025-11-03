@@ -5,8 +5,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Ripple } from 'primeng/ripple';
 import {ConfirmationModalComponent} from '../../../../shared/ui/confirmation-modal/confirmation-modal.component';
 import {EquipmentFormStore} from '../../model/equipment-form.store';
-import {EquipmentTypeEnum, getEquipmentTypeLabel} from '../../../../entities/equipment/model/equipment-type.enum';
 import {EquipmentStatusEnum, getEquipmentStatusLabel} from '../../../../entities/equipment/model/equipment-status.enum';
+import {EquipmentTypeEnum, getEquipmentTypeLabel} from '../../../../shared/model/enums/equipment-type.enum';
 
 @Component({
   selector: 'app-equipment-form',

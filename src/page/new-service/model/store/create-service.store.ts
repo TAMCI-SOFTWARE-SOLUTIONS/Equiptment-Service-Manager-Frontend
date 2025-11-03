@@ -21,6 +21,13 @@ import {
   EquipmentPowerDistributionAssignmentService
 } from '../../../../entities/equipment-power-distribution-assignment/api';
 import {PowerDistributionPanelService} from '../../../../entities/power-distribution-panel/api';
+import {SupervisorEntity, SupervisorService} from '../../../../entities/supervisor';
+import {
+  EquipmentServiceEntity,
+  EquipmentServiceService,
+  ServiceStatusEnum
+} from '../../../../entities/equipment-service';
+import {AuthStore} from '../../../../shared/stores';
 
 export interface CreateServiceFormData {
   // Step 1
@@ -67,6 +74,13 @@ export interface CreateServiceState {
   isLoadingAreas: boolean;
   isSubmitting: boolean;
 
+  // Supervisor states
+  supervisorId: string | null;
+  supervisors: SupervisorEntity[];
+  isLoadingSupervisors: boolean;
+  filteredSupervisors: SupervisorEntity[];
+  supervisorSearchQuery: string;
+
   // Power assignments (NEW)
   powerAssignments: PowerAssignmentWithPanel[];
   isLoadingPowerAssignments: boolean;
@@ -104,6 +118,11 @@ const initialState: CreateServiceState = {
   isLoadingTypes: false,
   isLoadingAreas: false,
   isSubmitting: false,
+  supervisorId: null,
+  supervisors: [],
+  isLoadingSupervisors: false,
+  filteredSupervisors: [],
+  supervisorSearchQuery: '',
   powerAssignments: [],
   isLoadingPowerAssignments: false,
   powerAssignmentsError: null,
@@ -118,6 +137,48 @@ export const CreateServiceStore = signalStore(
     const contextStore = inject(ContextStore);
 
     return {
+      titlePage: computed(() => {
+        const step = state.currentStep();
+        const serviceType = state.formData().serviceType;
+
+        const serviceTypeLabel = (() => {
+          if (!serviceType) return '';
+          const labels: Record<ServiceTypeEnum, string> = {
+            [ServiceTypeEnum.MAINTENANCE]: 'Mantenimiento',
+            [ServiceTypeEnum.INSPECTION]: 'Inspección',
+            [ServiceTypeEnum.RAISE_OBSERVATION]: 'Levantamiento de Observaciones'
+          };
+          return labels[serviceType];
+        })();
+
+        const selectedEquipmentTagLabel = (() => {
+          const equipmentId = state.formData().selectedEquipmentId;
+          const equipmentType = state.formData().selectedEquipmentType;
+          if (!equipmentId || !equipmentType) return '';
+
+          let equipment: CabinetEntity | PanelEntity | null;
+
+          if (equipmentType === EquipmentTypeEnum.CABINET) {
+            equipment = state.cabinets().find(c => c.id === equipmentId) || null;
+          } else {
+            equipment = state.panels().find(p => p.id === equipmentId) || null;
+          }
+
+          return equipment ? equipment.tag : '';
+        })();
+
+        switch (step) {
+          case 1:
+            return 'Crear Nuevo Servicio';
+          case 2:
+            return 'Crear Nuevo Servicio';
+          case 3:
+            return `${serviceTypeLabel} | ${selectedEquipmentTagLabel}`;
+          default:
+            return 'Crear Nuevo Servicio';
+        }
+      }),
+
       /**
        * Step validation
        */
@@ -129,8 +190,7 @@ export const CreateServiceStore = signalStore(
       }),
 
       isStep3Valid: computed(() => {
-        const name = state.formData().supervisorName.trim();
-        return name.length >= 3 && Object.keys(state.validationErrors()).length === 0;
+        return state.supervisorId() !== null && state.supervisorId() !== '';
       }),
 
       /**
@@ -145,7 +205,7 @@ export const CreateServiceStore = signalStore(
           case 2:
             return state.formData().selectedEquipmentId !== null;
           case 3:
-            return state.formData().supervisorName.trim().length >= 3;
+            return state.supervisorId() !== null && state.supervisorId() !== '';
           default:
             return false;
         }
@@ -287,6 +347,7 @@ export const CreateServiceStore = signalStore(
 
         return labels[type];
       }),
+
       /**
        * Indica si hay power assignments
        */
@@ -326,10 +387,41 @@ export const CreateServiceStore = signalStore(
 
         return ranges.join(', ');
       }),
+
+      /**
+       * Supervisor seleccionado completo
+       */
+      selectedSupervisor: computed(() => {
+        const supervisorId = state.supervisorId();
+        const supervisors = state.supervisors();
+        return supervisors.find(s => s.id === supervisorId) || null;
+      }),
+
+      /**
+       * Validar que hay supervisor seleccionado
+       */
+      hasSupervisorSelected: computed(() => {
+        return state.supervisorId() !== null && state.supervisorId() !== '';
+      }),
+
+      /**
+       * Supervisores filtrados por búsqueda
+       */
+      filteredSupervisorsComputed: computed(() => {
+        const query = state.supervisorSearchQuery().toLowerCase().trim();
+        const supervisors = state.supervisors();
+
+        if (!query) return supervisors;
+
+        return supervisors.filter(s =>
+          s.fullName.toLowerCase().includes(query)
+        );
+      })
     };
   }),
 
   withMethods((store) => {
+    const authStore = inject(AuthStore);
     const contextStore = inject(ContextStore);
     const cabinetService = inject(CabinetService);
     const panelService = inject(PanelService);
@@ -338,6 +430,8 @@ export const CreateServiceStore = signalStore(
     const areaService = inject(AreaService);
     const powerAssignmentService = inject(EquipmentPowerDistributionAssignmentService);
     const powerPanelService = inject(PowerDistributionPanelService);
+    const supervisorService = inject(SupervisorService);
+    const equipmentServiceService = inject(EquipmentServiceService);
 
     return {
       /**
@@ -556,6 +650,57 @@ export const CreateServiceStore = signalStore(
         }
       },
 
+      /**
+       * Cargar supervisores
+       */
+      async loadSupervisors(): Promise<void> {
+        patchState(store, {
+          isLoadingSupervisors: true
+        });
+
+        try {
+          const supervisors = await firstValueFrom(supervisorService.getAll());
+
+          patchState(store, {
+            supervisors: supervisors.sort((a, b) => a.fullName.localeCompare(b.fullName)),
+            filteredSupervisors: supervisors,
+            isLoadingSupervisors: false
+          });
+
+        } catch (error: any) {
+          console.error('❌ Error loading supervisors:', error);
+          patchState(store, {
+            supervisors: [],
+            filteredSupervisors: [],
+            isLoadingSupervisors: false
+          });
+        }
+      },
+
+      /**
+       * Establecer supervisor seleccionado
+       */
+      setSupervisorId(supervisorId: string | null): void {
+        patchState(store, { supervisorId });
+      },
+
+      /**
+       * Buscar supervisores
+       */
+      setSupervisorSearchQuery(query: string): void {
+      patchState(store, { supervisorSearchQuery: query });
+    },
+
+      /**
+       * Limpiar selección de supervisor
+       */
+      clearSupervisor(): void {
+      patchState(store, {
+        supervisorId: null,
+        supervisorSearchQuery: ''
+      });
+    },
+
       // ==================== STEP 1: Service Type ====================
 
       setServiceType(type: ServiceTypeEnum): void {
@@ -661,67 +806,85 @@ export const CreateServiceStore = signalStore(
       },
 
       // ==================== SUBMIT ====================
-
       async submit(): Promise<string | null> {
-        if (!store.canSubmit()) {
-          return null;
-        }
-
         patchState(store, {
           isSubmitting: true,
           error: null
         });
 
         try {
+          // Validar que tenemos todos los datos necesarios
           const formData = store.formData();
-          const project = contextStore.project();
+          const supervisorId = store.supervisorId();
+          const equipmentId = store.selectedEquipment()?.id;
+          const projectId = contextStore.projectId();
+          const operatorId = authStore.user()?.id;
 
-          if (!project) {
+          // Validaciones
+          if (!projectId) {
             throw new Error('No hay proyecto seleccionado');
           }
 
-          const serviceData = {
-            serviceType: formData.serviceType!,
-            equipmentId: formData.selectedEquipmentId!,
-            equipmentType: formData.selectedEquipmentType!,
-            projectId: project.id,
-            supervisorName: formData.supervisorName.trim()
+          if (!equipmentId) {
+            throw new Error('No hay equipo seleccionado');
+          }
+
+          if (!supervisorId) {
+            throw new Error('No hay supervisor seleccionado');
+          }
+
+          if (!formData.selectedEquipmentType) {
+            throw new Error('No hay tipo de equipo seleccionado');
+          }
+
+          if (!formData.serviceType) {
+            throw new Error('No hay tipo de servicio seleccionado');
+          }
+
+          if (!operatorId) {
+            throw new Error('No hay usuario autenticado');
+          }
+
+
+          // Construir la entidad para crear el servicio
+          const newService: EquipmentServiceEntity = {
+            id: '',
+            operatorId,
+            projectId,
+            equipmentId,
+            equipmentType: formData.selectedEquipmentType,
+            supervisorId,
+            type: formData.serviceType,
+            status: ServiceStatusEnum.CREATED,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            startedAt: null,
+            completedAt: null,
+            cancelledAt: null,
+            totalWorkDuration: '',
+            videoStartFileId: '',
+            videoEndFileId: '',
+            startPhotos: [],
+            midPhotos: [],
+            endPhotos: [],
+            reportDocumentFileId: ''
           };
 
-          console.log('📝 Service data to create:', serviceData);
+          console.log('📤 Creating service:', newService);
 
-          // TODO: Implementar servicios
-          let serviceId: string;
+          // Llamar al servicio para crear
+          const createdService = await firstValueFrom(
+            equipmentServiceService.create(newService)
+          );
 
-          switch (formData.serviceType) {
-            case ServiceTypeEnum.MAINTENANCE:
-              // TODO: serviceId = await firstValueFrom(maintenanceService.create(serviceData));
-              serviceId = 'mock-maintenance-id';
-              console.log('TODO: MaintenanceService.create()', serviceData);
-              break;
-
-            case ServiceTypeEnum.INSPECTION:
-              // TODO: serviceId = await firstValueFrom(inspectionService.create(serviceData));
-              serviceId = 'mock-inspection-id';
-              console.log('TODO: InspectionService.create()', serviceData);
-              break;
-
-            case ServiceTypeEnum.RAISE_OBSERVATION:
-              // TODO: serviceId = await firstValueFrom(raiseObservationService.create(serviceData));
-              serviceId = 'mock-observation-id';
-              console.log('TODO: RaiseObservationService.create()', serviceData);
-              break;
-
-            default:
-              throw new Error('Tipo de servicio no válido');
-          }
+          console.log('✅ Service created successfully:', createdService.id);
 
           patchState(store, {
             isSubmitting: false,
             error: null
           });
 
-          return serviceId;
+          return createdService.id;
 
         } catch (error: any) {
           console.error('❌ Error creating service:', error);

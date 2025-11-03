@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BaseService} from '../../../shared/api';
-import {catchError, map, Observable, retry} from 'rxjs';
+import {catchError, map, Observable, of, retry} from 'rxjs';
 import {PanelEntity} from '../model';
 import {PanelResponseDto} from './panel-response.dto';
 import {PanelEntityFromResponseMapper} from './panel-entity-from-response.mapper';
@@ -8,6 +8,8 @@ import {CreatePanelRequest} from './create-panel-request.type';
 import {CreatePanelRequestFromEntityMapper} from './create-panel-request-from-entity.mapper';
 import {UpdatePanelRequestFromEntityMapper} from './update-panel-request-from-entity.mapper';
 import {UpdatePanelRequest} from './update-panel-request.type';
+import {InspectableItemEntity} from '../../inspectable-item';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -52,6 +54,24 @@ export class PanelService extends BaseService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getAllInspectableItems(panelId: string): Observable<InspectableItemEntity[]> {
+    return this.http.get<InspectableItemEntity[]>(`${this.resourcePath()}/${panelId}/inspectable-items`, this.httpOptions).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  getAllByIds(ids: string[]): Observable<PanelEntity[]> {
+    if (!ids || ids.length === 0) {return of([]);}
+    const params = ids.reduce((acc, id) => acc.append('ids', id), new HttpParams());
+    const options = { ...this.httpOptions, params };
+    return this.http.get<PanelResponseDto[]>(`${this.resourcePath()}/:batchGet`, options).pipe(
+      map((panels: PanelResponseDto[]) => panels.map(panel => PanelEntityFromResponseMapper.fromDtoToEntity(panel))),
+      retry(2),
       catchError(this.handleError)
     );
   }

@@ -1,9 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Drawer } from 'primeng/drawer';
-import { LayoutStore } from '../../../shared/model/layout.store';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Ripple } from 'primeng/ripple';
+import { LayoutStore } from '../../../shared/model/layout.store';
+import { AuthStore } from '../../../shared/stores';
+import { RolesEnum } from '../../../entities/role/model';
+import { Drawer } from 'primeng/drawer';
 
 interface MenuItem {
   label: string;
@@ -12,156 +14,97 @@ interface MenuItem {
   badge?: number;
   children?: MenuItem[];
   expanded?: boolean;
-  adminOnly?: boolean;
+  roles?: RolesEnum[];
 }
 
 @Component({
   selector: 'app-sidebar',
-  imports: [
-    CommonModule,
-    Drawer,
-    RouterLink,
-    RouterLinkActive,
-    Ripple
-  ],
   standalone: true,
+  imports: [CommonModule, RouterLink, RouterLinkActive, Ripple, Drawer],
   templateUrl: './sidebar.component.html'
 })
 export class SidebarComponent {
   readonly layoutStore = inject(LayoutStore);
-  private readonly router = inject(Router);
-
-  // Estructura del menú
-  menuItems: MenuItem[] = [
-    {
-      label: 'Dashboard',
-      icon: 'pi-home',
-      route: '/dashboard'
-    },
+  readonly router = inject(Router);
+  readonly authStore = inject(AuthStore);
+  readonly menuItems: MenuItem[] = [
+    { label: 'Dashboard', icon: 'pi-home', route: '/dashboard' },
     {
       label: 'Servicios',
       icon: 'pi-briefcase',
       children: [
-        {
-          label: 'Activos',
-          icon: 'pi-play-circle',
-          route: '/services/active',
-          badge: 3
-        },
-        {
-          label: 'Crear Nuevo',
-          icon: 'pi-plus-circle',
-          route: '/services/new'
-        },
-        {
-          label: 'Historial',
-          icon: 'pi-history',
-          route: '/services/history'
-        }
+        // TODO: Add badge for active services
+        { label: 'Activos', icon: 'pi-play-circle', route: '/services/active' },
+        { label: 'Crear Nuevo', icon: 'pi-plus-circle', route: '/services/new', roles: [RolesEnum.ROLE_OPERATOR] },
+        { label: 'Historial', icon: 'pi-history', route: '/services/history' }
       ],
       expanded: true
     },
-    {
-      label: 'Clientes',
-      icon: 'pi-users',
-      route: '/clients'
-    },
-    {
-      label: 'Proyectos',
-      icon: 'pi-folder',
-      route: '/projects'
-    },
-    {
-      label: 'Equipos',
-      icon: 'pi-box',
-      route: '/equipments'
-    },
+    { label: 'Clientes', icon: 'pi-users', route: '/clients' },
+    { label: 'Proyectos', icon: 'pi-folder', route: '/projects' },
+    { label: 'Equipos', icon: 'pi-box', route: '/equipments' },
+    { label: 'Tableros de alimentación eléctrica', icon: 'pi-bolt', route: '/power-distribution-panels' },
+    { label: 'Marcas y Modelos', icon: 'pi-tags', route: '/brands' },
     {
       label: 'Configuración',
       icon: 'pi-cog',
       children: [
-        {
-          label: 'Tipos de Tableros',
-          icon: 'pi-th-large',
-          route: '/panel-types'
-        },
-        {
-          label: 'Tipos de Gabinete',
-          icon: 'pi-server',
-          route: '/cabinet-types'
-        },
-        {
-          label: 'Paneles de Distribución',
-          icon: 'pi-bolt',
-          route: '/power-distribution-panels'
-        },
-        {
-          label: 'Protocolos de Comunicación',
-          icon: 'pi-wifi',
-          route: '/communication-protocols'
-        }
+        { label: 'Supervisores', icon: 'pi-id-card', route: '/supervisors' },
+        { label: 'Tipos de Tableros', icon: 'pi-th-large', route: '/panel-types' },
+        { label: 'Tipos de Gabinete', icon: 'pi-server', route: '/cabinet-types' },
+        { label: 'Protocolos de Comunicación', icon: 'pi-wifi', route: '/communication-protocols' }
       ]
     },
     {
       label: 'Reportes',
       icon: 'pi-chart-bar',
+      roles: [RolesEnum.ROLE_ADMIN],
       children: [
-        {
-          label: 'Servicios',
-          icon: 'pi-file',
-          route: '/reports/services'
-        },
-        {
-          label: 'Rendimiento',
-          icon: 'pi-chart-line',
-          route: '/reports/performance'
-        }
+        { label: 'Servicios', icon: 'pi-file', route: '/reports/services' },
       ]
-    }
-  ];
-
-  adminMenuItems: MenuItem[] = [
+    },
     {
       label: 'Organización',
       icon: 'pi-sitemap',
-      adminOnly: true,
       children: [
-        {
-          label: 'Usuarios',
-          icon: 'pi-user',
-          route: '/users'
-        },
-        {
-          label: 'Colaboradores',
-          icon: 'pi-address-book',
-          route: '/collaborators'
-        }
+        { label: 'Usuarios', icon: 'pi-user', route: '/users', roles: [RolesEnum.ROLE_ADMIN]},
+        { label: 'Colaboradores', icon: 'pi-address-book', route: '/collaborators' }
       ]
     }
   ];
 
-  // TODO: Reemplazar con lógica real de auth
-  isAdmin = true;
+  visibleMenuItems = computed(() => {
+    const filterByRoles = (items: MenuItem[]): MenuItem[] => {
+      return items
+        .filter(item => {
+          if (!item.roles || item.roles.length === 0) return true;
 
-  toggleSection(item: MenuItem): void {
+          return item.roles.some(role => this.authStore.hasRole(role));
+        })
+        .map(item => {
+          if (item.children) {
+            return { ...item, children: filterByRoles(item.children) };
+          }
+          return item;
+        });
+    };
+
+    return filterByRoles(this.menuItems);
+  });
+
+  toggleSection(item: MenuItem) {
     if (item.children) {
       item.expanded = !item.expanded;
     }
   }
 
-  navigateAndClose(route?: string): void {
-    if (route) {
-      // Solo cerrar sidebar en mobile
-      if (this.layoutStore.isMobile()) {
-        this.layoutStore.closeSidebar();
-      }
-      this.router.navigate([route]).then(() => {});
-    }
-  }
+  navigateAndClose(route?: string) {
+    if (!route) return;
 
-  getVisibleMenuItems(): MenuItem[] {
-    return this.isAdmin
-      ? [...this.menuItems, ...this.adminMenuItems]
-      : this.menuItems;
+    if (this.layoutStore.isMobile()) {
+      this.layoutStore.closeSidebar();
+    }
+
+    this.router.navigate([route]).then(() => {});
   }
 }

@@ -35,15 +35,17 @@
                [class.pi-spinner]="store.isClientsLoading()"></i>
           </button>
 
-          <button
-            pRipple
-            type="button"
-            (click)="onCreateClient()"
-            [disabled]="store.isClientsLoading()"
-            class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
-            <i class="pi pi-plus text-base"></i>
-            <span class="hidden sm:inline">Nuevo Cliente</span>
-          </button>
+          @if (store.isAdmin()) {
+            <button
+              pRipple
+              type="button"
+              (click)="onCreateClient()"
+              [disabled]="store.isClientsLoading()"
+              class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
+              <i class="pi pi-plus text-base"></i>
+              <span class="hidden sm:inline">Nuevo Cliente</span>
+            </button>
+          }
         </div>
       </div>
 
@@ -171,9 +173,6 @@
                     <h3 class="truncate text-lg font-semibold text-gray-900 group-hover:text-sky-700">
                       {{ client.name }}
                     </h3>
-                    <p class="mt-0.5 truncate text-xs font-mono text-gray-500">
-                      ID: {{ client.id.substring(0, 8) }}...
-                    </p>
                   </div>
                 </div>
 
@@ -188,14 +187,16 @@
                     <span>Ver</span>
                   </button>
 
-                  <button
-                    pRipple
-                    type="button"
-                    (click)="onEditClient(client.id, $event)"
-                    class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
-                    <i class="pi pi-pencil text-base"></i>
-                    <span>Editar</span>
-                  </button>
+                  @if (store.isAdmin()) {
+                    <button
+                      pRipple
+                      type="button"
+                      (click)="onEditClient(client.id, $event)"
+                      class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+                      <i class="pi pi-pencil text-base"></i>
+                      <span>Editar</span>
+                    </button>
+                  }
                 </div>
 
               </div>
@@ -235,17 +236,23 @@
             No hay clientes registrados
           </h3>
           <p class="mt-2 max-w-md text-sm text-gray-600">
-            Comienza agregando tu primer cliente para gestionar proyectos y servicios.
+            @if (store.isAdmin()) {
+              Parece que aún no has agregado ningún cliente.
+            } @else {
+              Aún no hay clientes registrados en el sistema.
+            }
           </p>
           <div class="mt-6 flex gap-3">
-            <button
-              pRipple
-              type="button"
-              (click)="onCreateClient()"
-              class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
-              <i class="pi pi-plus"></i>
-              Crear Primer Cliente
-            </button>
+            @if (store.isAdmin()) {
+              <button
+                pRipple
+                type="button"
+                (click)="onCreateClient()"
+                class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40">
+                <i class="pi pi-plus"></i>
+                Crear Primer Cliente
+              </button>
+            }
             <button
               pRipple
               type="button"
