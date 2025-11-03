@@ -10,20 +10,16 @@ export enum ServiceStatusEnum {
  * @param status
  */
 export function getStatusBadgeClass(status: ServiceStatusEnum): string {
-  const baseClasses = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium';
+  const baseClasses = 'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold';
 
-  switch (status) {
-    case ServiceStatusEnum.CREATED:
-      return `${baseClasses} bg-gray-100 text-gray-700`;
-    case ServiceStatusEnum.IN_PROGRESS:
-      return `${baseClasses} bg-blue-100 text-blue-700`;
-    case ServiceStatusEnum.COMPLETED:
-      return `${baseClasses} bg-green-100 text-green-700`;
-    case ServiceStatusEnum.CANCELLED:
-      return `${baseClasses} bg-rose-100 text-rose-700`;
-    default:
-      return `${baseClasses} bg-gray-100 text-gray-700`;
-  }
+  const statusClasses: Record<ServiceStatusEnum, string> = {
+    [ServiceStatusEnum.CREATED]: 'bg-gray-100 text-gray-700 ring-1 ring-gray-600/20',
+    [ServiceStatusEnum.IN_PROGRESS]: 'bg-sky-100 text-sky-700 ring-1 ring-sky-600/20',
+    [ServiceStatusEnum.COMPLETED]: 'bg-green-100 text-green-700 ring-1 ring-green-600/20',
+    [ServiceStatusEnum.CANCELLED]: 'bg-red-100 text-red-700 ring-1 ring-red-600/20'
+  };
+
+  return `${baseClasses} ${statusClasses[status] || 'bg-gray-100 text-gray-700'}`;
 }
 
 /**
