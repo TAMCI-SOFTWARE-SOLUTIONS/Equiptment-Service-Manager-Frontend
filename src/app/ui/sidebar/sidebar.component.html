@@ -4,7 +4,7 @@
   [visible]="layoutStore.sidebarOpened() && layoutStore.isMobile()"
   (onHide)="layoutStore.closeSidebar()"
   [modal]="true"
-  [showCloseIcon]="false"
+  [closable]="false"
   styleClass="w-80">
 
   <ng-template #headless>
@@ -27,7 +27,7 @@
       <!-- Navigation -->
       <nav class="flex-1 overflow-y-auto px-3 py-4">
         <ul class="space-y-1">
-          @for (item of getVisibleMenuItems(); track item.label) {
+          @for (item of visibleMenuItems(); track item.label) {
             <li>
               <ng-container *ngTemplateOutlet="menuItemTemplate; context: {$implicit: item}" />
             </li>
@@ -64,7 +64,7 @@
   <!-- Navigation Desktop -->
   <nav class="flex-1 overflow-y-auto px-3 py-4">
     <ul class="space-y-1">
-      @for (item of getVisibleMenuItems(); track item.label) {
+      @for (item of visibleMenuItems(); track item.label) {
         <li>
           <ng-container *ngTemplateOutlet="menuItemTemplate; context: {$implicit: item}" />
         </li>
@@ -97,7 +97,6 @@
 <!-- Template reutilizable para items del menú -->
 <ng-template #menuItemTemplate let-item>
 
-  <!-- Item sin hijos (link directo) -->
   @if (!item.children) {
     <a
       pRipple
@@ -116,7 +115,6 @@
     </a>
   }
 
-  <!-- Item con hijos (sección expandible) -->
   @if (item.children) {
     <div>
       <button
