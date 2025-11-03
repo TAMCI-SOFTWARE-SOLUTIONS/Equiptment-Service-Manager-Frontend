@@ -4,7 +4,7 @@ import { UserEntity } from '../../../entities/user/model';
 import { AccountStatusEnum } from '../../../entities/user/model';
 import { RolesEnum } from '../../../entities/role/model';
 import { firstValueFrom } from 'rxjs';
-import {UserService} from '../../../entities/user/api';
+import { UserService } from '../../../entities/user/api';
 
 export interface UsersState {
   users: UserEntity[];
@@ -131,6 +131,44 @@ export const UsersStore = signalStore(
         await this.loadUsers();
       },
 
+      /**
+       * Crear nuevo usuario
+       */
+      async createUser(user: UserEntity): Promise<UserEntity | null> {
+        patchState(store, {
+          error: null
+        });
+
+        try {
+
+          const createdUser = await firstValueFrom(userService.create(user));
+
+          this.addUser(createdUser);
+
+          return createdUser;
+
+        } catch (error: any) {
+          console.error('❌ Error creating user:', error);
+          let errorMessage = 'Error al crear usuario';
+
+          if (error.status === 409) {
+            errorMessage = 'Este email ya está registrado';
+          } else if (error.status === 400) {
+            errorMessage = 'Datos inválidos. Verifica la información ingresada';
+          } else if (error.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+
+          patchState(store, {
+            error: errorMessage
+          });
+
+          return null;
+        }
+      },
+
       // ==================== FILTROS ====================
 
       setSearchQuery(query: string): void {
@@ -174,9 +212,13 @@ export const UsersStore = signalStore(
         //   );
         //   patchState(store, { users });
         //
+        //   console.log('✅ User activated:', userId);
         //   return true;
         // } catch (error) {
-        //   console.error('Error activating user:', error);
+        //   console.error('❌ Error activating user:', error);
+        //   patchState(store, {
+        //     error: 'Error al activar usuario'
+        //   });
         //   return false;
         // }
 
@@ -202,9 +244,13 @@ export const UsersStore = signalStore(
         //   );
         //   patchState(store, { users });
         //
+        //   console.log('✅ User locked:', userId);
         //   return true;
         // } catch (error) {
-        //   console.error('Error locking user:', error);
+        //   console.error('❌ Error locking user:', error);
+        //   patchState(store, {
+        //     error: 'Error al bloquear usuario'
+        //   });
         //   return false;
         // }
 
@@ -230,9 +276,13 @@ export const UsersStore = signalStore(
         //   );
         //   patchState(store, { users });
         //
+        //   console.log('✅ User disabled:', userId);
         //   return true;
         // } catch (error) {
-        //   console.error('Error disabling user:', error);
+        //   console.error('❌ Error disabling user:', error);
+        //   patchState(store, {
+        //     error: 'Error al deshabilitar usuario'
+        //   });
         //   return false;
         // }
 
@@ -247,6 +297,7 @@ export const UsersStore = signalStore(
           u.id === updatedUser.id ? updatedUser : u
         );
         patchState(store, { users });
+        console.log('✅ User updated in store:', updatedUser.id);
       },
 
       /**
@@ -257,6 +308,7 @@ export const UsersStore = signalStore(
           a.email.localeCompare(b.email)
         );
         patchState(store, { users });
+        console.log('✅ User added to store:', newUser.id);
       },
 
       /**
