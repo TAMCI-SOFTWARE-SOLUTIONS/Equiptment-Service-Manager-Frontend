@@ -1,6 +1,6 @@
 // src/app/pages/service-details/utils/report-edit.helpers.ts
 
-import { EquipmentServiceEntity, ServiceStatusEnum } from '../../../entities/equipment-service';
+import {EquipmentServiceEntity, ServiceStatusEnum} from '../../../entities/equipment-service';
 
 /**
  * Verifica si el usuario puede editar el reporte
@@ -38,9 +38,7 @@ export function getDaysSinceCompletion(service: EquipmentServiceEntity): number 
   const now = new Date();
   const completed = new Date(service.completedAt);
   const diffMs = now.getTime() - completed.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  return diffDays;
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
 /**
