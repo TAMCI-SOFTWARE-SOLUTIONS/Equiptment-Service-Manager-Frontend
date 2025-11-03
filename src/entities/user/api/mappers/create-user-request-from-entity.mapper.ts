@@ -6,7 +6,7 @@ export class CreateUserRequestFromEntityMapper {
     return {
       email: entity.email,
       password: entity.password,
-      roles: entity.roles.map(role => role.name)
+      roles: entity.roles.map(role => role.name.toString())
     };
   }
 }
