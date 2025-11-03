@@ -40,8 +40,8 @@ export class SidebarComponent {
       ],
       expanded: true
     },
-    { label: 'Clientes', icon: 'pi-users', route: '/clients', roles: [RolesEnum.ROLE_ADMIN, RolesEnum.ROLE_CLIENT_VIEWER] },
-    { label: 'Proyectos', icon: 'pi-folder', route: '/projects', roles: [RolesEnum.ROLE_ADMIN, RolesEnum.ROLE_OPERATOR] },
+    { label: 'Clientes', icon: 'pi-users', route: '/clients' },
+    { label: 'Proyectos', icon: 'pi-folder', route: '/projects' },
     { label: 'Equipos', icon: 'pi-box', route: '/equipments' },
     { label: 'Tableros de alimentación eléctrica', icon: 'pi-bolt', route: '/power-distribution-panels' },
     { label: 'Marcas y Modelos', icon: 'pi-tags', route: '/brands' },
