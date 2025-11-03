@@ -6,10 +6,8 @@ import { CabinetEntity } from '../../../../entities/cabinet/model';
 import { PanelEntity } from '../../../../entities/panel/model';
 import { SupervisorEntity, SupervisorService } from '../../../../entities/supervisor';
 import { ProfileEntity, ProfileService } from '../../../../entities/profile';
-import { ItemInspectionEntity, ItemInspectionService } from '../../../../entities/item-inspection';
-import { InspectableItemEntity, InspectableItemService } from '../../../../entities/inspectable-item';
-import { BrandEntity, BrandService } from '../../../../entities/brand';
-import { ModelEntity, ModelService } from '../../../../entities/model';
+import { BrandService } from '../../../../entities/brand';
+import { ModelService } from '../../../../entities/model';
 import { EquipmentTypeEnum } from '../../../../shared/model';
 import { CabinetService } from '../../../../entities/cabinet/api';
 import { PanelService } from '../../../../entities/panel/api';
@@ -165,8 +163,8 @@ export const ServiceDetailsStore = signalStore(
 
   withMethods((store) => {
     const serviceService = inject(EquipmentServiceService);
-    const itemInspectionService = inject(ItemInspectionService);
-    const inspectableItemService = inject(InspectableItemService);
+    //const itemInspectionService = inject(ItemInspectionService);
+    //const inspectableItemService = inject(InspectableItemService);
     const supervisorService = inject(SupervisorService);
     const profileService = inject(ProfileService);
     const brandService = inject(BrandService);
