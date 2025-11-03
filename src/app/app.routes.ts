@@ -59,7 +59,7 @@ export const routes: Routes = [
             loadComponent: () => import('../page/services/ui').then(m => m.ServicesActivePage)
           },
           {
-            path: ':serviceId',
+            path: ':id/details',
             title: 'Detalle de Servicio',
             loadComponent: () => import('../page/services/ui').then(m => m.ServiceDetailPage)
           },
@@ -338,70 +338,6 @@ export const routes: Routes = [
         path: 'users/:userId',
         title: 'Editar Usuario',
         loadComponent: () => import('../page/admin/ui').then(m => m.AdminUserFormPage)
-      },
-      // ==================== ADMINISTRATION ====================
-      // 🔒 Only for administrators
-      {
-        path: 'admin',
-        // canActivate: [adminGuard], // 🔒 Descomentar cuando tengas el guard
-        children: [
-          {
-            path: '',
-            redirectTo: 'users',
-            pathMatch: 'full'
-          },
-
-          // --- Clients Management (CRUD) ---
-          {
-            path: 'clients',
-            title: 'Gestión de Clientes',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminClientsPage)
-          },
-          {
-            path: 'clients/new',
-            title: 'Nuevo Cliente',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminClientFormPage)
-          },
-          {
-            path: 'clients/:clientId',
-            title: 'Editar Cliente',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminClientFormPage)
-          },
-
-/*          // --- Projects Management (CRUD) ---
-          {
-            path: 'projects',
-            title: 'Gestión de Proyectos',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminProjectsPage)
-          },
-          {
-            path: 'projects/new',
-            title: 'Nuevo Proyecto',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminProjectFormPage)
-          },
-          {
-            path: 'projects/:projectId',
-            title: 'Editar Proyecto',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminProjectFormPage)
-          },*/
-
-          // --- Equipments Management (CRUD) ---
-          {
-            path: 'equipments',
-            title: 'Gestión de Equipos',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminEquipmentsPage)
-          },
-          {
-            path: 'equipments/new',
-            title: 'Nuevo Equipo',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminEquipmentFormPage)
-          },
-          {
-            path: 'equipments/:equipmentId',
-            title: 'Editar Equipo',
-            loadComponent: () => import('../page/admin/ui').then(m => m.AdminEquipmentFormPage)
-          }
-        ]
       },
 
       // ==================== PROFILE & SETTINGS ====================

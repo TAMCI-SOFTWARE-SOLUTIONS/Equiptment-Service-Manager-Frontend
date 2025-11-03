@@ -97,7 +97,7 @@ export class ServicesActivePage implements OnInit {
 
   onServiceClick(service: ServiceWithDetails): void {
     if (!this.store.isActivePage() || this.store.isAdmin()) {
-      this.router.navigate(['/services', service.id]).then();
+      this.router.navigate(['/services', service.id, 'details']).then();
     } else {
       this.router.navigate(['/services/work', service.id]).then();
     }
