@@ -26,25 +26,25 @@
       <div class="hidden h-8 w-px bg-gray-300 lg:block"></div>
 
       <!-- Context Selector: Cliente > Proyecto -->
-      <div class="relative">
+      <div class="relative max-w-[200px] sm:max-w-xs lg:max-w-sm">
         <button
           pRipple
           type="button"
           (click)="toggleContextSelector()"
           [attr.aria-expanded]="showContextSelector()"
           aria-label="Seleccionar contexto de cliente y proyecto"
-          class="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
 
           <!-- Icon -->
           <i class="pi pi-briefcase shrink-0 text-sky-600"></i>
 
           <!-- Context Text -->
-          <div class="flex min-w-0 max-w-xs flex-col items-start lg:max-w-sm">
-      <span class="text-xs font-medium leading-tight text-gray-500">
-        {{ clienteActual()?.name || 'Sin cliente' }}
+          <div class="flex min-w-0 flex-1 flex-col items-start overflow-hidden">
+            <span class="w-full truncate text-xs font-medium leading-tight text-gray-500">
+              {{ clienteActual()?.name || 'Sin cliente' }}
       </span>
-            <span class="truncate text-sm font-semibold text-gray-900">
-        {{ proyectoActual()?.name || 'Sin proyecto' }}
+            <span class="w-full truncate text-sm font-semibold text-gray-900">
+              {{ proyectoActual()?.name || 'Sin proyecto' }}
       </span>
           </div>
 
@@ -60,10 +60,10 @@
             <!-- Current Context Info -->
             <div class="border-b border-gray-200 px-4 py-3">
               <p class="mb-1 text-xs font-medium text-gray-500">Contexto actual</p>
-              <p class="font-semibold text-gray-900">
+              <p class="break-words font-semibold text-gray-900">
                 {{ clienteActual()?.name || 'Sin cliente seleccionado' }}
               </p>
-              <p class="text-sm text-gray-600">
+              <p class="break-words text-sm text-gray-600">
                 {{ proyectoActual()?.name || 'Sin proyecto seleccionado' }}
               </p>
             </div>
