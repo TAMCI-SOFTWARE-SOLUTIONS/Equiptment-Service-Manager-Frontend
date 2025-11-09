@@ -7,6 +7,7 @@ export class AuthenticatedUserFromResponseMapper {
     return {
       id: dto.id ?? '',
       email: dto.email ?? '',
+      username: dto.username ?? '',
       password: '',
       accountStatus: UserStatusFromResponseMapper.mapStringToAccountStatus(dto.status ?? ''),
       failedLoginAttempts: dto.failedLoginAttempts ?? 0,

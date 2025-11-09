@@ -1,6 +1,7 @@
 export interface AuthenticatedUserResponse {
   id: string | null;
   email: string | null;
+  username: string | null;
   status: string | null;
   failedLoginAttempts: number | null;
   lastLoginAt: string | null;
