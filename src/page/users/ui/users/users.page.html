@@ -217,6 +217,9 @@
               <thead class="border-b border-gray-200 bg-gray-50">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                  Username
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Email
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
@@ -241,6 +244,19 @@
               <tbody class="divide-y divide-gray-200">
                 @for (user of store.filteredUsers(); track user.id) {
                   <tr class="transition-colors hover:bg-gray-50">
+                    <!-- Username -->
+                    <td class="px-4 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500">
+                          <i class="pi pi-user text-base text-white"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <p class="truncate text-sm font-medium text-gray-900">
+                            {{ user.username }}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
 
                     <!-- Email -->
                     <td class="px-4 py-4">
