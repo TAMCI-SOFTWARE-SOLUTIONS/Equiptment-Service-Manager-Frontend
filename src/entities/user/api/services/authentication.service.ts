@@ -9,6 +9,7 @@ import { SignInRequestFromCredentialsMapper, SignInCredentials } from '../mapper
 import { SignUpRequestFromEntityMapper } from '../mappers/sign-up-request-from-entity.mapper';
 import {catchError} from 'rxjs/operators';
 import {BaseService} from '../../../../shared/api';
+import {SetInitialPasswordRequestType} from '../types/set-initial-password-request.type';
 
 @Injectable({
   providedIn: 'root'
@@ -42,6 +43,18 @@ export class AuthenticationService extends BaseService {
   getCurrentUser(): Observable<UserEntity> {
     return this.http.get<AuthenticatedUserResponse>(`${this.resourcePath()}/me`, this.httpOptions).pipe(
       map((response: AuthenticatedUserResponse) => AuthenticatedUserFromResponseMapper.fromDtoToEntity(response)),
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  setInitialPassword(accessToken: string, newPassword: string): Observable<void> {
+    const request: SetInitialPasswordRequestType = {
+      activationToken: accessToken,
+      password: newPassword
+    };
+
+    return this.http.post<void>(`${this.resourcePath()}/set-initial-password`, request, this.httpOptions).pipe(
       retry(2),
       catchError(this.handleError)
     );
