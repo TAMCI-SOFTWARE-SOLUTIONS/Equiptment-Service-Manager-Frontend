@@ -10,6 +10,7 @@ import { SignUpRequestFromEntityMapper } from '../mappers/sign-up-request-from-e
 import {catchError} from 'rxjs/operators';
 import {BaseService} from '../../../../shared/api';
 import {SetInitialPasswordRequestType} from '../types/set-initial-password-request.type';
+import {ResetPasswordRequestType} from '../types/reset-password-request.type';
 
 @Injectable({
   providedIn: 'root'
@@ -58,5 +59,22 @@ export class AuthenticationService extends BaseService {
       retry(2),
       catchError(this.handleError)
     );
+  }
+
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.resourcePath()}/forgot-password`, { email }, this.httpOptions).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    const request: ResetPasswordRequestType = {
+      resetToken: token,
+      newPassword: newPassword
+    };
+    return this.http.post<void>(`${this.resourcePath()}/reset-password`, request , this.httpOptions).pipe(
+      retry(2),
+    )
   }
 }
