@@ -35,19 +35,6 @@
 
       <!-- Search & Filters (Desktop) -->
       <div class="mt-4 hidden items-center gap-3 lg:flex">
-        <!-- Search -->
-        <div class="relative flex-1">
-          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <i class="pi pi-search text-sm text-gray-400"></i>
-          </div>
-          <input
-            type="text"
-            [value]="store.searchTerm()"
-            (input)="store.setSearchTerm($any($event.target).value)"
-            placeholder="Buscar por nombre, email o documento..."
-            class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-        </div>
-
         <!-- Clear filters -->
         @if (store.hasActiveFilters()) {
           <button
@@ -72,7 +59,7 @@
             type="text"
             [value]="store.searchTerm()"
             (input)="store.setSearchTerm($any($event.target).value)"
-            placeholder="Buscar..."
+            placeholder="Buscar por nombre, email o documento..."
             class="block w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
         </div>
 
