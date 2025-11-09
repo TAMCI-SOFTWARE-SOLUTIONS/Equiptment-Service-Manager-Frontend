@@ -17,7 +17,7 @@ export class UserPreferencesService extends BaseService {
     this.resourceEndpoint = 'user-preferences';
   }
 
-  getByUser(userId: string): Observable<UserPreferencesEntity> {
+  getByUserId(userId: string): Observable<UserPreferencesEntity> {
     return this.http
       .get<UserPreferencesResponse>(`${this.resourcePath()}?userId=${encodeURIComponent(userId)}`, this.httpOptions)
       .pipe(
