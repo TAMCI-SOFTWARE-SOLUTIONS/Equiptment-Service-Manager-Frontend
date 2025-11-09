@@ -11,6 +11,7 @@ import {catchError} from 'rxjs/operators';
 import {BaseService} from '../../../../shared/api';
 import {SetInitialPasswordRequestType} from '../types/set-initial-password-request.type';
 import {ResetPasswordRequestType} from '../types/reset-password-request.type';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -62,7 +63,8 @@ export class AuthenticationService extends BaseService {
   }
 
   forgotPassword(email: string): Observable<void> {
-    return this.http.post<void>(`${this.resourcePath()}/forgot-password`, { email }, this.httpOptions).pipe(
+    const params = new HttpParams().set('email', email);
+    return this.http.post<void>(`${this.resourcePath()}/forgot-password`, null,  { ...this.httpOptions, params: params }).pipe(
       retry(2),
       catchError(this.handleError)
     );
