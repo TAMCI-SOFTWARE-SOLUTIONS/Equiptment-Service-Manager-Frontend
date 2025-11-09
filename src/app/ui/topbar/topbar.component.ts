@@ -28,7 +28,7 @@ export class TopbarComponent {
 
   // User info con rol formateado
   usuarioActual = {
-    nombre: this.profileStore.displayName,
+    nombre: this.authStore.username,
     rol: computed(() => this.formatRoles(this.authStore.userRoles())),
     avatar: this.profileStore.profileImageUrl
   };

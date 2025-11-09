@@ -377,24 +377,6 @@
                         <p class="mt-1 text-xs text-gray-600">
                           Al activar esta opción, se creará una cuenta de acceso al sistema para este colaborador.
                         </p>
-                        @if (store.formData().shouldCreateUser) {
-                          <div class="mt-3 rounded-lg border border-sky-200 bg-sky-50 p-3">
-                            <div class="flex items-start gap-2">
-                              <i class="pi pi-info-circle mt-0.5 text-sm text-sky-600"></i>
-                              <div class="flex-1">
-                                <p class="text-xs font-medium text-sky-900">
-                                  Credenciales de acceso
-                                </p>
-                                <p class="mt-1 text-xs text-sky-700">
-                                  <strong>Usuario:</strong> {{ store.formData().email }}
-                                </p>
-                                <p class="mt-0.5 text-xs text-sky-700">
-                                  <strong>Contraseña inicial:</strong> {{ store.formData().identityDocumentNumber || '(completar documento)' }}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        }
                       </div>
 
                       <p-toggle-switch

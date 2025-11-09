@@ -9,6 +9,9 @@ import { SignInRequestFromCredentialsMapper, SignInCredentials } from '../mapper
 import { SignUpRequestFromEntityMapper } from '../mappers/sign-up-request-from-entity.mapper';
 import {catchError} from 'rxjs/operators';
 import {BaseService} from '../../../../shared/api';
+import {SetInitialPasswordRequestType} from '../types/set-initial-password-request.type';
+import {ResetPasswordRequestType} from '../types/reset-password-request.type';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -45,5 +48,35 @@ export class AuthenticationService extends BaseService {
       retry(2),
       catchError(this.handleError)
     );
+  }
+
+  setInitialPassword(accessToken: string, newPassword: string): Observable<void> {
+    const request: SetInitialPasswordRequestType = {
+      activationToken: accessToken,
+      password: newPassword
+    };
+
+    return this.http.post<void>(`${this.resourcePath()}/set-initial-password`, request, this.httpOptions).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  forgotPassword(email: string): Observable<void> {
+    const params = new HttpParams().set('email', email);
+    return this.http.post<void>(`${this.resourcePath()}/forgot-password`, null,  { ...this.httpOptions, params: params }).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    const request: ResetPasswordRequestType = {
+      resetToken: token,
+      newPassword: newPassword
+    };
+    return this.http.post<void>(`${this.resourcePath()}/reset-password`, request , this.httpOptions).pipe(
+      retry(2),
+    )
   }
 }
