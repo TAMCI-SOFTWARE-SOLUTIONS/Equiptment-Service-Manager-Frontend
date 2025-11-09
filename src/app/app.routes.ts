@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginPage } from '../page/login/ui';
 import { MainLayoutLayout } from './ui';
 import {authGuard} from '../shared/guards';
+import {ActiveAccountPage} from '../page/active-account/ui';
 
 export const routes: Routes = [
   // ==================== AUTH ====================
@@ -9,6 +10,11 @@ export const routes: Routes = [
     path: 'login',
     title: 'Iniciar Sesión',
     component: LoginPage
+  },
+  {
+    path: 'activate-account',
+    title: 'Activar Cuenta',
+    component: ActiveAccountPage
   },
   // ==================== MAIN APP ====================
   {
