@@ -19,7 +19,7 @@ export class AppInitializerService {
       console.log('🚀 Inicializando aplicación...');
       this.setupEventBusCommunication();
 
-      this.authStore.initializeAuth();
+      await this.authStore.initializeAuth();
       console.log('✅ Auth state initialized');
 
       if (this.authStore.isAuthenticated()) {

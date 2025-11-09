@@ -9,9 +9,12 @@ import { AuthenticationService, SignInCredentials } from '../../entities/user/ap
 import { EventBusService } from '../services';
 import { EventNames } from '../events/event-names';
 import { AuthLoginPayload, AuthLogoutPayload, AuthRestoredPayload, AuthRefreshPayload } from '../events/event-payloads';
+import {UserPreferencesEntity} from '../../entities/user-preferences/model/entities/user-preferences.entity';
+import {UserPreferencesService} from '../../entities/user-preferences/api/services/user-preferences.service';
 
 export interface AuthState {
   user: UserEntity | null;
+  userPreferences: UserPreferencesEntity | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -21,6 +24,7 @@ export interface AuthState {
 
 const initialState: AuthState = {
   user: null,
+  userPreferences: null,
   token: null,
   isAuthenticated: false,
   isLoading: false,
@@ -45,6 +49,7 @@ export const AuthStore = signalStore(
   withMethods((store) => {
     const storageService = inject(StorageService);
     const authService = inject(AuthenticationService);
+    const userPreferencesService = inject(UserPreferencesService);
     const router = inject(Router);
     const eventBus = inject(EventBusService);
 
@@ -53,11 +58,7 @@ export const AuthStore = signalStore(
         return !!store.user()?.roles?.some(role => role.name === roleName);
       },
 
-      /*
-       * Initialize auth
-       * Se ejecuta al iniciar la app para restaurar sesión desde storage
-       */
-      initializeAuth() {
+      async initializeAuth() {
         const token = storageService.getToken();
         const user = storageService.getUser();
 
@@ -77,7 +78,8 @@ export const AuthStore = signalStore(
           };
           eventBus.emit(EventNames.AUTH_RESTORED, payload);
 
-          this.validateToken().then(() => {});
+          await this.validateToken().then();
+          await this.loadUserPreferences().then();
         }
       },
 
@@ -123,9 +125,6 @@ export const AuthStore = signalStore(
         router.navigate(['/login']).then(() => {});
       },
 
-      /*
-       * Sign In - Login desde formulario
-       */
       async signIn(credentials: SignInCredentials) {
         patchState(store, {
           isLoading: true,
@@ -142,8 +141,6 @@ export const AuthStore = signalStore(
             const completeUser = await firstValueFrom(authService.getCurrentUser());
 
             storageService.setUser(completeUser);
-
-            console.log('✅ Usuario autenticado:', completeUser);
 
             patchState(store, {
               user: completeUser,
@@ -162,6 +159,7 @@ export const AuthStore = signalStore(
             };
             eventBus.emit(EventNames.AUTH_LOGIN, payload);
 
+            await this.loadUserPreferences().then();
             await router.navigate(['/dashboard']);
           } else {
             patchState(store, {
@@ -177,9 +175,6 @@ export const AuthStore = signalStore(
         }
       },
 
-      /*
-       * Sign Out - Cerrar sesión manual
-       */
       signOut() {
         const currentUserId = store.user()?.id || null;
 
@@ -219,9 +214,6 @@ export const AuthStore = signalStore(
         }
       },
 
-      /*
-       * Refresh User - Refrescar datos del usuario actual
-       */
       async refreshUser() {
         patchState(store, {
           isLoading: true,
@@ -251,6 +243,8 @@ export const AuthStore = signalStore(
               token: currentToken!,
               timestamp: new Date()
             };
+
+            this.loadUserPreferences().then();
             eventBus.emit(EventNames.AUTH_REFRESH, payload);
 
           } else {
@@ -263,6 +257,27 @@ export const AuthStore = signalStore(
           patchState(store, {
             isLoading: false,
             error: error.message || 'Error al actualizar los datos del usuario'
+          });
+        }
+      },
+
+      async loadUserPreferences() {
+        const userId = store.userId();
+        if (!userId) return;
+
+        patchState(store, { isLoading: true, error: null });
+
+        try {
+          const prefs = await firstValueFrom(userPreferencesService.getByUserId(userId));
+          patchState(store, {
+            userPreferences: prefs,
+            isLoading: false,
+            error: null
+          });
+        } catch (error: any) {
+          patchState(store, {
+            isLoading: false,
+            error: error?.message || 'Error al cargar preferencias de usuario'
           });
         }
       },
