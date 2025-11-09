@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:9100/api/v1/',
+  apiUrl: 'http://192.168.1.15:9100/api/v1/',
   enableDebugTools: true,
   logLevel: 'debug'
 };
