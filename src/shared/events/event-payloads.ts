@@ -1,6 +1,7 @@
 import { ProfileEntity } from '../../entities/profile';
 import { UserEntity } from '../../entities/user/model';
 import { EventNames } from './event-names';
+import {UserPreferencesEntity} from '../../entities/user-preferences/model/entities/user-preferences.entity';
 
 /**
  * Payload base para todos los eventos
@@ -50,6 +51,13 @@ export interface AuthRefreshPayload extends BaseEventPayload {
   userId: string;
   user: UserEntity;
   token: string;
+}
+
+/**
+ * Evento: Preferencia de usuario cargado
+ */
+export interface UserPreferenceLoadedPayload extends BaseEventPayload {
+  userPreference: UserPreferencesEntity;
 }
 
 /**
@@ -103,6 +111,7 @@ export interface EventPayloadMap {
   [EventNames.AUTH_TOKEN_EXPIRED]: AuthTokenExpiredPayload;
   [EventNames.AUTH_RESTORED]: AuthRestoredPayload;
   [EventNames.AUTH_REFRESH]: AuthRefreshPayload;
+  [EventNames.USER_PREFERENCES_LOADED]: UserPreferenceLoadedPayload;
   [EventNames.PROFILE_UPDATED]: ProfileUpdatedPayload;
   [EventNames.PROFILE_IMAGE_UPDATED]: ProfileImageUpdatedPayload;
   [EventNames.PROFILE_CLEARED]: ProfileClearedPayload;

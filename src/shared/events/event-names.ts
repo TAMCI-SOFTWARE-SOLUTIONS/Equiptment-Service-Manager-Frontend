@@ -1,10 +1,13 @@
 export class EventNames {
-  // Eventos de autenticación
+  // Events of authentication
   static readonly AUTH_LOGIN = 'auth:login' as const;
   static readonly AUTH_LOGOUT = 'auth:logout' as const;
   static readonly AUTH_TOKEN_EXPIRED = 'auth:token_expired' as const;
   static readonly AUTH_RESTORED = 'auth:restored' as const;
   static readonly AUTH_REFRESH = 'auth:refresh' as const;
+
+  // Event of user preferences
+  static readonly USER_PREFERENCES_LOADED = 'user_preferences:loaded' as const;
 
   // Eventos de perfil
   static readonly PROFILE_UPDATED = 'profile:updated' as const;
