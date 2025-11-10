@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
-import { BaseService } from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import { PlantEntity } from '../../model';
 import { PlantResponse } from '../types/plant-response.type';
 import { CreatePlantRequest } from '../types/create-plant-request.type';

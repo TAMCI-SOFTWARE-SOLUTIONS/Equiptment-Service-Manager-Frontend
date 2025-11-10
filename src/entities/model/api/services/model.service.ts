@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
-import { BaseService } from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import { ModelEntity } from '../../model/entities/model.entity';
 import { ModelResponse } from '../types/model-response.type';
 import { CreateModelRequest } from '../types/create-model-request.type';

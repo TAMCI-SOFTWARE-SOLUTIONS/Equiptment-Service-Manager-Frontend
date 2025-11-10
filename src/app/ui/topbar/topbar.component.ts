@@ -7,10 +7,14 @@ import {AuthStore, MyProfileStore} from '../../../shared/stores';
 import {Avatar} from 'primeng/avatar';
 import {Ripple} from 'primeng/ripple';
 import {RoleEntity, RolesEnum} from '../../../entities/role/model';
+import {EntityIconComponent} from '../../../shared/ui/entity-icon/entity-icon.component';
+import {IconEntity} from '../../../shared/model/enums/icon-entity.enum';
+import {IconSize} from '../../../shared/model/enums/icon-size.enum';
+import {IconRounded} from '../../../shared/model/enums/icon.rounded';
 
 @Component({
   selector: 'app-topbar',
-  imports: [CommonModule, Avatar, Ripple],
+  imports: [CommonModule, Avatar, Ripple, EntityIconComponent],
   standalone: true,
   templateUrl: './topbar.component.html'
 })
@@ -20,6 +24,10 @@ export class TopbarComponent {
   readonly profileStore = inject(MyProfileStore);
   readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
+
+  readonly IconEntity = IconEntity;
+  readonly IconSize = IconSize;
+  readonly IconRounded = IconRounded;
 
   // Context signals
   clienteActual = this.contextStore.client;

@@ -8,7 +8,7 @@ import { AuthenticatedUserFromResponseMapper } from '../mappers/authenticated-us
 import { SignInRequestFromCredentialsMapper, SignInCredentials } from '../mappers/sign-in-request-from-credentials.mapper';
 import { SignUpRequestFromEntityMapper } from '../mappers/sign-up-request-from-entity.mapper';
 import {catchError} from 'rxjs/operators';
-import {BaseService} from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import {SetInitialPasswordRequestType} from '../types/set-initial-password-request.type';
 import {ResetPasswordRequestType} from '../types/reset-password-request.type';
 import {HttpParams} from '@angular/common/http';

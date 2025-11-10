@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
-import { BaseService } from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import { LocationEntity } from '../../model';
 import { LocationResponse } from '../types/location-response.type';
 import { CreateLocationRequest } from '../types/create-location-request.type';

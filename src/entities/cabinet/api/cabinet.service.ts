@@ -1,4 +1,3 @@
-import {BaseService} from '../../../shared/api';
 import {Injectable} from '@angular/core';
 import {catchError, map, Observable, of, retry} from 'rxjs';
 import {CabinetEntity} from '../model';
@@ -10,6 +9,7 @@ import {UpdateCabinetRequestFromEntityMapper} from './update-cabinet-request-fro
 import {UpdateCabinetRequest} from './update-cabinet-request.type';
 import {InspectableItemEntity} from '../../inspectable-item';
 import {HttpParams} from '@angular/common/http';
+import {BaseService} from '../../../shared/api/services/base.service';
 
 @Injectable({
   providedIn: 'root'

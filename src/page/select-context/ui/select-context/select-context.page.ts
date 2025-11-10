@@ -1,77 +1,60 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Router} from '@angular/router';
-import {MessageService} from 'primeng/api';
-import {ToastModule} from 'primeng/toast';
 import {RippleModule} from 'primeng/ripple';
-import {StepIndicatorComponent} from '../step-indicator/step-indicator.component';
-import {ClientCardComponent} from '../client-card/client-card.component';
-import {ProjectCardComponent} from '../project-card/project-card.component';
-import {SelectContextStep, SelectContextStore} from '../../../../shared/model/select-context.store';
-import {ProjectEntity} from '../../../../entities/project/model/project.entity';
+import {ClientCardComponent} from '../../../../entities/client/ui/client-card/client-card.component';
+import {ProjectCardComponent} from '../../../../entities/project/ui/project-card/project-card.component';
+import {ContextHeroComponent} from '../context-hero/context-hero.component';
+import {SuccessModalComponent} from '../success-modal/success-modal.component';
+import {SelectContextStep, SelectContextStore} from '../../model/stores/select-context.store';
 import {ClientEntity} from '../../../../entities/client/model';
-import {Dialog} from 'primeng/dialog';
+import {ProjectEntity} from '../../../../entities/project/model/project.entity';
+import {EntityIconComponent} from '../../../../shared/ui/entity-icon/entity-icon.component';
+import {IconEntity} from '../../../../shared/model/enums/icon-entity.enum';
+import {IconSize} from '../../../../shared/model/enums/icon-size.enum';
+import {IconRounded} from '../../../../shared/model/enums/icon.rounded';
 
 @Component({
   selector: 'app-select-context',
   standalone: true,
   imports: [
     CommonModule,
-    StepIndicatorComponent,
+    RippleModule,
     ClientCardComponent,
     ProjectCardComponent,
-    ToastModule,
-    RippleModule,
-    Dialog
+    ContextHeroComponent,
+    SuccessModalComponent,
+    EntityIconComponent
   ],
-  providers: [
-    SelectContextStore,
-    MessageService
-  ],
+  providers: [SelectContextStore],
   templateUrl: './select-context.page.html'
 })
 export class SelectContextPage implements OnInit {
   readonly store = inject(SelectContextStore);
-  private router = inject(Router);
-  private messageService = inject(MessageService);
+  private readonly router = inject(Router);
 
   readonly SelectContextStep = SelectContextStep;
+  readonly IconEntity = IconEntity;
+  readonly IconSize = IconSize;
+  readonly IconRounded = IconRounded;
 
   showSuccessModal = false;
 
-  ngOnInit(): void {
-    this.store.loadClients();
-  }
-
-  getStepIcon(step: number): string {
-    return step === 1 ? 'pi-building' : 'pi-folder';
-  }
-
-  getStepDescription(): string {
-    if (this.store.currentStep() === SelectContextStep.SELECT_CLIENT) {
-      return 'Elige el cliente con el que deseas trabajar';
-    }
-    return `Elige el proyecto del cliente ${this.store.selectedClient()?.name || ''}`;
+  async ngOnInit(): Promise<void> {
+    await this.store.loadClients();
   }
 
   onClientSelect(client: ClientEntity): void {
     this.store.selectClient(client);
+    this.store.loadProjects();
   }
 
   onProjectSelect(project: ProjectEntity): void {
     this.store.selectProject(project);
   }
 
-  async onNext(): Promise<void> {
-    await this.store.nextStep();
-  }
-
-  onBack(): void {
-    this.store.previousStep();
-  }
-
-  onCancel(): void {
-    this.router.navigate(['/']).then();
+  onMobileBack(): void {
+    this.store.goToClientStep();
   }
 
   onFinish(): void {
@@ -79,21 +62,25 @@ export class SelectContextPage implements OnInit {
     this.showSuccessModal = true;
   }
 
-  protected navigateToCreateService(): void {
-    this.messageService.clear('context-success');
-    this.router.navigate(['/services/new']).then();
-  }
-
-  protected navigateToDashboard(): void {
-    this.messageService.clear('context-success');
+  onCancel(): void {
     this.router.navigate(['/']).then();
   }
 
-  onRetry(): void {
-    if (this.store.currentStep() === SelectContextStep.SELECT_CLIENT) {
-      this.store.loadClients();
-    } else {
-      this.store.loadProjects();
-    }
+  onRetryClients(): void {
+    this.store.loadClients();
+  }
+
+  onRetryProjects(): void {
+    this.store.loadProjects();
+  }
+
+  navigateToDashboard(): void {
+    this.showSuccessModal = false;
+    this.router.navigate(['/']).then();
+  }
+
+  navigateToCreateService(): void {
+    this.showSuccessModal = false;
+    this.router.navigate(['/services/new']).then();
   }
 }

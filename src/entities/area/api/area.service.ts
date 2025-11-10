@@ -1,5 +1,4 @@
 import {Injectable} from '@angular/core';
-import {BaseService} from '../../../shared/api';
 import {catchError, map, Observable, of, retry} from 'rxjs';
 import {AreaEntity} from '../model';
 import {AreaResponseDto} from './area-response.dto';
@@ -9,6 +8,7 @@ import {CreateAreaRequest} from './create-area-request.type';
 import {UpdateAreaRequestFromEntityMapper} from './update-area-request-from-entity.mapper';
 import {UpdateAreaRequest} from './update-area-request.type';
 import {HttpParams} from '@angular/common/http';
+import {BaseService} from '../../../shared/api/services/base.service';
 
 @Injectable({
   providedIn: 'root'

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Observable, map, retry, catchError, throwError, of } from 'rxjs';
-import { BaseService } from '../../../shared/api';
+import { Observable, map, retry, catchError, throwError } from 'rxjs';
 import {FileEntity} from '../model/file.entity';
 import {FileResponseDto} from './file-response.dto';
 import {FileEntityFromResponseMapper} from './file-entity-from-response.mapper';
+import {BaseService} from '../../../shared/api/services/base.service';
 
 @Injectable({
   providedIn: 'root'

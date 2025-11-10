@@ -36,7 +36,11 @@
           class="flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1">
 
           <!-- Icon -->
-          <i class="pi pi-briefcase shrink-0 text-sky-600"></i>
+          <app-entity-icon
+            [entity]="IconEntity.CLIENT"
+            [size]="IconSize.SM"
+            [rounded]="IconRounded.NONE"
+            [customClasses]="'text-sky-600 bg-transparent'" />
 
           <!-- Context Text -->
           <div class="flex min-w-0 flex-1 flex-col items-start overflow-hidden">
@@ -59,7 +63,7 @@
 
             <!-- Current Context Info -->
             <div class="border-b border-gray-200 px-4 py-3">
-              <p class="mb-1 text-xs font-medium text-gray-500">Contexto actual</p>
+              <p class="mb-1 text-xs font-medium text-gray-500">Espacio de Trabajo</p>
               <p class="break-words font-semibold text-gray-900">
                 {{ clienteActual()?.name || 'Sin cliente seleccionado' }}
               </p>
@@ -76,7 +80,7 @@
               class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-sky-50 focus:bg-sky-50 focus:outline-none">
               <i class="pi pi-sync text-sky-600"></i>
               <span class="text-sm font-medium text-gray-700">
-          Cambiar Cliente/Proyecto
+          Selecciona tu Espacio de Trabajo
         </span>
               <i class="pi pi-arrow-right ml-auto text-xs text-gray-400"></i>
             </button>

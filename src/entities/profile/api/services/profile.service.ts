@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {Observable, of} from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
-import { BaseService } from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import { ProfileEntity } from '../../model';
 import {CreateProfileRequest, ProfileResponse, UpdateProfileRequest} from '../types';
 import {

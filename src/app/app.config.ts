@@ -1,16 +1,21 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, APP_INITIALIZER } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import {
+  APP_INITIALIZER,
+  ApplicationConfig,
+  provideBrowserGlobalErrorListeners,
+  provideZoneChangeDetection
+} from '@angular/core';
+import {provideRouter} from '@angular/router';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
 
-import { routes } from './app.routes';
+import {routes} from './app.routes';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {providePrimeNG} from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import {definePreset} from '@primeuix/themes';
-import { authenticationInterceptor } from '../shared/api';
-import { AppInitializerService } from '../shared/services';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import {provideCharts, withDefaultRegisterables} from 'ng2-charts';
 import {MessageService} from 'primeng/api';
+import {AppInitializerService} from '../shared/api/services/app-initializer.service';
+import {authenticationInterceptor} from '../shared/api/interceptors/authentication.interceptor';
 
 const BlueModern = definePreset(Aura, {
   semantic: {

@@ -1,17 +1,17 @@
 import {computed, inject} from '@angular/core';
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
-import {ClientEntity} from '../../entities/client/model';
-import {ProjectEntity} from '../../entities/project/model/project.entity';
-import {ClientService} from '../../entities/client/api';
-import {ProjectService} from '../../entities/project/api';
+import {ClientEntity} from '../../../../entities/client/model';
+import {ProjectEntity} from '../../../../entities/project/model/project.entity';
+import {ClientService} from '../../../../entities/client/api';
+import {ProjectService} from '../../../../entities/project/api';
+import {EventBusService} from '../../../../shared/api/services/event-bus.service';
 import {firstValueFrom} from 'rxjs';
-import {EventBusService} from '../services';
-import {ContextChangedPayload} from '../events/event-payloads';
-import {EventNames} from '../events/event-names';
+import {ContextChangedPayload} from '../../../../shared/events/event-payloads';
+import {EventNames} from '../../../../shared/events/event-names';
 
 export enum SelectContextStep {
-  SELECT_CLIENT = 0,
-  SELECT_PROJECT = 1
+  SELECT_CLIENT = 1,
+  SELECT_PROJECT = 2
 }
 
 export interface SelectContextState {
@@ -90,12 +90,13 @@ export const SelectContextStore = signalStore(
         }
       },
 
-      selectClient(client: ClientEntity): void {
+      selectClient(client: ClientEntity | null): void {
         patchState(store, {
           selectedClient: client,
           selectedProject: null,
           projects: [],
-          projectsError: null
+          projectsError: null,
+          currentStep: client ? SelectContextStep.SELECT_PROJECT : SelectContextStep.SELECT_CLIENT
         });
       },
 
@@ -103,7 +104,7 @@ export const SelectContextStore = signalStore(
         const selectedClient = store.selectedClient();
 
         if (!selectedClient) {
-          console.warn('⚠️ No client selected');
+          console.warn('No client selected');
           return;
         }
 
@@ -122,7 +123,7 @@ export const SelectContextStore = signalStore(
           });
 
         } catch (error: any) {
-          console.error('❌ Error loading projects:', error);
+          console.error('Error loading projects:', error);
           patchState(store, {
             projects: [],
             isLoadingProjects: false,
@@ -131,39 +132,25 @@ export const SelectContextStore = signalStore(
         }
       },
 
-      selectProject(project: ProjectEntity): void {
+      selectProject(project: ProjectEntity | null): void {
         patchState(store, {
           selectedProject: project
         });
       },
 
-      async nextStep(): Promise<void> {
-        const currentStep = store.currentStep();
-
-        if (currentStep === SelectContextStep.SELECT_CLIENT) {
-          if (!store.selectedClient()) {
-            return;
-          }
-
-          patchState(store, {
-            currentStep: SelectContextStep.SELECT_PROJECT
-          });
-
-          await this.loadProjects();
-        }
+      goToClientStep(): void {
+        patchState(store, {
+          currentStep: SelectContextStep.SELECT_CLIENT,
+          selectedProject: null,
+          projects: [],
+          projectsError: null
+        });
       },
 
-      previousStep(): void {
-        const currentStep = store.currentStep();
-
-        if (currentStep === SelectContextStep.SELECT_PROJECT) {
-          patchState(store, {
-            currentStep: SelectContextStep.SELECT_CLIENT,
-            projects: [],
-            selectedProject: null,
-            projectsError: null
-          });
-        }
+      goToProjectStep(): void {
+        patchState(store, {
+          currentStep: SelectContextStep.SELECT_PROJECT
+        });
       },
 
       finish(): void {
@@ -171,7 +158,7 @@ export const SelectContextStore = signalStore(
         const project = store.selectedProject();
 
         if (!client || !project) {
-          console.error('❌ Cannot finish: missing client or project');
+          console.error('Cannot finish: missing client or project');
           return;
         }
 

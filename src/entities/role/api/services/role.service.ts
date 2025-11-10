@@ -4,7 +4,7 @@ import { RoleEntity } from '../../model';
 import { RoleResponse } from '../types/role-response.type';
 import { RoleEntityFromResponseMapper } from '../mappers/role-entity-from-response.mapper';
 import {catchError} from 'rxjs/operators';
-import {BaseService} from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 
 @Injectable({
   providedIn: 'root'

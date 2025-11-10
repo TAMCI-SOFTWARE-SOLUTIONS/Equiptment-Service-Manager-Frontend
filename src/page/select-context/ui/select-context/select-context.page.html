@@ -1,354 +1,460 @@
-<div class="flex h-full flex-col bg-gray-50">
+<div class="flex h-screen flex-col bg-gray-50">
 
-  <!-- Header -->
-  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 shadow-sm lg:px-8">
-    <div class="min-h-full x-auto max-w-7xl">
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex-1">
-          <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
-            Seleccionar Contexto
-          </h1>
-          <p class="mt-1 text-sm text-gray-600">
-            Paso {{ store.currentStep() + 1 }} de 2
+  <!-- HEADER FIXED -->
+  <header class="shrink-0 border-b border-gray-200 bg-white px-4 py-4 lg:px-8 lg:py-6">
+    <div class="mx-auto max-w-7xl">
+      <app-context-hero
+        [currentStep]="store.currentStep()"
+        [selectedClientName]="store.selectedClient()?.name ?? null" />
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT SCROLLABLE -->
+  <main class="flex-1 overflow-hidden px-4 py-6 lg:px-8">
+    <div class="mx-auto flex h-full max-w-7xl flex-col">
+
+      <!-- DESKTOP: Dual Scroll Layout -->
+      <div class="hidden h-full lg:grid lg:grid-cols-2 lg:gap-6">
+
+        <!-- COLUMN 1: CLIENTES (Independent Scroll) -->
+        <section class="flex min-h-0 flex-col">
+          <!-- Section Header (Fixed) -->
+          <div class="mb-4 flex shrink-0 items-center gap-3">
+            <app-entity-icon
+              [entity]="IconEntity.CLIENT"
+              [size]="IconSize.MD"
+              [rounded]="IconRounded.LG"
+              [customClasses]="'bg-sky-100 text-sky-600'" />
+            <div class="flex-1">
+              <h2 class="text-lg font-semibold text-gray-900">
+                Clientes
+              </h2>
+              <p class="text-sm text-gray-600">
+                Elige el cliente con el que trabajarás
+              </p>
+            </div>
+          </div>
+
+          <!-- Scrollable Content -->
+          <div class="min-h-0 flex-1 overflow-y-auto">
+            <div class="pr-2">
+
+              <!-- Loading State -->
+              @if (store.isLoadingClients()) {
+                <div class="space-y-4">
+                  @for (i of [1, 2]; track i) {
+                    <div class="animate-pulse overflow-hidden rounded-xl border-2 border-gray-200 bg-white">
+                      <div class="h-32 bg-gray-200"></div>
+                      <div class="flex items-center gap-4 p-5">
+                        <div class="h-16 w-16 rounded-full bg-gray-200"></div>
+                        <div class="flex-1 space-y-2">
+                          <div class="h-4 w-3/4 rounded bg-gray-200"></div>
+                          <div class="h-3 w-1/2 rounded bg-gray-200"></div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              @else if (store.clientsError()) {
+                <div class="rounded-xl border-2 border-red-200 bg-red-50 p-8 text-center">
+                  <i class="pi pi-exclamation-circle mb-4 text-4xl text-red-500"></i>
+                  <h3 class="mb-2 text-lg font-semibold text-red-900">
+                    Error al cargar clientes
+                  </h3>
+                  <p class="mb-4 text-sm text-red-700">
+                    {{ store.clientsError() }}
+                  </p>
+                  <button
+                    pRipple
+                    type="button"
+                    (click)="onRetryClients()"
+                    class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-red-600">
+                    <i class="pi pi-refresh mr-2"></i>
+                    Reintentar
+                  </button>
+                </div>
+              }
+
+              @else if (!store.hasClients()) {
+                <div class="rounded-xl border-2 border-dashed border-gray-300 bg-white p-8 text-center">
+                  <i class="pi pi-inbox mb-4 text-4xl text-gray-400"></i>
+                  <h3 class="mb-2 text-lg font-semibold text-gray-900">
+                    No hay clientes disponibles
+                  </h3>
+                  <p class="text-sm text-gray-600">
+                    Contacta al administrador para obtener acceso
+                  </p>
+                </div>
+              }
+
+              @else {
+                <div class="space-y-4 pb-4 flex flex-col gap-x-1">
+                  @for (client of store.clients(); track client.id) {
+                    <app-client-card
+                      [client]="client"
+                      [isSelected]="store.selectedClient()?.id === client.id"
+                      [clickable]="true"
+                      (cardClick)="onClientSelect($event)" />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- COLUMN 2: PROYECTOS (Independent Scroll) -->
+        <section class="flex min-h-0 flex-col">
+          <!-- Section Header (Fixed) -->
+          <div class="mb-4 flex shrink-0 items-center gap-3">
+            <app-entity-icon
+              [entity]="IconEntity.PROJECT"
+              [size]="IconSize.MD"
+              [rounded]="IconRounded.LG"
+              [customClasses]="'bg-cyan-100 text-cyan-600'" />
+            <div class="flex-1">
+              <h2 class="text-lg font-semibold text-gray-900">
+                Proyectos
+              </h2>
+              @if (store.selectedClient()) {
+                <p class="text-sm text-gray-600">
+                  Proyectos de <span class="font-semibold">{{ store.selectedClient()!.name }}</span>
+                </p>
+              } @else {
+                <p class="text-sm text-gray-600">
+                  Primero selecciona un cliente
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- Scrollable Content -->
+          <div class="min-h-0 flex-1 overflow-y-auto">
+            <div class="pr-2 h-full">
+
+              <!-- Disabled State -->
+              @if (!store.selectedClient()) {
+                <div class=" h-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center opacity-60">
+                  <i class="pi pi-arrow-left mb-4 text-4xl text-gray-400"></i>
+                  <h3 class="mb-2 text-lg font-semibold text-gray-700">
+                    Selecciona un cliente
+                  </h3>
+                  <p class="text-sm text-gray-600">
+                    Los proyectos se mostrarán después de seleccionar un cliente
+                  </p>
+                </div>
+              }
+
+              @else if (store.isLoadingProjects()) {
+                <div class="space-y-4">
+                  @for (i of [1, 2]; track i) {
+                    <div class="animate-pulse overflow-hidden rounded-xl border-2 border-gray-200 bg-white">
+                      <div class="h-40 bg-gray-200"></div>
+                      <div class="space-y-3 p-5">
+                        <div class="h-4 w-3/4 rounded bg-gray-200"></div>
+                        <div class="h-3 w-1/2 rounded bg-gray-200"></div>
+                        <div class="flex gap-2">
+                          <div class="h-6 w-20 rounded-full bg-gray-200"></div>
+                          <div class="h-6 w-20 rounded-full bg-gray-200"></div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              @else if (store.projectsError()) {
+                <div class="rounded-xl border-2 border-red-200 bg-red-50 p-8 text-center">
+                  <i class="pi pi-exclamation-circle mb-4 text-4xl text-red-500"></i>
+                  <h3 class="mb-2 text-lg font-semibold text-red-900">
+                    Error al cargar proyectos
+                  </h3>
+                  <p class="mb-4 text-sm text-red-700">
+                    {{ store.projectsError() }}
+                  </p>
+                  <button
+                    pRipple
+                    type="button"
+                    (click)="onRetryProjects()"
+                    class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-red-600">
+                    <i class="pi pi-refresh mr-2"></i>
+                    Reintentar
+                  </button>
+                </div>
+              }
+
+              @else if (!store.hasProjects()) {
+                <div class="rounded-xl border-2 border-dashed border-gray-300 bg-white p-8 text-center">
+                  <i class="pi pi-inbox mb-4 text-4xl text-gray-400"></i>
+                  <h3 class="mb-2 text-lg font-semibold text-gray-900">
+                    No hay proyectos disponibles
+                  </h3>
+                  <p class="text-sm text-gray-600">
+                    Este cliente no tiene proyectos asignados
+                  </p>
+                </div>
+              }
+
+              @else {
+                <div class="space-y-4 pb-4 flex flex-col gap-x-1">
+                  @for (project of store.projects(); track project.id) {
+                    <app-project-card
+                      [project]="project"
+                      [isSelected]="store.selectedProject()?.id === project.id"
+                      [clickable]="true"
+                      (cardClick)="onProjectSelect($event)" />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- MOBILE: Stepper Layout (sin cambios) -->
+      <div class="h-full lg:hidden">
+
+        <!-- Step 1: Clientes -->
+        @if (store.currentStep() === SelectContextStep.SELECT_CLIENT)  {
+          <div class="flex h-full flex-col">
+            <div class="flex-1 overflow-y-auto">
+
+              <!-- Loading State -->
+              @if (store.isLoadingClients()) {
+                <div class="space-y-4">
+                  @for (i of [1, 2, 3]; track i) {
+                    <div class="animate-pulse overflow-hidden rounded-xl border-2 border-gray-200 bg-white">
+                      <div class="h-32 bg-gray-200"></div>
+                      <div class="flex items-center gap-4 p-5">
+                        <div class="h-16 w-16 rounded-full bg-gray-200"></div>
+                        <div class="flex-1 space-y-2">
+                          <div class="h-4 w-3/4 rounded bg-gray-200"></div>
+                          <div class="h-3 w-1/2 rounded bg-gray-200"></div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              @else if (store.clientsError()) {
+                <div class="rounded-xl border-2 border-red-200 bg-red-50 p-8 text-center">
+                  <i class="pi pi-exclamation-circle mb-4 text-4xl text-red-500"></i>
+                  <h3 class="mb-2 text-lg font-semibold text-red-900">
+                    Error al cargar clientes
+                  </h3>
+                  <p class="mb-4 text-sm text-red-700">
+                    {{ store.clientsError() }}
+                  </p>
+                  <button
+                    pRipple
+                    type="button"
+                    (click)="onRetryClients()"
+                    class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-red-600">
+                    <i class="pi pi-refresh mr-2"></i>
+                    Reintentar
+                  </button>
+                </div>
+              }
+
+              @else if (!store.hasClients()) {
+                <div class="rounded-xl border-2 border-dashed border-gray-300 bg-white p-8 text-center">
+                  <i class="pi pi-inbox mb-4 text-4xl text-gray-400"></i>
+                  <h3 class="mb-2 text-lg font-semibold text-gray-900">
+                    No hay clientes disponibles
+                  </h3>
+                  <p class="text-sm text-gray-600">
+                    Contacta al administrador para obtener acceso
+                  </p>
+                </div>
+              }
+
+              @else {
+                <div class="space-y-4 pb-4 flex flex-col gap-x-1">
+                  @for (client of store.clients(); track client.id) {
+                    <app-client-card
+                      [client]="client"
+                      [isSelected]="store.selectedClient()?.id === client.id"
+                      [clickable]="true"
+                      (cardClick)="onClientSelect($event)" />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Step 2: Proyectos -->
+        @if (store.currentStep() === SelectContextStep.SELECT_PROJECT) {
+          <div class="flex h-full flex-col">
+            <div class="flex-1 overflow-y-auto">
+
+              <!-- Loading State -->
+              @if (store.isLoadingProjects()) {
+                <div class="space-y-4">
+                  @for (i of [1, 2, 3]; track i) {
+                    <div class="animate-pulse overflow-hidden rounded-xl border-2 border-gray-200 bg-white">
+                      <div class="h-40 bg-gray-200"></div>
+                      <div class="space-y-3 p-5">
+                        <div class="h-4 w-3/4 rounded bg-gray-200"></div>
+                        <div class="h-3 w-1/2 rounded bg-gray-200"></div>
+                        <div class="flex gap-2">
+                          <div class="h-6 w-20 rounded-full bg-gray-200"></div>
+                          <div class="h-6 w-20 rounded-full bg-gray-200"></div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              @else if (store.projectsError()) {
+                <div class="rounded-xl border-2 border-red-200 bg-red-50 p-8 text-center">
+                  <i class="pi pi-exclamation-circle mb-4 text-4xl text-red-500"></i>
+                  <h3 class="mb-2 text-lg font-semibold text-red-900">
+                    Error al cargar proyectos
+                  </h3>
+                  <p class="mb-4 text-sm text-red-700">
+                    {{ store.projectsError() }}
+                  </p>
+                  <button
+                    pRipple
+                    type="button"
+                    (click)="onRetryProjects()"
+                    class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-red-600">
+                    <i class="pi pi-refresh mr-2"></i>
+                    Reintentar
+                  </button>
+                </div>
+              }
+
+              @else if (!store.hasProjects()) {
+                <div class="rounded-xl border-2 border-dashed border-gray-300 bg-white p-8 text-center">
+                  <i class="pi pi-inbox mb-4 text-4xl text-gray-400"></i>
+                  <h3 class="mb-2 text-lg font-semibold text-gray-900">
+                    No hay proyectos disponibles
+                  </h3>
+                  <p class="text-sm text-gray-600">
+                    Este cliente no tiene proyectos asignados
+                  </p>
+                </div>
+              }
+
+              @else {
+                <div class="space-y-4 pb-4 flex flex-col gap-x-1">
+                  @for (project of store.projects(); track project.id) {
+                    <app-project-card
+                      [project]="project"
+                      [isSelected]="store.selectedProject()?.id === project.id"
+                      [clickable]="true"
+                      (cardClick)="onProjectSelect($event)" />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER FIXED -->
+  <footer class="shrink-0 border-t border-gray-200 bg-white px-4 py-3 lg:px-8 lg:py-4">
+    <div class="mx-auto flex max-w-7xl items-center justify-between">
+
+      <!-- Desktop Info -->
+      <div class="hidden lg:block">
+        @if (store.selectedClient() && store.selectedProject()) {
+          <p class="text-sm text-gray-600">
+            <span class="font-semibold text-gray-900">{{ store.selectedClient()!.name }}</span>
+            <i class="pi pi-angle-right mx-2 text-xs text-gray-400"></i>
+            <span class="font-semibold text-gray-900">{{ store.selectedProject()!.name }}</span>
           </p>
-        </div>
+        } @else if (store.selectedClient()) {
+          <p class="text-sm text-gray-600">
+            Cliente: <span class="font-semibold text-gray-900">{{ store.selectedClient()!.name }}</span>
+          </p>
+        } @else {
+          <p class="text-sm text-gray-500">
+            Selecciona un cliente y proyecto para continuar
+          </p>
+        }
+      </div>
 
+      <!-- Desktop Actions -->
+      <div class="hidden gap-3 lg:flex">
         <button
           pRipple
           type="button"
           (click)="onCancel()"
-          [disabled]="store.isLoading()"
-          class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
-          <i class="pi pi-times text-base"></i>
+          class="rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50">
+          Cancelar
+        </button>
+
+        <button
+          pRipple
+          type="button"
+          [disabled]="!store.canFinish() || store.isLoading()"
+          (click)="onFinish()"
+          class="rounded-lg bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50">
+          @if (store.isLoading()) {
+            <i class="pi pi-spinner pi-spin mr-2"></i>
+            Cargando...
+          } @else {
+            <i class="pi pi-check mr-2"></i>
+            Confirmar
+          }
         </button>
       </div>
 
-      <!-- Progress Bar -->
-      <div class="mt-4 h-2 overflow-hidden rounded-full bg-gray-200">
-        <div
-          class="h-full bg-gradient-to-r from-sky-500 to-cyan-500 transition-all duration-500 ease-out"
-          [style.width.%]="((store.currentStep() + 1) / 2) * 100">
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Content -->
-  <main class="flex-1 overflow-auto px-4 py-6 lg:px-8 h-full">
-  <div class="min-h-full mx-auto max-w-7xl">
-
-      <!-- Error Global -->
-      @if (store.hasError()) {
-        <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
-          <i class="pi pi-exclamation-circle mt-0.5 text-lg text-red-600"></i>
-          <div class="flex-1">
-            <p class="font-medium text-red-800">Error</p>
-            <p class="mt-1 text-sm text-red-700">
-              {{ store.clientsError() || store.projectsError() }}
-            </p>
-          </div>
-          <button
+      <!-- Mobile Actions -->
+      <div class="flex w-full gap-3 lg:hidden">
+        @if (store.currentStep() === SelectContextStep.SELECT_CLIENT) {
+        <button
+            pRipple
             type="button"
-            (click)="store.clearErrors()"
-            class="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-100">
-            <i class="pi pi-times text-sm"></i>
+            (click)="onCancel()"
+            class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50">
+            Cancelar
           </button>
-        </div>
-      }
+        }
 
-      <div class="min-h-full grid h-full gap-6 lg:grid-cols-12">
+        @if (store.currentStep() === SelectContextStep.SELECT_PROJECT) {
+        <button
+            pRipple
+            type="button"
+            (click)="onMobileBack()"
+            class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50">
+            <i class="pi pi-arrow-left"></i>
+          </button>
 
-        <!-- Stepper Sidebar (Desktop) -->
-        <aside class="hidden lg:col-span-3 lg:block">
-          <app-step-indicator
-            [currentStep]="store.currentStep()"
-            [selectedClient]="store.selectedClient()" />
-        </aside>
-
-        <!-- Stepper Pills (Mobile) -->
-        <div class="lg:hidden">
-          <app-step-indicator
-            [currentStep]="store.currentStep()"
-            [selectedClient]="store.selectedClient()" />
-        </div>
-
-        <!-- Main Content -->
-        <div class="min-h-full h-full flex flex-col lg:col-span-9">
-          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
-
-            <!-- Step Header -->
-            <div class="border-b border-gray-200 p-6">
-              <div class="flex items-start gap-4">
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500">
-                  <i class="text-xl text-white pi" [ngClass]="getStepIcon(store.currentStep() + 1)"></i>
-                </div>
-                <div class="flex-1">
-                  <h2 class="text-lg font-semibold text-gray-900">
-                    {{ store.currentStep() === SelectContextStep.SELECT_CLIENT ? 'Selecciona un Cliente' : 'Selecciona un Proyecto' }}
-                  </h2>
-                  <p class="mt-1 text-sm text-gray-600">
-                    {{ getStepDescription() }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Step Content -->
-            <div class="p-6">
-
-              <!-- STEP 1: Select Client -->
-              @if (store.currentStep() === SelectContextStep.SELECT_CLIENT) {
-
-                <!-- Loading State -->
-                @if (store.isLoadingClients()) {
-                  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    @for (item of [1,2,3,4,5,6]; track item) {
-                      <div class="animate-pulse">
-                        <div class="overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-6">
-                          <div class="mb-4 flex justify-center">
-                            <div class="h-24 w-24 rounded-2xl bg-gray-200"></div>
-                          </div>
-                          <div class="mx-auto h-6 w-32 rounded bg-gray-200"></div>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-
-                @else if (!store.hasClients()) {
-                  <div class="flex flex-col items-center justify-center py-16">
-                    <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
-                      <i class="pi pi-building text-4xl text-gray-400"></i>
-                    </div>
-                    <h3 class="mb-2 text-lg font-semibold text-gray-900">No hay clientes disponibles</h3>
-                    <p class="mb-6 max-w-sm text-center text-sm text-gray-600">
-                      No se encontraron clientes en el sistema. Contacta al administrador para obtener acceso.
-                    </p>
-                    <button
-                      pRipple
-                      type="button"
-                      (click)="onRetry()"
-                      class="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-sky-600">
-                      <i class="pi pi-refresh text-sm"></i>
-                      Reintentar
-                    </button>
-                  </div>
-              }
-
-                @else {
-                  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    @for (client of store.clients(); track client.id) {
-                      <app-client-card
-                        [ngClass]="{
-                         'grayscale transition-all duration-300': !(store.selectedClient()?.id === client.id),
-                         'grayscale-0': store.selectedClient()?.id === client.id
-                        }"
-                        [client]="client"
-                        [isSelected]="store.selectedClient()?.id === client.id"
-                        (cardClick)="onClientSelect($event)" />
-                    }
-                  </div>
-                }
-              }
-
-              <!-- STEP 2: Select Project -->
-              @if (store.currentStep() === SelectContextStep.SELECT_PROJECT) {
-
-                <!-- Loading State -->
-                @if (store.isLoadingProjects()) {
-                  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    @for (item of [1,2,3]; track item) {
-                      <div class="animate-pulse">
-                        <div class="overflow-hidden rounded-xl border-2 border-gray-200 bg-white">
-                          <div class="h-40 bg-gray-200"></div>
-                          <div class="p-5">
-                            <div class="mb-2 h-6 rounded bg-gray-200"></div>
-                            <div class="mb-4 h-4 w-24 rounded bg-gray-200"></div>
-                            <div class="flex gap-2">
-                              <div class="h-6 w-20 rounded-full bg-gray-200"></div>
-                              <div class="h-6 w-16 rounded-full bg-gray-200"></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-
-                @else if (!store.hasProjects()) {
-                  <div class="flex flex-col items-center justify-center py-16">
-                    <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
-                      <i class="pi pi-folder text-4xl text-gray-400"></i>
-                    </div>
-                    <h3 class="mb-2 text-lg font-semibold text-gray-900">No hay proyectos disponibles</h3>
-                    <p class="mb-6 max-w-sm text-center text-sm text-gray-600">
-                      El cliente <span class="font-semibold">{{ store.selectedClient()?.name }}</span> no tiene proyectos asociados.
-                    </p>
-                    <button
-                      pRipple
-                      type="button"
-                      (click)="onBack()"
-                      class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50">
-                      <i class="pi pi-arrow-left text-sm"></i>
-                      Volver a clientes
-                    </button>
-                  </div>
-                }
-
-                @else {
-                  <!--
-                    💡 FILTRO POR ESTADO (para uso futuro)
-
-                    Para mostrar solo proyectos en progreso, crea este computed en el store:
-
-                    filteredProjects: computed(() => {
-                      const projects = state.projects();
-                      // Filtrar solo IN_PROGRESS y PLANNED
-                      return projects.filter(p =>
-                        p.status === ProjectStatusEnum.IN_PROGRESS ||
-                        p.status === ProjectStatusEnum.PLANNED
-                      );
-                    })
-
-                    Y usa: store.filteredProjects() en lugar de store.projects()
-                  -->
-
-                  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    @for (project of store.projects(); track project.id) {
-                      <app-project-card
-                        [ngClass]="{
-                         'grayscale transition-all duration-300': !(store.selectedProject()?.id === project.id),
-                         'grayscale-0': store.selectedProject()?.id === project.id
-                        }"
-                        [project]="project"
-                        [isSelected]="store.selectedProject()?.id === project.id"
-                        (cardClick)="onProjectSelect($event)" />
-                    }
-                  </div>
-                }
-              }
-
-            </div>
-
-            <!-- Step Actions Footer -->
-            <div class="border-t border-gray-200 bg-gray-50 p-4">
-              <div class="flex items-center justify-between gap-3">
-
-                <!-- Left: Back Button (only on step 2) -->
-                <div>
-                  @if (!store.isFirstStep()) {
-                    <button
-                      pRipple
-                      type="button"
-                      (click)="onBack()"
-                      [disabled]="store.isLoading()"
-                      class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                      <i class="pi pi-arrow-left text-sm"></i>
-                      <span class="hidden sm:inline">Anterior</span>
-                      <span class="sm:hidden">Atrás</span>
-                    </button>
-                  } @else {
-                    <!-- Empty space for alignment -->
-                    <div></div>
-                  }
-                </div>
-
-                <!-- Right: Next/Finish Button -->
-                <div>
-                  @if (store.isFirstStep()) {
-                    <button
-                      pRipple
-                      type="button"
-                      (click)="onNext()"
-                      [disabled]="!store.canProceedToProjects() || store.isLoading()"
-                      class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
-                      <span>Siguiente</span>
-                      <i class="pi pi-arrow-right text-sm"></i>
-                    </button>
-                  } @else {
-                    <button
-                      pRipple
-                      type="button"
-                      (click)="onFinish()"
-                      [disabled]="!store.canFinish() || store.isLoading()"
-                      class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-xl hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none">
-                      @if (store.isLoading()) {
-                        <i class="pi pi-spinner pi-spin text-sm"></i>
-                        <span>Guardando...</span>
-                      } @else {
-                        <i class="pi pi-check text-sm"></i>
-                        <span>Finalizar</span>
-                      }
-                    </button>
-                  }
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-
+          <button
+            pRipple
+            type="button"
+            [disabled]="!store.canFinish() || store.isLoading()"
+            (click)="onFinish()"
+            class="flex-1 rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (store.isLoading()) {
+              <i class="pi pi-spinner pi-spin mr-2"></i>
+              Cargando...
+            } @else {
+              Confirmar
+            }
+          </button>
+        }
       </div>
-
     </div>
-  </main>
+  </footer>
 
 </div>
 
-<p-dialog
-  [(visible)]="showSuccessModal"
-  [modal]="true"
-  [closable]="false"
-  [style]="{ width: '90vw', maxWidth: '460px' }"
-  [contentStyle]="{ padding: '0' }">
-
-  <!-- HEADER -->
-  <ng-template pTemplate="header">
-    <div class="flex items-center gap-4 px-5 pt-5">
-      <div class="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100">
-        <i class="pi pi-check-circle text-2xl text-emerald-600"></i>
-      </div>
-      <div>
-        <h3 class="text-lg font-semibold text-gray-900">¡Listo!</h3>
-        <p class="text-sm text-gray-500">La acción fue completada con éxito.</p>
-      </div>
-    </div>
-  </ng-template>
-
-  <!-- BODY -->
-  <div class="px-5 pb-5 pt-2 space-y-4">
-    <div class="rounded-lg bg-sky-50 p-4">
-      <p class="text-sm font-semibold text-sky-900">
-        {{ store.selectedClient()?.name }}
-      </p>
-      <div class="mt-1 flex items-center gap-2 text-xs text-sky-700">
-        <i class="pi pi-arrow-right"></i>
-        <span>{{ store.selectedProject()?.name }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- FOOTER -->
-  <ng-template pTemplate="footer">
-    <div class="flex flex-col-reverse gap-2 px-5 py-4 sm:flex-row-reverse">
-      <button
-        pRipple
-        type="button"
-        (click)="navigateToCreateService()"
-        class="flex w-full items-center justify-center gap-2 rounded-md bg-sky-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-600 sm:w-auto">
-        <i class="pi pi-plus text-sm"></i>
-        Crear Servicio
-      </button>
-      <button
-        pRipple
-        type="button"
-        (click)="navigateToDashboard()"
-        class="flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto">
-        <i class="pi pi-home text-sm"></i>
-        Ir a Dashboard
-      </button>
-    </div>
-  </ng-template>
-</p-dialog>
-
+<!-- Success Modal -->
+@if (showSuccessModal) {
+  <app-success-modal
+    [(visible)]="showSuccessModal"
+    (navigateToDashboard)="navigateToDashboard()"
+    (navigateToCreateService)="navigateToCreateService()" />
+}

@@ -1,4 +1,4 @@
-import {BaseService} from '../../../shared/api';
+
 import {Injectable} from '@angular/core';
 import {catchError, map, Observable, retry} from 'rxjs';
 import {ProjectEntity} from '../model/project.entity';
@@ -8,6 +8,7 @@ import {CreateProjectRequest} from './create-project-request.type';
 import {CreateProjectRequestFromEntityMapper} from './create-project-request-from-entity.mapper';
 import {UpdateProjectRequest} from './update-project-request.type';
 import {UpdateProjectRequestFromEntityMapper} from './update-project-request-from-entity.mapper';
+import {BaseService} from '../../../shared/api/services/base.service';
 
 @Injectable({
   providedIn: 'root'

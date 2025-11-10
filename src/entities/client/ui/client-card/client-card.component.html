@@ -1,0 +1,72 @@
+<button
+  pRipple
+  type="button"
+  [disabled]="!clickable()"
+  (click)="handleCardClick()"
+  class="group w-full overflow-hidden rounded-xl border-2 bg-white text-left transition-all duration-300"
+  [ngClass]="{
+    'border-sky-500 bg-sky-50 shadow-lg': isSelected(),
+    'border-gray-200 hover:border-sky-300 hover:shadow-md': !isSelected() && clickable(),
+    'border-gray-200': !isSelected() && !clickable(),
+    'cursor-pointer': clickable(),
+    'cursor-default': !clickable()
+  }">
+
+  <!-- Banner Section -->
+  <div class="relative h-32 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+    @if (bannerUrl()) {
+      <img
+        [src]="bannerUrl()!"
+        [alt]="client().name"
+        class="h-full w-full object-cover transition-transform duration-500"
+        [ngClass]="{'group-hover:scale-110': clickable()}" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+    } @else {
+      <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+        <i class="pi pi-building text-4xl text-gray-300"></i>
+      </div>
+    }
+
+    <!-- Selected Badge -->
+    @if (isSelected()) {
+      <div class="absolute right-3 top-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500 shadow-xl ring-4 ring-white">
+          <i class="pi pi-check text-sm font-bold text-white"></i>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Content Section -->
+  <div class="flex items-center gap-4 p-5">
+    <!-- Logo -->
+    <div class="shrink-0">
+      @if (logoUrl()) {
+        <img
+          [src]="logoUrl()!"
+          [alt]="client().name"
+          class="h-16 w-16 rounded-full object-cover ring-2 ring-gray-200 transition-all duration-300"
+          [ngClass]="{'ring-sky-500': isSelected()}" />
+      } @else {
+        <div
+          class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 text-white ring-2 ring-gray-200 transition-all duration-300"
+          [ngClass]="{'ring-sky-500': isSelected()}">
+          <span class="text-xl font-bold">{{ initials() }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Name -->
+    <div class="flex-1 min-w-0">
+      <h3
+        class="truncate text-lg font-semibold transition-colors duration-200"
+        [ngClass]="{
+          'text-sky-600': isSelected(),
+          'text-gray-900 group-hover:text-sky-600': !isSelected() && clickable(),
+          'text-gray-900': !isSelected() && !clickable()
+        }">
+        {{ client().name }}
+      </h3>
+    </div>
+  </div>
+</button>

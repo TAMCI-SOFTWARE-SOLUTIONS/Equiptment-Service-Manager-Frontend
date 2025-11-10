@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
-import { BaseService } from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import { CommunicationProtocolEntity } from '../../model';
 import { CommunicationProtocolResponse } from '../types/communication-protocol-response.type';
 import { CreateCommunicationProtocolRequest } from '../types/create-communication-protocol-request.type';

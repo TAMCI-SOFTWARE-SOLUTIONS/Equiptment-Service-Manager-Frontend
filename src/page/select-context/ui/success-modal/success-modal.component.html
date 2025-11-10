@@ -1,0 +1,44 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="w-full max-w-md mx-4">
+
+  <div class="py-6 text-center">
+    <!-- Success Icon -->
+    <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500">
+      <i class="pi pi-check text-4xl text-white"></i>
+    </div>
+
+    <!-- Title -->
+    <h2 class="mb-3 text-2xl font-bold text-gray-900">
+      ¡Contexto Configurado!
+    </h2>
+
+    <!-- Description -->
+    <p class="mb-8 text-gray-600">
+      Tu contexto ha sido configurado exitosamente. ¿Qué deseas hacer ahora?
+    </p>
+
+    <!-- Actions -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
+      <button
+        pRipple
+        type="button"
+        (click)="onDashboard()"
+        class="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50">
+        Ir al Dashboard
+      </button>
+
+      <button
+        pRipple
+        type="button"
+        (click)="onCreateService()"
+        class="rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-sky-600">
+        Crear Servicio
+      </button>
+    </div>
+  </div>
+</p-dialog>

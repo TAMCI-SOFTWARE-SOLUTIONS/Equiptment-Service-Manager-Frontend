@@ -1,5 +1,4 @@
 import {Injectable} from '@angular/core';
-import {BaseService} from '../../../shared/api';
 import {catchError, map, Observable, retry} from 'rxjs';
 import {CabinetTypeEntity} from '../model';
 import {CabinetTypeResponseDto} from './cabinet-type-response.dto';
@@ -8,6 +7,7 @@ import {CreateCabinetTypeRequest} from './create-cabinet-type-request.type';
 import {CreateCabinetTypeRequestFromEntityMapper} from './create-cabinet-type-request-from-entity.mapper';
 import {UpdateCabinetTypeRequestFromEntityMapper} from './update-cabinet-type-request-from-entity.mapper';
 import {UpdateCabinetTypeRequest} from './update-cabinet-type-request.type';
+import {BaseService} from '../../../shared/api/services/base.service';
 
 @Injectable({
   providedIn: 'root'

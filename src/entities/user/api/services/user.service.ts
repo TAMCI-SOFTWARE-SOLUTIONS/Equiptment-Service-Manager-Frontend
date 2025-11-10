@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import {Observable, map, retry} from 'rxjs';
-import { BaseService } from '../../../../shared/api';
 import { UserEntity } from '../../model';
 import { UserResponse } from '../types/user-response.type';
 import { UserEntityFromResponseMapper } from '../mappers/user-entity-from-response.mapper';
 import {catchError} from 'rxjs/operators';
 import {CreateUserRequestFromEntityMapper} from '../mappers/create-user-request-from-entity.mapper';
 import {CreateUserRequestType} from '../types/create-user-request.type';
+import {BaseService} from '../../../../shared/api/services/base.service';
 
 @Injectable({
   providedIn: 'root'
