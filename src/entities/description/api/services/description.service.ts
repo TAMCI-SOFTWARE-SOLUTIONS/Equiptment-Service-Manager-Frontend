@@ -8,7 +8,7 @@ import { UpdateDescriptionRequest } from '../types/update-description-request.ty
 import { DescriptionEntityFromResponseMapper } from '../mappers/description-entity-from-response.mapper';
 import { CreateDescriptionRequestFromEntityMapper } from '../mappers/create-description-request-from-entity.mapper';
 import { UpdateDescriptionRequestFromEntityMapper } from '../mappers/update-description-request-from-entity.mapper';
-import {BaseService} from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import {HttpParams} from '@angular/common/http';
 
 @Injectable({

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
-import { BaseService } from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import { CircuitAssignmentEntity } from '../../model';
 import { CircuitAssignmentResponse } from '../types/circuit-assignment-response.type';
 import { CreateCircuitAssignmentRequest } from '../types/create-circuit-assignment-request.type';

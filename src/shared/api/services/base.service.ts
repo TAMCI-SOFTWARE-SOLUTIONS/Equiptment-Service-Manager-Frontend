@@ -1,7 +1,7 @@
 import {inject} from '@angular/core';
 import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 import {throwError} from 'rxjs';
-import {environment} from '../../environments/environment';
+import {environment} from '../../../environments/environment';
 
 export abstract class BaseService {
   protected httpOptions = { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) };

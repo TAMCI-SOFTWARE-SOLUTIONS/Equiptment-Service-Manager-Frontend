@@ -1,5 +1,4 @@
 import {Injectable} from '@angular/core';
-import {BaseService} from '../../../shared/api';
 import {catchError, map, Observable, of, retry} from 'rxjs';
 import {PanelEntity} from '../model';
 import {PanelResponseDto} from './panel-response.dto';
@@ -10,6 +9,7 @@ import {UpdatePanelRequestFromEntityMapper} from './update-panel-request-from-en
 import {UpdatePanelRequest} from './update-panel-request.type';
 import {InspectableItemEntity} from '../../inspectable-item';
 import {HttpParams} from '@angular/common/http';
+import {BaseService} from '../../../shared/api/services/base.service';
 
 @Injectable({
   providedIn: 'root'

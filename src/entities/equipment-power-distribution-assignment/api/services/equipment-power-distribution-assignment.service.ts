@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
-import { BaseService } from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import { EquipmentPowerDistributionAssignmentEntity } from '../../model/entities/equipment-power-distribution-assignment.entity';
 import { EquipmentPowerDistributionAssignmentResponse } from '../types/equipment-power-distribution-assignment-response.type';
 import { CreateEquipmentPowerDistributionAssignmentRequest } from '../types/create-equipment-power-distribution-assignment-request.type';

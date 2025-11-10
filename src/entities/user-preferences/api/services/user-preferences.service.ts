@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
-import {BaseService} from '../../../../shared/api';
+import {BaseService} from '../../../../shared/api/services/base.service';
 import {UserPreferencesEntity} from '../../model/entities/user-preferences.entity';
 import {UserPreferencesResponse} from '../types/user-preferences-response.type';
 import {UpdateUserPreferencesRequest} from '../types/update-user-preferences-request.type';

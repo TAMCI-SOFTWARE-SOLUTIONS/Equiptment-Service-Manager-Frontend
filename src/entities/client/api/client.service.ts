@@ -1,4 +1,4 @@
-import {BaseService} from '../../../shared/api';
+import {BaseService} from '../../../shared/api/services/base.service';
 import {Injectable} from '@angular/core';
 import {catchError, map, Observable, retry, of} from 'rxjs';
 import {ClientEntity} from '../model';
