@@ -1,12 +1,11 @@
-import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { LayoutStore } from '../../../shared/model/layout.store';
-import { ContextStore } from '../../../shared/model/context.store';
-import { MyProfileStore } from '../../../shared/stores';
-import { AuthStore } from '../../../shared/stores';
-import { Avatar } from 'primeng/avatar';
-import { Ripple } from 'primeng/ripple';
+import {Component, computed, inject, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {Router} from '@angular/router';
+import {LayoutStore} from '../../../shared/model/layout.store';
+import {ContextStore} from '../../../shared/model/context.store';
+import {AuthStore, MyProfileStore} from '../../../shared/stores';
+import {Avatar} from 'primeng/avatar';
+import {Ripple} from 'primeng/ripple';
 import {RoleEntity, RolesEnum} from '../../../entities/role/model';
 
 @Component({
@@ -35,7 +34,6 @@ export class TopbarComponent {
 
   // Loading states
   isProfileLoading = this.profileStore.isProfileLoading;
-  hasProfile = this.profileStore.hasProfile;
 
   // UI state
   showContextSelector = signal(false);
@@ -86,7 +84,6 @@ export class TopbarComponent {
 
   logOut(): void {
     this.showUserMenu.set(false);
-    this.contextStore.clearContext();
     this.profileStore.clearProfile();
     this.authStore.signOut();
   }
