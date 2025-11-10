@@ -7,10 +7,10 @@ import {RippleModule} from 'primeng/ripple';
 import {StepIndicatorComponent} from '../step-indicator/step-indicator.component';
 import {ClientCardComponent} from '../client-card/client-card.component';
 import {ProjectCardComponent} from '../project-card/project-card.component';
-import {SelectContextStep, SelectContextStore} from '../../../../shared/model/select-context.store';
 import {ProjectEntity} from '../../../../entities/project/model/project.entity';
 import {ClientEntity} from '../../../../entities/client/model';
 import {Dialog} from 'primeng/dialog';
+import {SelectContextStep, SelectContextStore} from '../../model/stores/select-context.store';
 
 @Component({
   selector: 'app-select-context',

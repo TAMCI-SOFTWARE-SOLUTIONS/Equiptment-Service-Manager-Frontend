@@ -1,13 +1,13 @@
 import {computed, inject} from '@angular/core';
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
-import {ClientEntity} from '../../entities/client/model';
-import {ProjectEntity} from '../../entities/project/model/project.entity';
-import {ClientService} from '../../entities/client/api';
-import {ProjectService} from '../../entities/project/api';
+import {ClientEntity} from '../../../../entities/client/model';
+import {ProjectEntity} from '../../../../entities/project/model/project.entity';
+import {ClientService} from '../../../../entities/client/api';
+import {ProjectService} from '../../../../entities/project/api';
+import {EventBusService} from '../../../../shared/services';
 import {firstValueFrom} from 'rxjs';
-import {EventBusService} from '../services';
-import {ContextChangedPayload} from '../events/event-payloads';
-import {EventNames} from '../events/event-names';
+import {ContextChangedPayload} from '../../../../shared/events/event-payloads';
+import {EventNames} from '../../../../shared/events/event-names';
 
 export enum SelectContextStep {
   SELECT_CLIENT = 0,

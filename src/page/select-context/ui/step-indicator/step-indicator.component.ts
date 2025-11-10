@@ -1,6 +1,6 @@
-import { Component, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {SelectContextStep} from '../../../../shared/model/select-context.store';
+import {Component, input} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {SelectContextStep} from '../../model/stores/select-context.store';
 
 interface StepInfo {
   step: SelectContextStep;

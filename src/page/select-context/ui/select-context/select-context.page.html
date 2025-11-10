@@ -196,23 +196,6 @@
                 }
 
                 @else {
-                  <!--
-                    💡 FILTRO POR ESTADO (para uso futuro)
-
-                    Para mostrar solo proyectos en progreso, crea este computed en el store:
-
-                    filteredProjects: computed(() => {
-                      const projects = state.projects();
-                      // Filtrar solo IN_PROGRESS y PLANNED
-                      return projects.filter(p =>
-                        p.status === ProjectStatusEnum.IN_PROGRESS ||
-                        p.status === ProjectStatusEnum.PLANNED
-                      );
-                    })
-
-                    Y usa: store.filteredProjects() en lugar de store.projects()
-                  -->
-
                   <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                     @for (project of store.projects(); track project.id) {
                       <app-project-card
