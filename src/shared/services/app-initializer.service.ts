@@ -2,7 +2,13 @@ import {inject, Injectable} from '@angular/core';
 import {AuthStore, MyProfileStore} from '../stores';
 import {EventBusService} from './event-bus.service';
 import {EventNames} from '../events/event-names';
-import {AuthLoginPayload, AuthLogoutPayload, AuthRefreshPayload, ProfileUpdatedPayload} from '../events/event-payloads';
+import {
+  AuthLoginPayload,
+  AuthLogoutPayload,
+  AuthRefreshPayload,
+  ContextChangedPayload,
+  UserPreferenceLoadedPayload
+} from '../events/event-payloads';
 import {ContextStore} from '../model/context.store';
 
 @Injectable({
@@ -16,65 +22,58 @@ export class AppInitializerService {
 
   initializeApp(): Promise<void> {
     return new Promise(async (resolve) => {
-      console.log('🚀 Inicializando aplicación...');
       this.setupEventBusCommunication();
 
       await this.authStore.initializeAuth();
-      console.log('✅ Auth state initialized');
 
       if (this.authStore.isAuthenticated()) {
         await this.authStore.refreshUser();
-        console.log('✅ User data refreshed');
-        this.initializeContextAfterAuth();
       }
 
-      console.log('✅ App initialization complete');
       resolve();
     });
   }
 
-  /*
-  Here you can set up event listeners for events emitted by the EventBusService.
-  When to use:
-  - Only for complex orchestration logic involving multiple stores
-  - For centralized logging (optional)
-  - For initialization of global configurations
-  */
   private setupEventBusCommunication(): void {
-    this.eventBus.on(EventNames.PROFILE_UPDATED, (_: ProfileUpdatedPayload) => {
-    });
-
     this.eventBus.on(EventNames.AUTH_LOGIN, (data: AuthLoginPayload) => {
       if (data.userId) {
         this.myProfileStore.loadProfile(data.userId).then();
-        this.initializeContextAfterAuth();
       }
     });
 
     this.eventBus.on(EventNames.AUTH_REFRESH, (data: AuthRefreshPayload) => {
-      if (data.userId) {this.myProfileStore.loadProfile(data.userId).then(() => {});}
+      if (data.userId) {
+        this.myProfileStore.loadProfile(data.userId).then();
+      }
     });
 
     this.eventBus.on(EventNames.AUTH_LOGOUT, (_: AuthLogoutPayload) => {
       this.myProfileStore.clearProfile();
       this.contextStore.clearContext();
     });
+
+    this.eventBus.on(EventNames.USER_PREFERENCES_LOADED, (data: UserPreferenceLoadedPayload) => {
+      if (data.userPreference.lastSelectedClientId && data.userPreference.lastSelectedProjectId) {
+        this.contextStore.loadContext(
+          data.userPreference.lastSelectedClientId,
+          data.userPreference.lastSelectedProjectId
+        ).then();
+      }
+    });
+
+    this.eventBus.on(EventNames.CONTEXT_CHANGED, (data: ContextChangedPayload) => {
+      if (data.clientId && data.projectId) {
+        this.contextStore.loadContext(data.clientId, data.projectId).then();
+
+        this.authStore.updateUserPreferences({
+          lastSelectedClientId: data.clientId,
+          lastSelectedProjectId: data.projectId
+        }).then();
+      }
+    });
   }
 
-  private initializeContextAfterAuth(): void {
-    console.log('🔧 Initializing context after authentication...');
-
-    const hasStoredContext = this.contextStore.loadFromStorage();
-
-    if (!hasStoredContext) {
-      console.log('No stored context, loading default client/project');
-      this.contextStore.initializeForNewUser();
-    } else {
-      console.log('Context loaded from storage:', this.contextStore.contextSummary());
-    }
-  }
-
-  public notifyAuthChange(isAuthenticated: boolean, userId: string | null): void {
+/*  public notifyAuthChange(isAuthenticated: boolean, userId: string | null): void {
     if (isAuthenticated && userId) {
       const payload: AuthLoginPayload = {
         userId,
@@ -93,5 +92,5 @@ export class AppInitializerService {
 
   public getEventBus(): EventBusService {
     return this.eventBus;
-  }
+  }*/
 }
