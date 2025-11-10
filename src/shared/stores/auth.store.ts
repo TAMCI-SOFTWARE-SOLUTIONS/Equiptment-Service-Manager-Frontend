@@ -15,8 +15,8 @@ import {
 } from '../events/event-payloads';
 import {UserPreferencesEntity} from '../../entities/user-preferences/model/entities/user-preferences.entity';
 import {UserPreferencesService} from '../../entities/user-preferences/api/services/user-preferences.service';
-import {StorageService} from '../services';
 import {EventBusService} from '../api/services/event-bus.service';
+import {StorageService} from '../api/services/storage.service';
 
 export interface AuthState {
   user: UserEntity | null;
