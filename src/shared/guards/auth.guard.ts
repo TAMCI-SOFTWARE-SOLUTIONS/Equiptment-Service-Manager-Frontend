@@ -1,14 +1,15 @@
-import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { CanActivateFn } from '@angular/router';
-import { AuthStore } from '../stores';
+import {inject} from '@angular/core';
+import {CanActivateFn, Router} from '@angular/router';
+import {AuthStore} from '../stores';
+import {RolesEnum} from '../../entities/role/model';
+import {ContextStore} from '../model/context.store';
 
 /*
  * Auth guard
  * This guard checks if the user is authenticated
  * If not, it redirects to the login page
  */
-export const authGuard: CanActivateFn = (route, state) => {
+export const authGuard: CanActivateFn = (_, state) => {
   const authStore = inject(AuthStore);
   const router = inject(Router);
 
@@ -24,29 +25,12 @@ export const authGuard: CanActivateFn = (route, state) => {
 };
 
 /*
- * Admin guard
- * This guard checks if the user is authenticated and is an admin
- * If not, it redirects to the unauthorized page
- */
-export const adminGuard: CanActivateFn = (route, state) => {
-  const authStore = inject(AuthStore);
-  const router = inject(Router);
-
-  if (authStore.isAuthenticated() && authStore.isAdmin()) {
-    return true;
-  }
-
-  router.navigate(['/unauthorized']).then(() => {});
-  return false;
-};
-
-/*
  * Role guard
  * This guard checks if the user is authenticated and has the required role
  * If not, it redirects to the unauthorized page
  */
-export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
-  return (route, state) => {
+export const roleGuard = (allowedRoles: RolesEnum[]): CanActivateFn => {
+  return () => {
     const authStore = inject(AuthStore);
     const router = inject(Router);
 
@@ -55,19 +39,50 @@ export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
       return false;
     }
 
-    const userRoles = authStore.userRoles();
-    const hasRequiredRole = allowedRoles.some(role =>
-      userRoles.some(userRole => userRole.name === role)
-    );
+    const hasRequiredRole = authStore.hasAllowedRoles(allowedRoles);
 
     if (hasRequiredRole) {
-      console.log('User has required role');
       return true;
     }
 
-    router.navigate(['/unauthorized']).then(() => {
-      console.log('User does not have required role');
-    });
+    router.navigate(['/unauthorized']).then();
     return false;
   };
+};
+
+/**
+ * Context preference guard
+ * Tries to autoload context from user preferences before checking
+ * Should be used AFTER authGuard
+ */
+export const contextPreferenceGuard: CanActivateFn = async (_, state) => {
+  const contextStore = inject(ContextStore);
+  const authStore = inject(AuthStore);
+  const router = inject(Router);
+
+  if (contextStore.hasContext()) {
+    return true;
+  }
+
+  const prefs = authStore.userPreferences();
+
+  if (prefs?.lastSelectedClientId && prefs?.lastSelectedProjectId) {
+    try {
+      await contextStore.loadContext(
+        prefs.lastSelectedClientId,
+        prefs.lastSelectedProjectId
+      );
+
+      if (contextStore.hasContext()) {
+        return true;
+      }
+    } catch (error) {
+      console.error('Error loading context from preferences:', error);
+    }
+  }
+  router.navigate(['/select-context'], {
+    queryParams: { returnUrl: state.url }
+  }).then();
+
+  return false;
 };
