@@ -1,9 +1,10 @@
-import { Routes } from '@angular/router';
-import { LoginPage } from '../page/login/ui';
-import { MainLayoutLayout } from './ui';
-import {authGuard} from '../shared/guards';
+import {Routes} from '@angular/router';
+import {LoginPage} from '../page/login/ui';
+import {MainLayoutLayout} from './ui';
+import {authGuard, contextPreferenceGuard, roleGuard} from '../shared/guards';
 import {ActiveAccountPage} from '../page/active-account/ui';
-import { ResetPasswordPage } from '../page/reset-password/ui';
+import {ResetPasswordPage} from '../page/reset-password/ui';
+import {RolesEnum} from '../entities/role/model';
 
 export const routes: Routes = [
   // ==================== AUTH ====================
@@ -22,36 +23,30 @@ export const routes: Routes = [
     title: 'Restablecer Contraseña',
     component: ResetPasswordPage
   },
+  {
+    path: 'select-context',
+    title: 'Seleccionar Contexto',
+    canActivate: [authGuard],
+    loadComponent: () => import('../page/select-context/ui').then(m => m.SelectContextPage)
+  },
   // ==================== MAIN APP ====================
   {
     path: '',
     component: MainLayoutLayout,
-    canActivate: [authGuard],
+    canActivate: [authGuard, contextPreferenceGuard],
     children: [
-
-      // --- Dashboard Principal ---
       {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full'
       },
+      // ==================== DASHBOARD ====================
       {
         path: 'dashboard',
         title: 'Dashboard',
         loadComponent: () => import('../page/dashboard/ui').then(m => m.DashboardPage)
       },
-
-      // ==================== CONTEXT SELECTION ====================
-      // 🎯 Páginas de selección de contexto (ya existentes)
-      {
-        path: 'select-context',
-        title: 'Seleccionar Contexto',
-        loadComponent: () => import('../page/select-context/ui').then(m => m.SelectContextPage)
-      },
-
       // ==================== SERVICES ====================
-
-      // Services list and detail
       {
         path: 'services',
         children: [
@@ -78,6 +73,7 @@ export const routes: Routes = [
           {
             path: 'work/:id',
             title: 'Orden de Trabajo',
+            canActivate: [roleGuard([RolesEnum.ROLE_OPERATOR])],
             loadComponent: () => import('../page/services/ui').then(m => m.ServiceWorkPage)
           }
         ]
