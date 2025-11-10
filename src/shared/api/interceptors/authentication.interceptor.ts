@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import {AuthStore} from '../stores';
+import {AuthStore} from '../../stores';
 
 export const authenticationInterceptor: HttpInterceptorFn = (request, next) => {
   const token = localStorage.getItem('token');

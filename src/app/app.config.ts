@@ -12,10 +12,10 @@ import {provideAnimationsAsync} from '@angular/platform-browser/animations/async
 import {providePrimeNG} from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import {definePreset} from '@primeuix/themes';
-import {authenticationInterceptor} from '../shared/api';
 import {provideCharts, withDefaultRegisterables} from 'ng2-charts';
 import {MessageService} from 'primeng/api';
 import {AppInitializerService} from '../shared/api/services/app-initializer.service';
+import {authenticationInterceptor} from '../shared/api/interceptors/authentication.interceptor';
 
 const BlueModern = definePreset(Aura, {
   semantic: {
