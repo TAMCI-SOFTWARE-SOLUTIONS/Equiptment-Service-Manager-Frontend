@@ -1,0 +1,87 @@
+<!-- Desktop Hero -->
+<div class="hidden lg:block">
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="flex items-center justify-between">
+      <!-- Left: Title & Description -->
+      <div class="flex-1">
+        <h1 class="text-2xl font-bold text-gray-900">
+          Selecciona tu Espacio de Trabajo
+        </h1>
+        <p class="mt-1 text-sm text-gray-600">
+          Elige el cliente y proyecto con el que trabajarás
+        </p>
+      </div>
+
+      <!-- Right: Steps -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <div
+            class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all"
+            [ngClass]="{
+              'bg-sky-500 text-white': currentStep() >= SelectContextStep.SELECT_CLIENT,
+              'bg-gray-200 text-gray-600': currentStep() < SelectContextStep.SELECT_CLIENT
+            }">
+            <i class="pi pi-building text-xs"></i>
+          </div>
+          <span class="text-sm font-medium text-gray-700">Cliente</span>
+        </div>
+
+        <div class="h-px w-8 bg-gray-300"></div>
+
+        <div class="flex items-center gap-2">
+          <div
+            class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all"
+            [ngClass]="{
+              'bg-sky-500 text-white': currentStep() >= SelectContextStep.SELECT_PROJECT,
+              'bg-gray-200 text-gray-600': currentStep() < SelectContextStep.SELECT_PROJECT
+            }">
+            <i class="pi pi-folder text-xs"></i>
+          </div>
+          <span class="text-sm font-medium text-gray-700">Proyecto</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Hero (Compact) -->
+<div class="lg:hidden">
+  <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <div class="flex items-center justify-between">
+      <!-- Title -->
+      <div class="flex-1">
+        <h1 class="text-lg font-bold text-gray-900">
+          @if (currentStep() === SelectContextStep.SELECT_CLIENT) {
+            Selecciona Cliente
+          } @else {
+            Selecciona Proyecto
+          }
+        </h1>
+        @if (currentStep() === SelectContextStep.SELECT_PROJECT && selectedClientName()) {
+          <p class="mt-0.5 text-xs text-gray-600">
+            {{ selectedClientName() }}
+          </p>
+        }
+      </div>
+
+      <!-- Steps Indicator (Pills) -->
+      <div class="flex items-center gap-1.5">
+        <div
+          class="h-2 w-2 rounded-full transition-all"
+          [ngClass]="{
+            'bg-sky-500 w-6': currentStep() === SelectContextStep.SELECT_CLIENT,
+            'bg-sky-500': currentStep() > SelectContextStep.SELECT_CLIENT,
+            'bg-gray-300': currentStep() < SelectContextStep.SELECT_CLIENT
+          }">
+        </div>
+        <div
+          class="h-2 w-2 rounded-full transition-all"
+          [ngClass]="{
+            'bg-sky-500 w-6': currentStep() === SelectContextStep.SELECT_PROJECT,
+            'bg-gray-300': currentStep() < SelectContextStep.SELECT_PROJECT
+          }">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
