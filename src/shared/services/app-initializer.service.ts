@@ -1,6 +1,5 @@
 import {inject, Injectable} from '@angular/core';
 import {AuthStore, MyProfileStore} from '../stores';
-import {EventBusService} from './event-bus.service';
 import {EventNames} from '../events/event-names';
 import {
   AuthLoginPayload,
@@ -10,6 +9,7 @@ import {
   UserPreferenceLoadedPayload
 } from '../events/event-payloads';
 import {ContextStore} from '../model/context.store';
+import {EventBusService} from '../api/services/event-bus.service';
 
 @Injectable({
   providedIn: 'root'

@@ -3,9 +3,9 @@ import {patchState, signalStore, withComputed, withMethods, withState} from '@ng
 import {firstValueFrom} from 'rxjs';
 import {ProfileEntity, ProfileService} from '../../entities/profile';
 import {FileService} from '../../entities/file/api/file.service';
-import {EventBusService} from '../services';
 import {EventNames} from '../events/event-names';
 import {ProfileClearedPayload, ProfileImageUpdatedPayload, ProfileUpdatedPayload} from '../events/event-payloads';
+import {EventBusService} from '../api/services/event-bus.service';
 
 export interface ProfileState {
   profile: ProfileEntity | null;

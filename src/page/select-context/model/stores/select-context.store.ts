@@ -4,10 +4,10 @@ import {ClientEntity} from '../../../../entities/client/model';
 import {ProjectEntity} from '../../../../entities/project/model/project.entity';
 import {ClientService} from '../../../../entities/client/api';
 import {ProjectService} from '../../../../entities/project/api';
-import {EventBusService} from '../../../../shared/services';
 import {firstValueFrom} from 'rxjs';
 import {ContextChangedPayload} from '../../../../shared/events/event-payloads';
 import {EventNames} from '../../../../shared/events/event-names';
+import {EventBusService} from '../../../../shared/api/services/event-bus.service';
 
 export enum SelectContextStep {
   SELECT_CLIENT = 0,

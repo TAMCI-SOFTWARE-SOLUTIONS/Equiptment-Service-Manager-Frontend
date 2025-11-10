@@ -3,7 +3,6 @@ import {Router} from '@angular/router';
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
 import {firstValueFrom} from 'rxjs';
 import {UserEntity} from '../../entities/user/model';
-import {EventBusService, StorageService} from '../services';
 import {RolesEnum} from '../../entities/role/model';
 import {AuthenticationService, SignInCredentials} from '../../entities/user/api';
 import {EventNames} from '../events/event-names';
@@ -16,6 +15,8 @@ import {
 } from '../events/event-payloads';
 import {UserPreferencesEntity} from '../../entities/user-preferences/model/entities/user-preferences.entity';
 import {UserPreferencesService} from '../../entities/user-preferences/api/services/user-preferences.service';
+import {StorageService} from '../services';
+import {EventBusService} from '../api/services/event-bus.service';
 
 export interface AuthState {
   user: UserEntity | null;

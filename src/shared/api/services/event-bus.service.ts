@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { EventPayloadMap } from '../events/event-payloads';
+import {Injectable} from '@angular/core';
+import {EventPayloadMap} from '../../events/event-payloads';
 
 type EventCallback<T = any> = (data: T) => void;
 
