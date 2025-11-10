@@ -1,9 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
-import { RippleModule } from 'primeng/ripple';
+import {Component, inject, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {Router} from '@angular/router';
+import {MessageService} from 'primeng/api';
+import {ToastModule} from 'primeng/toast';
+import {RippleModule} from 'primeng/ripple';
 import {StepIndicatorComponent} from '../step-indicator/step-indicator.component';
 import {ClientCardComponent} from '../client-card/client-card.component';
 import {ProjectCardComponent} from '../project-card/project-card.component';
@@ -31,7 +31,7 @@ import {Dialog} from 'primeng/dialog';
   templateUrl: './select-context.page.html'
 })
 export class SelectContextPage implements OnInit {
-  store = inject(SelectContextStore);
+  readonly store = inject(SelectContextStore);
   private router = inject(Router);
   private messageService = inject(MessageService);
 
@@ -43,7 +43,6 @@ export class SelectContextPage implements OnInit {
     this.store.loadClients();
   }
 
-  // Step Navigation
   getStepIcon(step: number): string {
     return step === 1 ? 'pi-building' : 'pi-folder';
   }
@@ -55,7 +54,6 @@ export class SelectContextPage implements OnInit {
     return `Elige el proyecto del cliente ${this.store.selectedClient()?.name || ''}`;
   }
 
-  // Selection Handlers
   onClientSelect(client: ClientEntity): void {
     this.store.selectClient(client);
   }
@@ -64,7 +62,6 @@ export class SelectContextPage implements OnInit {
     this.store.selectProject(project);
   }
 
-  // Navigation
   async onNext(): Promise<void> {
     await this.store.nextStep();
   }
