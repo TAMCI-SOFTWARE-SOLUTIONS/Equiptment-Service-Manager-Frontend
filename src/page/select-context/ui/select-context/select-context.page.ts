@@ -9,6 +9,10 @@ import {SuccessModalComponent} from '../success-modal/success-modal.component';
 import {SelectContextStep, SelectContextStore} from '../../model/stores/select-context.store';
 import {ClientEntity} from '../../../../entities/client/model';
 import {ProjectEntity} from '../../../../entities/project/model/project.entity';
+import {EntityIconComponent} from '../../../../shared/ui/entity-icon/entity-icon.component';
+import {IconEntity} from '../../../../shared/model/enums/icon-entity.enum';
+import {IconSize} from '../../../../shared/model/enums/icon-size.enum';
+import {IconRounded} from '../../../../shared/model/enums/icon.rounded';
 
 @Component({
   selector: 'app-select-context',
@@ -19,7 +23,8 @@ import {ProjectEntity} from '../../../../entities/project/model/project.entity';
     ClientCardComponent,
     ProjectCardComponent,
     ContextHeroComponent,
-    SuccessModalComponent
+    SuccessModalComponent,
+    EntityIconComponent
   ],
   providers: [SelectContextStore],
   templateUrl: './select-context.page.html'
@@ -29,6 +34,9 @@ export class SelectContextPage implements OnInit {
   private readonly router = inject(Router);
 
   readonly SelectContextStep = SelectContextStep;
+  readonly IconEntity = IconEntity;
+  readonly IconSize = IconSize;
+  readonly IconRounded = IconRounded;
 
   showSuccessModal = false;
 

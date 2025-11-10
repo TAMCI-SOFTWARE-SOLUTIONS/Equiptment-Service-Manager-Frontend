@@ -20,9 +20,11 @@
         <section class="flex min-h-0 flex-col">
           <!-- Section Header (Fixed) -->
           <div class="mb-4 flex shrink-0 items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-sky-600">
-              <i class="pi pi-building text-lg"></i>
-            </div>
+            <app-entity-icon
+              [entity]="IconEntity.CLIENT"
+              [size]="IconSize.MD"
+              [rounded]="IconRounded.LG"
+              [customClasses]="'bg-sky-100 text-sky-600'" />
             <div class="flex-1">
               <h2 class="text-lg font-semibold text-gray-900">
                 Clientes
@@ -106,9 +108,11 @@
         <section class="flex min-h-0 flex-col">
           <!-- Section Header (Fixed) -->
           <div class="mb-4 flex shrink-0 items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-100 text-cyan-600">
-              <i class="pi pi-folder text-lg"></i>
-            </div>
+            <app-entity-icon
+              [entity]="IconEntity.PROJECT"
+              [size]="IconSize.MD"
+              [rounded]="IconRounded.LG"
+              [customClasses]="'bg-cyan-100 text-cyan-600'" />
             <div class="flex-1">
               <h2 class="text-lg font-semibold text-gray-900">
                 Proyectos

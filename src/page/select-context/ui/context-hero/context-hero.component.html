@@ -15,28 +15,26 @@
       <!-- Right: Steps -->
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-2">
-          <div
-            class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all"
-            [ngClass]="{
-              'bg-sky-500 text-white': currentStep() >= SelectContextStep.SELECT_CLIENT,
-              'bg-gray-200 text-gray-600': currentStep() < SelectContextStep.SELECT_CLIENT
-            }">
-            <i class="pi pi-building text-xs"></i>
-          </div>
+          <app-entity-icon
+            [entity]="IconEntity.CLIENT"
+            [size]="IconSize.SM"
+            [rounded]="IconRounded.FULL"
+            [customClasses]="currentStep() >= SelectContextStep.SELECT_CLIENT
+        ? 'bg-sky-500 text-white'
+        : 'bg-gray-200 text-gray-600'" />
           <span class="text-sm font-medium text-gray-700">Cliente</span>
         </div>
 
         <div class="h-px w-8 bg-gray-300"></div>
 
         <div class="flex items-center gap-2">
-          <div
-            class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all"
-            [ngClass]="{
-              'bg-sky-500 text-white': currentStep() >= SelectContextStep.SELECT_PROJECT,
-              'bg-gray-200 text-gray-600': currentStep() < SelectContextStep.SELECT_PROJECT
-            }">
-            <i class="pi pi-folder text-xs"></i>
-          </div>
+          <app-entity-icon
+            [entity]="IconEntity.PROJECT"
+            [size]="IconSize.SM"
+            [rounded]="IconRounded.FULL"
+            [customClasses]="currentStep() >= SelectContextStep.SELECT_PROJECT
+        ? 'bg-sky-500 text-white'
+        : 'bg-gray-200 text-gray-600'" />
           <span class="text-sm font-medium text-gray-700">Proyecto</span>
         </div>
       </div>
