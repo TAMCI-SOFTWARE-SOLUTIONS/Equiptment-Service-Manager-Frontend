@@ -1,6 +1,5 @@
-/* Estilos para el scrollbar personalizado (opcional pero se ve mejor) */
 .scrollbar-thin::-webkit-scrollbar {
-  height: 6px;
+  height: 4px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
@@ -8,21 +7,16 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #d1d5db; /* gray-300 */
-  border-radius: 3px;
+  background: #cbd5e1;
+  border-radius: 2px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af; /* gray-400 */
+  background: #94a3b8;
 }
 
-/* Para Firefox */
-.scrollbar-thin {
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db transparent;
-}
-
-/* Smooth scroll */
-.overflow-x-auto {
-  scroll-behavior: smooth;
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
