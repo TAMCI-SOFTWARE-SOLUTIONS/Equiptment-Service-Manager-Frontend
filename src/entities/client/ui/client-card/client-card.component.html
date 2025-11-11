@@ -3,70 +3,283 @@
   type="button"
   [disabled]="!clickable()"
   (click)="handleCardClick()"
-  class="group w-full overflow-hidden rounded-xl border-2 bg-white text-left transition-all duration-300"
+  class="group relative w-full overflow-hidden rounded-2xl text-left transition-all duration-300"
   [ngClass]="{
-    'border-sky-500 bg-sky-50 shadow-lg': isSelected(),
-    'border-gray-200 hover:border-sky-300 hover:shadow-md': !isSelected() && clickable(),
-    'border-gray-200': !isSelected() && !clickable(),
+    'shadow-xl border-b-2 border-r-2 border-sky-400': isSelected(),
+    'shadow-md hover:shadow-xl border-b border-r border-gray-200 hover:border-sky-300': !isSelected() && clickable(),
+    'shadow-sm border-b border-r border-gray-200/30': !isSelected() && !clickable(),
     'cursor-pointer': clickable(),
     'cursor-default': !clickable()
   }">
 
-  <!-- Banner Section -->
-  <div class="relative h-32 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-    @if (bannerUrl()) {
-      <img
-        [src]="bannerUrl()!"
-        [alt]="client().name"
-        class="h-full w-full object-cover transition-transform duration-500"
-        [ngClass]="{'group-hover:scale-110': clickable()}" />
-      <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-    } @else {
-      <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-        <i class="pi pi-building text-4xl text-gray-300"></i>
-      </div>
-    }
-
-    <!-- Selected Badge -->
-    @if (isSelected()) {
-      <div class="absolute right-3 top-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500 shadow-xl ring-4 ring-white">
-          <i class="pi pi-check text-sm font-bold text-white"></i>
-        </div>
-      </div>
-    }
-  </div>
-
-  <!-- Content Section -->
-  <div class="flex items-center gap-4 p-5">
-    <!-- Logo -->
-    <div class="shrink-0">
-      @if (logoUrl()) {
+  <!-- Banner Section (Conditional) -->
+  @if (showBanner()) {
+    <div [class]="'relative ' + containerHeight()">
+      <!-- Background image or gradient -->
+      @if (bannerUrl()) {
         <img
-          [src]="logoUrl()!"
+          [src]="bannerUrl()!"
           [alt]="client().name"
-          class="h-16 w-16 rounded-full object-cover ring-2 ring-gray-200 transition-all duration-300"
-          [ngClass]="{'ring-sky-500': isSelected()}" />
+          class="h-full w-full object-cover transition-transform duration-700"
+          [ngClass]="{'scale-110': isSelected()}" />
       } @else {
-        <div
-          class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 text-white ring-2 ring-gray-200 transition-all duration-300"
-          [ngClass]="{'ring-sky-500': isSelected()}">
-          <span class="text-xl font-bold">{{ initials() }}</span>
+        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300">
+          <app-entity-icon
+            [entity]="IconEntity.CLIENT"
+            [size]="IconSize.XL"
+            [rounded]="IconRounded.NONE"
+            [customClasses]="'bg-transparent text-gray-300'" />
         </div>
       }
-    </div>
 
-    <!-- Name -->
-    <div class="flex-1 min-w-0">
-      <h3
-        class="truncate text-lg font-semibold transition-colors duration-200"
-        [ngClass]="{
-          'text-sky-600': isSelected(),
-          'text-gray-900 group-hover:text-sky-600': !isSelected() && clickable(),
-          'text-gray-900': !isSelected() && !clickable()
-        }">
-        {{ client().name }}
-      </h3>
+      <!-- Dark overlay gradient -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10 transition-opacity duration-300"
+           [ngClass]="{'from-black/70 via-black/30 to-transparent': isSelected()}"></div>
+
+      <!-- Content overlay -->
+      <div [class]="'absolute inset-0 flex flex-col justify-between ' + padding()">
+
+        <!-- TOP: Checkmark -->
+        @if (isSelected() && showCheckmark()) {
+          <div class="flex justify-end">
+            <div [class]="'flex items-center justify-center rounded-full bg-sky-500 shadow-2xl ring-4 ring-white/20 backdrop-blur-sm ' + checkmarkSize()">
+              <i class="pi pi-check text-xs sm:text-sm font-bold text-white"></i>
+            </div>
+          </div>
+        } @else {
+          <div></div>
+        }
+
+        <!-- BOTTOM: Logo + Name -->
+        <div class="flex items-end gap-3 sm:gap-4">
+          <!-- Logo (Conditional) -->
+          @if (showLogo()) {
+            @if (logoClickable()) {
+              <button
+                type="button"
+                (click)="handleLogoClick($event)"
+                class="shrink-0 cursor-pointer transition-all duration-300 hover:scale-105">
+                @if (logoUrl()) {
+                  <img
+                    [src]="logoUrl()!"
+                    [alt]="client().name"
+                    [class]="'rounded-2xl object-cover shadow-2xl ring-4 ring-white/20 transition-all duration-300 ' + logoSize()"
+                    [ngClass]="{'ring-white/40 scale-110': isSelected()}" />
+                } @else {
+                  <div
+                    [class]="'flex items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-cyan-500 shadow-2xl ring-4 ring-white/20 transition-all duration-300 ' + logoSize()"
+                    [ngClass]="{'ring-white/40 scale-110': isSelected()}">
+                    <span [class]="'font-bold text-white ' + logoTextSize()">{{ initials() }}</span>
+                  </div>
+                }
+              </button>
+            } @else {
+              <div class="shrink-0">
+                @if (logoUrl()) {
+                  <img
+                    [src]="logoUrl()!"
+                    [alt]="client().name"
+                    [class]="'rounded-2xl object-cover shadow-2xl ring-4 ring-white/20 transition-all duration-300 ' + logoSize()"
+                    [ngClass]="{'ring-white/40 scale-110': isSelected()}" />
+                } @else {
+                  <div
+                    [class]="'flex items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-cyan-500 shadow-2xl ring-4 ring-white/20 transition-all duration-300 ' + logoSize()"
+                    [ngClass]="{'ring-white/40 scale-110': isSelected()}">
+                    <span [class]="'font-bold text-white ' + logoTextSize()">{{ initials() }}</span>
+                  </div>
+                }
+              </div>
+            }
+          }
+
+          <!-- Name + Metadata (con overflow fix) -->
+          <div class="min-w-0 flex-1 pb-1">
+            @if (nameClickable()) {
+              <button
+                type="button"
+                (click)="handleNameClick($event)"
+                class="w-full cursor-pointer text-left transition-all duration-200 hover:opacity-80">
+                <h3 [class]="'truncate font-bold leading-tight text-white drop-shadow-lg ' + nameTextSize()">
+                  {{ client().name }}
+                </h3>
+              </button>
+            } @else {
+              <h3 [class]="'truncate font-bold leading-tight text-white drop-shadow-lg ' + nameTextSize()">
+                {{ client().name }}
+              </h3>
+            }
+
+            @if (showMetadata()) {
+              <p [class]="'mt-0.5 font-medium text-white/80 ' + metadataTextSize()">
+                @if (isSelected()) {
+                  <span class="inline-flex mt-0.5 items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
+                  <app-entity-icon
+                    [entity]="IconEntity.CLIENT"
+                    [size]="IconSize.SM"
+                    [rounded]="IconRounded.NONE"
+                    [customClasses]="'bg-transparent text-white'" />
+                  <span>Seleccionado</span>
+                </span>
+                } @else {
+                  <div class="flex flex-row justify-start items-center">
+                    <app-entity-icon
+                      [entity]="IconEntity.CLIENT"
+                      [size]="IconSize.SM"
+                      [rounded]="IconRounded.NONE"
+                      [customClasses]="'bg-transparent text-white/80'" />
+                    <span>Cliente</span>
+                  </div>
+                }
+              </p>
+            }
+          </div>
+
+          <!-- Arrow indicator -->
+          @if (clickable() && showArrow()) {
+            <div class="shrink-0 pb-2">
+              <i class="pi pi-arrow-right text-lg sm:text-xl text-white/80 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white"></i>
+            </div>
+          }
+        </div>
+      </div>
     </div>
-  </div>
+  }
+
+  <!-- No Banner Layout (Compact) -->
+  @if (!showBanner()) {
+    <div [class]="'flex items-center gap-3 sm:gap-4 ' + padding()">
+
+      <!-- Logo -->
+      @if (showLogo()) {
+        @if (logoClickable()) {
+          <button
+            type="button"
+            (click)="handleLogoClick($event)"
+            class="shrink-0 cursor-pointer transition-all duration-300 hover:scale-105">
+            @if (logoUrl()) {
+              <img
+                [src]="logoUrl()!"
+                [alt]="client().name"
+                [class]="'rounded-2xl object-cover shadow-lg ring-4 transition-all duration-300 ' + logoSize()"
+                [ngClass]="{
+                  'ring-sky-400 shadow-xl': isSelected(),
+                  'ring-gray-200': !isSelected()
+                }" />
+            } @else {
+              <div
+                [class]="'flex items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg ring-4 transition-all duration-300 ' + logoSize()"
+                [ngClass]="{
+                  'from-sky-400 to-cyan-500 ring-sky-400 shadow-xl': isSelected(),
+                  'from-gray-200 to-gray-300 ring-gray-200': !isSelected()
+                }">
+                <span [class]="'font-bold ' + logoTextSize()"
+                      [ngClass]="{'text-white': isSelected(), 'text-gray-500': !isSelected()}">
+                  {{ initials() }}
+                </span>
+              </div>
+            }
+          </button>
+        } @else {
+          <div class="shrink-0">
+            @if (logoUrl()) {
+              <img
+                [src]="logoUrl()!"
+                [alt]="client().name"
+                [class]="'rounded-2xl object-cover shadow-lg ring-4 transition-all duration-300 ' + logoSize()"
+                [ngClass]="{
+                  'ring-sky-400 shadow-xl': isSelected(),
+                  'ring-gray-200': !isSelected()
+                }" />
+            } @else {
+              <div
+                [class]="'flex items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg ring-4 transition-all duration-300 ' + logoSize()"
+                [ngClass]="{
+                  'from-sky-400 to-cyan-500 ring-sky-400 shadow-xl': isSelected(),
+                  'from-gray-200 to-gray-300 ring-gray-200': !isSelected()
+                }">
+                <span [class]="'font-bold ' + logoTextSize()"
+                      [ngClass]="{'text-white': isSelected(), 'text-gray-500': !isSelected()}">
+                  {{ initials() }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- Content (con overflow fix) -->
+      <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        <div class="min-w-0 flex-1">
+          @if (nameClickable()) {
+            <button
+              type="button"
+              (click)="handleNameClick($event)"
+              class="w-full cursor-pointer text-left transition-all duration-200 hover:opacity-80">
+              <h3
+                [class]="'truncate font-bold leading-tight transition-colors duration-200 ' + nameTextSize()"
+                [ngClass]="{
+                  'text-sky-600': isSelected(),
+                  'text-gray-900 group-hover:text-sky-600': !isSelected() && clickable(),
+                  'text-gray-800': !isSelected() && !clickable()
+                }">
+                {{ client().name }}
+              </h3>
+            </button>
+          } @else {
+            <h3
+              [class]="'truncate font-bold leading-tight transition-colors duration-200 ' + nameTextSize()"
+              [ngClass]="{
+                'text-sky-600': isSelected(),
+                'text-gray-900 group-hover:text-sky-600': !isSelected() && clickable(),
+                'text-gray-800': !isSelected() && !clickable()
+              }">
+              {{ client().name }}
+            </h3>
+          }
+
+          @if (showMetadata()) {
+            <p [class]="'mt-0.5 font-medium ' + metadataTextSize()"
+               [ngClass]="{
+                 'text-sky-600': isSelected(),
+                 'text-gray-500': !isSelected()
+               }">
+              @if (isSelected()) {
+                <span class="inline-flex mt-0.5 items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
+                  <app-entity-icon
+                    [entity]="IconEntity.CLIENT"
+                    [size]="IconSize.SM"
+                    [rounded]="IconRounded.NONE"
+                    [customClasses]="'bg-transparent text-white'" />
+                  <span>Seleccionado</span>
+                </span>
+              } @else {
+                <div class="flex flex-row justify-start items-center">
+                  <app-entity-icon
+                    [entity]="IconEntity.CLIENT"
+                    [size]="IconSize.SM"
+                    [rounded]="IconRounded.NONE"
+                    [customClasses]="'bg-transparent ' + (isSelected() ? 'text-sky-600' : 'text-gray-500')" />
+                  <span>Cliente</span>
+                </div>
+              }
+            </p>
+          }
+        </div>
+
+        <!-- Checkmark -->
+        @if (isSelected() && showCheckmark()) {
+          <div class="shrink-0">
+            <div [class]="'flex items-center justify-center rounded-full bg-sky-500 shadow-md ' + checkmarkSize()">
+              <i class="pi pi-check text-xs font-bold text-white"></i>
+            </div>
+          </div>
+        }
+
+        <!-- Chevron -->
+        @if (clickable() && !isSelected() && showArrow()) {
+          <i class="pi pi-chevron-right shrink-0 text-base sm:text-lg text-gray-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-sky-500"></i>
+        }
+      </div>
+    </div>
+  }
 </button>
