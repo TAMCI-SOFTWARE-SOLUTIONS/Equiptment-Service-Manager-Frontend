@@ -6,56 +6,24 @@
 
       <!-- Breadcrumb -->
       <div class="mb-4">
-        <app-breadcrumb [items]="breadcrumbItems" />
+        <app-breadcrumb
+          [items]="breadcrumbItems"
+          [loading]="store.isLoading()"
+        />
       </div>
 
       <!-- Title & Actions -->
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <button
-            pRipple
-            type="button"
-            (click)="onBackToClients()"
-            [disabled]="store.isLoading()"
-            class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
-            <i class="pi pi-arrow-left text-base"></i>
-          </button>
-
-          <div>
-            <h1 class="text-xl font-bold text-gray-900 lg:text-2xl">
-              {{ store.client()?.name || 'Cargando...' }}
-            </h1>
-            <p class="mt-0.5 text-sm text-gray-600">
-              Gestiona las plantas de este cliente
-            </p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button
-            pRipple
-            type="button"
-            (click)="onRefresh()"
-            [disabled]="store.isLoading()"
-            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
-            @if (store.isLoading()) {
-              <i class="pi pi-spinner pi-spin text-base"></i>
-            } @else {
-              <i class="pi pi-refresh text-base"></i>
-            }
-          </button>
-
-          <button
-            pRipple
-            type="button"
-            (click)="onEditClient()"
-            [disabled]="store.isLoading()"
-            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50">
-            <i class="pi pi-pencil text-sm"></i>
-            <span class="hidden sm:inline">Editar Cliente</span>
-          </button>
-        </div>
-      </div>
+      <app-page-header
+        [title]="store.client()?.name || 'Cargando...'"
+        [subtitle]="'Gestiona las plantas de este cliente'"
+        [loading]="store.isLoading()"
+        [showRefreshButton]="true"
+        [primaryActions]="headerActions"
+        [moreActions]="moreActions"
+        [mobileStrategy]="'menu'"
+        (back)="onBackToClients()"
+        (refresh)="onRefresh()"
+      />
     </div>
   </header>
 
@@ -204,16 +172,3 @@
   </main>
 
 </div>
-
-<!-- Delete Confirmation Modal -->
-<app-confirmation-modal
-  [show]="showDeleteModal()"
-  [title]="'¿Eliminar planta?'"
-  [message]="'Estás a punto de eliminar la planta:'"
-  [itemName]="plantToDelete()?.name"
-  [warningText]="'Esta acción eliminará también todas las áreas y ubicaciones asociadas. No se puede deshacer.'"
-  [confirmText]="'Sí, eliminar'"
-  [isLoading]="isDeleting()"
-  (onConfirm)="confirmDeletePlant()"
-  (onCancel)="closeDeleteModal()">
-</app-confirmation-modal>

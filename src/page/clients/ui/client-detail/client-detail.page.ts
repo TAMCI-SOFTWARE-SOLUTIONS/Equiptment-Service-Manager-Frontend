@@ -1,14 +1,18 @@
-import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Ripple } from 'primeng/ripple';
+import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Ripple} from 'primeng/ripple';
 import {BreadcrumbComponent, BreadcrumbItem} from '../../../../shared/ui/breadcrumb/breadcrumb.component';
 import {EmptyStateComponent} from '../../../../shared/ui/empty-state/empty-state.component';
-import {ConfirmationModalComponent} from '../../../../shared/ui/confirmation-modal/confirmation-modal.component';
 import {PlantCardComponent} from '../plant-card/plant-card.component';
 import {ClientDetailStore} from '../../model/client-detail.store';
-import {PlantEntity, PlantService} from '../../../../entities/plant';
-import {firstValueFrom} from 'rxjs';
+import {PlantEntity} from '../../../../entities/plant';
+import {
+  PageHeaderAction,
+  PageHeaderComponent,
+  PageHeaderMoreAction
+} from '../../../../shared/ui/page-header/page-header.component';
+import {AuthStore} from '../../../../shared/stores';
 
 @Component({
   selector: 'app-client-detail',
@@ -17,25 +21,47 @@ import {firstValueFrom} from 'rxjs';
     CommonModule,
     BreadcrumbComponent,
     EmptyStateComponent,
-    ConfirmationModalComponent,
     PlantCardComponent,
-    Ripple
+    Ripple,
+    PageHeaderComponent
   ],
   providers: [ClientDetailStore],
   templateUrl: './client-detail.page.html'
 })
 export class ClientDetailPage implements OnInit, OnDestroy {
+  readonly authStore = inject(AuthStore);
   readonly store = inject(ClientDetailStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly plantService = inject(PlantService);
 
-  // UI State
   readonly showDeleteModal = signal(false);
   readonly plantToDelete = signal<PlantEntity | null>(null);
   readonly isDeleting = signal(false);
 
   clientId: string | null = null;
+
+  headerActions: PageHeaderAction[] = [
+    {
+      id: 'edit',
+      label: 'Editar Cliente',
+      mobileLabel: 'Editar',
+      icon: 'pi-pencil',
+      variant: 'primary',
+      visible: this.canEditClient(),
+      showInMobile: true,
+      onClick: () => this.onEditClient()
+    }
+  ];
+
+  moreActions: PageHeaderMoreAction[] = [
+    {
+      label: 'Desactivar Cliente',
+      icon: 'pi pi-ban',
+      visible: this.canDeactivate(),
+      styleClass: 'text-orange-600',
+      command: () => this.onDeactivate()
+    }
+  ];
 
   ngOnInit(): void {
     this.clientId = this.route.snapshot.paramMap.get('clientId');
@@ -46,6 +72,19 @@ export class ClientDetailPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.store.reset();
+  }
+
+  private canEditClient(): boolean {
+    return this.authStore.isAdmin();
+  }
+
+  private canDeactivate(): boolean {
+    // TODO: Implement logic to check if client can be deactivated
+    return false;
+  }
+
+  onDeactivate(): void {
+    // TODO: Implement logic to deactivate client
   }
 
   get breadcrumbItems(): BreadcrumbItem[] {
@@ -86,34 +125,6 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   onDeletePlantClick(plant: PlantEntity): void {
     this.plantToDelete.set(plant);
     this.showDeleteModal.set(true);
-  }
-
-  async confirmDeletePlant(): Promise<void> {
-    const plant = this.plantToDelete();
-    if (!plant) return;
-
-    this.isDeleting.set(true);
-
-    try {
-      await firstValueFrom(this.plantService.delete(plant.id));
-
-      // Remover de la lista
-      this.store.removePlant(plant.id);
-
-      // Cerrar modal
-      this.closeDeleteModal();
-    } catch (error: any) {
-      console.error('❌ Error deleting plant:', error);
-      alert('Error al eliminar la planta. Por favor intenta de nuevo.');
-    } finally {
-      this.isDeleting.set(false);
-    }
-  }
-
-  closeDeleteModal(): void {
-    this.showDeleteModal.set(false);
-    this.plantToDelete.set(null);
-    this.isDeleting.set(false);
   }
 
   onRefresh(): void {
