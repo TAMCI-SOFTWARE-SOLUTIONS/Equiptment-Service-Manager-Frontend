@@ -1,34 +1,75 @@
-<div class="mb-6 space-y-4">
-  <!-- First row: Back button + Actions -->
-  <div class="flex items-center justify-between gap-4">
-    <!-- Back Button -->
+<div class="mb-6 flex items-start justify-between gap-4">
+
+  <div class="flex min-w-0 flex-1 items-start gap-3">
+
     @if (showBackButton()) {
-      @if (backRoute()) {
-        <a
-        pRipple
-          [routerLink]="backRoute()"
-          [class.pointer-events-none]="loading()"
-          [class.opacity-50]="loading()"
-          class="flex shrink-0 items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
-        <i [class]="'text-sm pi ' + backIcon()"></i>
-        <span class="hidden sm:inline">{{ backLabel() }}</span>
-        </a>
-      } @else {
-        <button
-          pRipple
-          type="button"
-          (click)="onBackClick()"
-          [disabled]="loading()"
-          class="flex shrink-0 items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50">
-          <i [class]="'text-sm pi ' + backIcon()"></i>
-          <span class="hidden sm:inline">{{ backLabel() }}</span>
-        </button>
-      }
+      <div class="mt-1 shrink-0 lg:mt-0">
+        @if (backRoute()) {
+          <a
+            pRipple
+            [routerLink]="backRoute()"
+            [class.pointer-events-none]="loading()"
+            [class.opacity-50]="loading()"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 lg:h-9 lg:w-9"
+            [attr.aria-label]="backLabel()">
+            <i [class]="'text-lg pi ' + backIcon() + ' lg:text-base'"></i>
+          </a>
+        } @else {
+          <button
+            pRipple
+            type="button"
+            (click)="onBackClick()"
+            [disabled]="loading()"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50 lg:h-9 lg:w-9"
+            [attr.aria-label]="backLabel()">
+            <i [class]="'text-lg pi ' + backIcon() + ' lg:text-base'"></i>
+          </button>
+        }
+      </div>
     }
 
-    <!-- Actions Container -->
+    <div class="flex min-w-0 flex-1 items-start gap-3">
+      @if (titleIcon()) {
+        <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-sm lg:mt-0">
+          <i [class]="'text-lg pi ' + titleIcon()"></i>
+        </div>
+      }
+
+      <div class="min-w-0 flex-1">
+        @if (loading()) {
+          <div class="space-y-2">
+            <div class="h-8 w-full max-w-md animate-pulse rounded bg-gray-200"></div>
+            <div class="h-4 w-full max-w-lg animate-pulse rounded bg-gray-200"></div>
+          </div>
+        } @else {
+          <div class="space-y-1">
+            <h1
+              [class]="titleClasses()"
+              [title]="truncateTitle() ? title() : ''">
+              {{ title() }}
+            </h1>
+            @if (subtitle()) {
+              <p
+                [class]="subtitleClasses()"
+                [title]="truncateSubtitle() ? subtitle() : ''">
+                {{ subtitle() }}
+              </p>
+            }
+          </div>
+
+          @if (headerContent()) {
+            <div class="mt-3 min-w-0">
+              <ng-container [ngTemplateOutlet]="headerContent()!" />
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+  </div>
+
+  <div class="shrink-0">
     @if (!loading()) {
-      <!-- Desktop Actions -->
       <div class="hidden items-center gap-2 lg:flex">
         @if (showRefreshButton()) {
           <button
@@ -79,10 +120,9 @@
         }
       </div>
 
-      <!-- Mobile Actions -->
       <div class="flex items-center gap-2 lg:hidden">
-        <!-- Refresh siempre visible en mobile -->
-        @if (showRefreshButton()) {
+
+        @if (mobileStrategy() === 'compact' && showRefreshButton()) {
           <button
             pRipple
             type="button"
@@ -98,7 +138,6 @@
           </button>
         }
 
-        <!-- Acciones primarias en mobile (solo si strategy es 'compact') -->
         @for (action of mobilePrimaryActions(); track action.id) {
           <button
             pRipple
@@ -111,7 +150,6 @@
           </button>
         }
 
-        <!-- Menú de acciones en mobile -->
         @if (showMobileMoreActionsButton) {
           <button
             #mobileMoreActionsBtn
@@ -133,49 +171,5 @@
         }
       </div>
     }
-  </div>
-
-  <!-- Segunda fila: Title Section -->
-  <div class="flex items-start gap-3">
-    <!-- Title Icon (opcional) -->
-    @if (titleIcon()) {
-      <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-sm">
-        <i [class]="'text-lg pi ' + titleIcon()"></i>
-      </div>
-    }
-
-    <!-- Title & Content -->
-    <div class="min-w-0 flex-1">
-      <!-- Loading State -->
-      @if (loading()) {
-        <div class="space-y-2">
-          <div class="h-8 w-full max-w-md animate-pulse rounded bg-gray-200"></div>
-          <div class="h-4 w-full max-w-lg animate-pulse rounded bg-gray-200"></div>
-        </div>
-      } @else {
-        <!-- Title & Subtitle -->
-        <div class="space-y-1">
-          <h1
-            [class]="titleClasses()"
-            [title]="truncateTitle() ? title() : ''">
-            {{ title() }}
-          </h1>
-          @if (subtitle()) {
-            <p
-              [class]="subtitleClasses()"
-              [title]="truncateSubtitle() ? subtitle() : ''">
-              {{ subtitle() }}
-            </p>
-          }
-        </div>
-
-        <!-- Custom Header Content -->
-        @if (headerContent()) {
-          <div class="mt-3 min-w-0">
-            <ng-container [ngTemplateOutlet]="headerContent()!" />
-          </div>
-        }
-      }
-    </div>
   </div>
 </div>

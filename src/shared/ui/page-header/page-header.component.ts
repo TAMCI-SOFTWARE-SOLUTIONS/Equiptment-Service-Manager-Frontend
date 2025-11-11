@@ -94,39 +94,59 @@ export class PageHeaderComponent {
   });
 
   mobileMenuActions = computed(() => {
+    const actions: (MenuItem | PageHeaderMoreAction)[] = [];
+
     if (this.mobileStrategy() === 'menu') {
-      return [
-        ...this.visiblePrimaryActions().map(action => ({
+      if (this.showRefreshButton()) {
+        actions.push({
+          label: 'Refrescar',
+          icon: 'pi pi-refresh',
+          disabled: this.loading(),
+          visible: true,
+          command: () => this.onRefreshClick()
+        });
+      }
+      const primaryActions = this.visiblePrimaryActions().map(action => ({
+        label: action.label,
+        icon: `pi ${action.icon}`,
+        disabled: action.disabled,
+        visible: true,
+        command: () => action.onClick(),
+        styleClass: action.variant === 'primary' ? 'font-semibold' : ''
+      }));
+
+      if (actions.length > 0 && primaryActions.length > 0) {
+        actions.push({ separator: true, visible: true });
+      }
+      actions.push(...primaryActions);
+
+      const moreActions = this.visibleMoreActions;
+      if (actions.length > 0 && moreActions.length > 0) {
+        actions.push({ separator: true, visible: true });
+      }
+      actions.push(...moreActions);
+
+    } else {
+      const hiddenPrimaryActions = this.visiblePrimaryActions()
+        .filter(action => action.showInMobile === false)
+        .map(action => ({
           label: action.label,
           icon: `pi ${action.icon}`,
           disabled: action.disabled,
           visible: true,
-          command: () => action.onClick(),
-          styleClass: action.variant === 'primary' ? 'font-semibold' : ''
-        })),
-        ...(this.visiblePrimaryActions().length > 0 && this.visibleMoreActions.length > 0
-          ? [{ separator: true, visible: true }]
-          : []),
-        ...this.visibleMoreActions
-      ];
-    } else {
-      return [
-        ...this.visiblePrimaryActions()
-          .filter(action => action.showInMobile === false)
-          .map(action => ({
-            label: action.label,
-            icon: `pi ${action.icon}`,
-            disabled: action.disabled,
-            visible: true,
-            command: () => action.onClick()
-          })),
-        ...(this.visiblePrimaryActions().filter(a => a.showInMobile === false).length > 0
-        && this.visibleMoreActions.length > 0
-          ? [{ separator: true, visible: true }]
-          : []),
-        ...this.visibleMoreActions
-      ];
+          command: () => action.onClick()
+        }));
+
+      actions.push(...hiddenPrimaryActions);
+
+      const moreActions = this.visibleMoreActions;
+      if (hiddenPrimaryActions.length > 0 && moreActions.length > 0) {
+        actions.push({ separator: true, visible: true });
+      }
+      actions.push(...moreActions);
     }
+
+    return actions;
   });
 
   get visibleMoreActions(): MenuItem[] {
