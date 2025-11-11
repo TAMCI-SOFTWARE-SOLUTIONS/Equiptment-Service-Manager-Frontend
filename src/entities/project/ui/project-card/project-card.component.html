@@ -5,9 +5,9 @@
   (click)="handleCardClick()"
   class="group relative w-full overflow-hidden rounded-2xl text-left transition-all duration-300"
   [ngClass]="{
-    'shadow-xl ring-2 ring-sky-400': isSelected(),
-    'shadow-md hover:shadow-xl ring-1 ring-gray-200/50 hover:ring-sky-300': !isSelected() && clickable(),
-    'shadow-sm ring-1 ring-gray-200/30': !isSelected() && !clickable(),
+    'shadow-xl border-b-2 border-r-2 border-sky-400': isSelected(),
+    'shadow-md hover:shadow-xl border-b border-r border-gray-200 hover:border-sky-300': !isSelected() && clickable(),
+    'shadow-sm border-b border-r border-gray-200/30': !isSelected() && !clickable(),
     'cursor-pointer': clickable(),
     'cursor-default': !clickable()
   }">
