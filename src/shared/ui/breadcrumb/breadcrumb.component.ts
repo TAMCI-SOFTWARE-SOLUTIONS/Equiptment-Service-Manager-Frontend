@@ -1,6 +1,7 @@
 import {Component, output} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {input} from '@angular/core';
+import {NgClass} from '@angular/common';
 
 export interface BreadcrumbItem {
   label: string;
@@ -13,7 +14,7 @@ export interface BreadcrumbItem {
 @Component({
   selector: 'app-breadcrumb',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, NgClass],
   templateUrl: './breadcrumb.component.html',
   styleUrl: './breadcrumb.component.css'
 })
@@ -22,6 +23,7 @@ export class BreadcrumbComponent {
   separator = input<string>('pi-chevron-right');
   showHome = input<boolean>(true);
   maxMobileLabelLength = input<number>(25);
+  loading = input<boolean>(false);
 
   itemClick = output<BreadcrumbItem>();
 
@@ -34,5 +36,9 @@ export class BreadcrumbComponent {
     return label.length > max
       ? label.substring(0, max) + '...'
       : label;
+  }
+
+  get skeletonItems(): number[] {
+    return [1, 2, 3]; // 3 items de skeleton por defecto
   }
 }

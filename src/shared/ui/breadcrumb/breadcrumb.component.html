@@ -1,69 +1,106 @@
 <nav class="w-full">
   <div class="flex items-center space-x-2 text-sm">
 
-    <!-- Mobile: Solo muestra el último y penúltimo item CON TRUNCADO -->
-    <div class="flex min-w-0 items-center space-x-2 lg:hidden">
-      @if (items().length > 2) {
-        <button
-          type="button"
-          class="flex shrink-0 items-center gap-1 text-gray-600 hover:text-sky-600">
-          <i class="pi pi-ellipsis-h text-xs"></i>
-        </button>
-        <i class="pi pi-chevron-right shrink-0 text-xs text-gray-400"></i>
-      }
+    @if (loading()) {
+      <!-- SKELETON STATE -->
 
-      @for (item of items().slice(-2); track $index; let isLast = $last) {
-        @if (!isLast && item.route) {
-          <a
-          [routerLink]="item.route"
-            [queryParams]="item.queryParams"
-            class="min-w-0 shrink truncate text-gray-600 transition-colors hover:text-sky-600"
-            [title]="item.label"
-            (click)="onItemClick(item)">
-          @if (item.icon) {
-            <i [class]="item.icon + ' mr-1'"></i>
+        <!-- Mobile Skeleton -->
+      <div class="flex min-w-0 items-center space-x-2 lg:hidden">
+        <div class="h-4 w-4 animate-pulse rounded bg-gray-200"></div>
+        <i class="pi pi-chevron-right shrink-0 text-xs text-gray-300"></i>
+
+        @for (item of [1, 2]; track item) {
+          <div class="h-4 w-24 animate-pulse rounded bg-gray-200"></div>
+          @if (item === 1) {
+            <i class="pi pi-chevron-right shrink-0 text-xs text-gray-300"></i>
           }
-          {{ item.label }}
-          </a>
-          <i [class]="'shrink-0 text-xs text-gray-400 pi ' + separator()"></i>
-        } @else {
-          <span
-            class="min-w-0 shrink truncate font-medium text-gray-900"
-            [title]="item.label">
+        }
+      </div>
+
+      <!-- Desktop Skeleton -->
+      <div class="hidden items-center space-x-2 lg:flex">
+        @for (item of skeletonItems; track item; let isLast = $last) {
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200"
+            [ngClass]="{
+              'w-20': item === 1,
+              'w-32': item === 2,
+              'w-40': item === 3
+            }">
+          </div>
+          @if (!isLast) {
+            <i class="pi pi-chevron-right shrink-0 text-xs text-gray-300"></i>
+          }
+        }
+      </div>
+
+    } @else {
+      <!-- CONTENT STATE -->
+
+        <!-- Mobile: Solo muestra el último y penúltimo item CON TRUNCADO -->
+      <div class="flex min-w-0 items-center space-x-2 lg:hidden">
+        @if (items().length > 2) {
+          <button
+            type="button"
+            class="flex shrink-0 items-center gap-1 text-gray-600 hover:text-sky-600">
+            <i class="pi pi-ellipsis-h text-xs"></i>
+          </button>
+          <i class="pi pi-chevron-right shrink-0 text-xs text-gray-400"></i>
+        }
+
+        @for (item of items().slice(-2); track $index; let isLast = $last) {
+          @if (!isLast && item.route) {
+            <a
+            [routerLink]="item.route"
+              [queryParams]="item.queryParams"
+              class="min-w-0 shrink truncate text-gray-600 transition-colors hover:text-sky-600"
+              [title]="item.label"
+              (click)="onItemClick(item)">
             @if (item.icon) {
               <i [class]="item.icon + ' mr-1'"></i>
             }
             {{ item.label }}
-          </span>
-        }
-      }
-    </div>
-
-    <!-- Desktop: Muestra todo con scroll si es necesario -->
-    <div class="hidden items-center space-x-2 overflow-x-auto pb-1 scrollbar-thin lg:flex">
-      @for (item of items(); track $index; let isLast = $last) {
-        @if (!isLast && item.route) {
-          <a
-          [routerLink]="item.route"
-            [queryParams]="item.queryParams"
-            class="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-sky-600"
-            (click)="onItemClick(item)">
-          @if (item.icon) {
-            <i [class]="item.icon + ' mr-1'"></i>
+            </a>
+            <i [class]="'shrink-0 text-xs text-gray-400 pi ' + separator()"></i>
+          } @else {
+            <span
+              class="min-w-0 shrink truncate font-medium text-gray-900"
+              [title]="item.label">
+              @if (item.icon) {
+                <i [class]="item.icon + ' mr-1'"></i>
+              }
+              {{ item.label }}
+            </span>
           }
-          {{ item.label }}
-          </a>
-          <i [class]="'shrink-0 text-xs text-gray-400 pi ' + separator()"></i>
-        } @else {
-          <span class="shrink-0 whitespace-nowrap font-medium text-gray-900">
+        }
+      </div>
+
+      <!-- Desktop: Muestra con scroll si es necesario -->
+      <div class="hidden items-center space-x-2 overflow-x-auto pb-1 scrollbar-thin lg:flex">
+        @for (item of items(); track $index; let isLast = $last) {
+          @if (!isLast && item.route) {
+            <a
+            [routerLink]="item.route"
+              [queryParams]="item.queryParams"
+              class="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-sky-600"
+              (click)="onItemClick(item)">
             @if (item.icon) {
               <i [class]="item.icon + ' mr-1'"></i>
             }
             {{ item.label }}
-          </span>
+            </a>
+            <i [class]="'shrink-0 text-xs text-gray-400 pi ' + separator()"></i>
+          } @else {
+            <span class="shrink-0 whitespace-nowrap font-medium text-gray-900">
+              @if (item.icon) {
+                <i [class]="item.icon + ' mr-1'"></i>
+              }
+              {{ item.label }}
+            </span>
+          }
         }
-      }
-    </div>
+      </div>
+    }
 
   </div>
 </nav>
