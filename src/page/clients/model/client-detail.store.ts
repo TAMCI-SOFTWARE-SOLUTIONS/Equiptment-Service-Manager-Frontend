@@ -13,6 +13,7 @@ export interface ClientDetailState {
   plants: PlantEntity[];
   isLoadingClient: boolean;
   isLoadingPlants: boolean;
+  isLoadingBanner: boolean;
   error: string | null;
 }
 
@@ -23,6 +24,7 @@ const initialState: ClientDetailState = {
   plants: [],
   isLoadingClient: false,
   isLoadingPlants: false,
+  isLoadingBanner: false,
   error: null
 };
 
@@ -41,6 +43,14 @@ export const ClientDetailStore = signalStore(
     isLoading: computed(() =>
       state.isLoadingClient() || state.isLoadingPlants()
     ),
+
+    /**
+     * Indica si tiene banner
+     */
+    hasBanner: computed(() => {
+      const client = state.client();
+      return client?.bannerFileId !== null && client?.bannerFileId !== undefined;
+    }),
 
     /**
      * Cantidad de plantas
@@ -104,13 +114,14 @@ export const ClientDetailStore = signalStore(
        * Cargar imágenes del cliente (logo y banner)
        */
       async loadClientImages(client: ClientEntity): Promise<void> {
+        patchState(store, { isLoadingBanner: true });
         try {
           // Cargar logo
           if (client.logoFileId) {
             const logoUrl = await firstValueFrom(
               fileService.viewFileAsUrl(client.logoFileId)
             );
-            patchState(store, { clientLogoUrl: logoUrl });
+            patchState(store, { clientLogoUrl: logoUrl, isLoadingBanner: false });
           }
 
           // Cargar banner
@@ -118,7 +129,7 @@ export const ClientDetailStore = signalStore(
             const bannerUrl = await firstValueFrom(
               fileService.viewFileAsUrl(client.bannerFileId)
             );
-            patchState(store, { clientBannerUrl: bannerUrl });
+            patchState(store, { clientBannerUrl: bannerUrl, isLoadingBanner: false });
           }
         } catch (error) {
           console.warn('⚠️ Error loading client images:', error);
